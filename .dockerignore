@@ -1,0 +1,12 @@
+# Ignore local virtualenv (if present)
+*
+!site
+!Pipfile
+!Pipfile.lock
+!docker/uwsgi
+!invenio.cfg
+!templates
+!app_data
+!translations
+!static
+!assets

@@ -1,0 +1,41 @@
+[cli]
+flavour = RDM
+logfile = /logs/invenio-cli.log
+
+[cookiecutter]
+project_name = Imperial Fair Data Repository
+project_shortname = ic-data-repo
+package_name = ic_data_repo
+project_site = invenio.rcs.ic.ac.uk
+github_repo = imperialcollegelondon/fair-data-repository
+description = Imperial Fair Data Repository InvenioRDM Instance
+author_name = Imperial College London
+author_email = info@invenio.rcs.ic.ac.uk
+year = 2023
+database = postgresql
+search = opensearch2
+file_storage = local
+development_tools = yes
+site_code = yes
+use_reduced_vocabs = no
+_template = https://github.com/inveniosoftware/cookiecutter-invenio-rdm.git
+_output_dir = /home/ccaveayl/projects/invenio_rdm
+
+[files]
+readme.md = 18ed4c53377f52dca2b376774fc649db1f193ccec44e1b0ef00966eee04bd854
+.dockerignore = 21241bc12cdf4ac5f209d6b191adc8f25eb89af93ce5c4c3f72c86661162d7b5
+docker-compose.yml = 4751e900e590f0e93925cedf9ec0141042f6045333c7846c23758a822dc928d9
+app_data = {'README.md': 'd58978488626bdeddc791a15a39e341a4ed06f202b84d0c0d4aa9ef49481c6d9', 'pages': {'.gitkeep': '22818f8c9f68fb11b7ca893ad1c082f844ae9f691f082d2174e32738d9ae6114'}, 'vocabularies.yaml': 'dd56a900bca7b15b33bc6ebb46079f355528eb500910d7c882f7f215c36c695b', 'vocabularies': {'cc_licences.csv': '19a8bfd2488c7adb90d1dbe1c70f57cf2e0a737cb11814cc814f917072843de7', 'names.yaml': '5bed6786526d6fea44828c19ded1e45f1892aae5d6be747f0ff79fc880ce535b', 'affiliations_ror.yaml': '2e913fbecacd3694cba1b9a10739164911c2d45db3b32f1cb923027c48e0ac3e', 'subjects_oecd_fos.yaml': 'eef38714c506d956193c3be17e6004049525d252bf22424f4804dfc1ad46db44', 'languages.yaml': 'd3bdb59940e8e6cd2401785ad55733f5fc6a1fb0bb0a2005a8fe4e5148e5f286'}}
+invenio.cfg = 8beffe9580bdcd09265a1c4462b5a9fcea554ad6df87944e34febb4b6ad88f06
+assets = {'less': {'theme.config': 'ee68441b779400585a3a1ed4445ab5727e3a47a09aa708976dd506c0e081f0d8', 'site': {'globals': {'site.overrides': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'site.variables': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}}}, 'js': {'invenio_app_rdm': {'overridableRegistry': {'mapping.js': '7fb63c1b801d11f1c1bb9b7d5cad6662ae475210df2bbba6919cda402684590a'}}}, 'templates': {'custom_fields': {'.gitkeep': 'd4756cdf68d94c670c924f9d57d44718f666e457727701486435b57a97e52c5f'}, 'search': {'.gitkeep': 'd4756cdf68d94c670c924f9d57d44718f666e457727701486435b57a97e52c5f'}}}
+dockerfile = 44e5c207cf3e82cddda086f73e6fa5f3bacfc06d11f55a95f954d744a773c605
+docker-compose.full.yml = d5ca45d92ede0696def8066db93464d11448ca2e3620c5a501354149a0f747ea
+.gitignore = af1182c70588e583daeb35809e6cdfe3408425d438c3ceb282b1f4b8360290e2
+site = {'setup.py': '843ac26c38a41abae578250bc0f9419194b320a0f67327d941037a4268f6cfe7', '.gitkeep': '23e73ab4fd045d8c3309c4abecaa27136e4955e711206bba3e4ab2197310f29d', 'tests': {'.gitkeep': 'd4756cdf68d94c670c924f9d57d44718f666e457727701486435b57a97e52c5f'}, 'pyproject.toml': 'e1acd833b38f03f26cc31439246cbeeb82e2edf56c751f28c3247cb44e95caca', 'ic_data_repo': {'webpack.py': '6fd8b5322ab51f069fa1092caca58b494b45025bc4270dc6bf3aad1e6b0ccf2a', 'assets': {'semantic-ui': {'less': {'ic_data_repo': {'.gitkeep': 'de96a61fec5b6b168bced6dda58bd11e353f618ae9bee45aad9253cb0d6c5617'}}, 'js': {'ic_data_repo': {'.gitkeep': '3253a6fe7fc74a1279fb374e67ffd3383eded63cd28c4877afd77dffc8cc5da4'}}}}, 'views.py': '2aaec2d08cbb58f052c081db8bcf93d4fa2850a365edb5abb3f936a5d2b1a861', '__init__.py': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'templates': {'semantic-ui': {'ic_data_repo': {'.gitkeep': 'd4756cdf68d94c670c924f9d57d44718f666e457727701486435b57a97e52c5f'}}}}, 'setup.cfg': 'a97e4f97e66cb78b3b946c94133962e30b07d037a7b55b7f0ee4d2235b1e7da6'}
+pipfile = 3589146058eecd3669aff5717ea71c0604141cc353b63b64a9b211a8c4be0c9c
+docker-services.yml = 7dec81c4fb4571fd16bfaddc629d40dd3b595117699d145a6547c81baa26b2ef
+docker = {'pgadmin': {'servers.json': '51098b65b0338085b6925b2af23fea9780ddba7b132f83812cc8edeb87476fc6'}, 'nginx': {'nginx.conf': '6c9a6e372fc340dfcd3b49e6a30bd7bd36af41d79d1d093b7b3ba5f4c9d781b4', 'test.crt': 'fc924695cf8bf4071b95d469ae971281a8ccc39661fb826e87f4ff6251e9a2fb', 'test.key': '5490ea78cdc86e4c7f7b0da03aa2dac2128d8da88180d0b39d90d9b9fd639043', 'Dockerfile': '541326766beaba2e8492255c99e11aa76640d71329ceab5bcab1c8d6a979bd5c', 'conf.d': {'default.conf': '2501758a42cfeb912052daa5921dfb3bc38042ee97ce1f64ae1d0658f7fbedbd'}}, 'uwsgi': {'uwsgi_rest.ini': 'c36fc5021baf15f375b3b6c825f7753e5d166319c5fe38a85b604391ce5b37b6', 'uwsgi_ui.ini': 'aeb0797a1fadb462e0ed208c979d5152cc58a85958d4de9c4e989637c70b9005'}}
+templates = {'.gitkeep': 'd4756cdf68d94c670c924f9d57d44718f666e457727701486435b57a97e52c5f'}
+translations = {'babel.ini': '3fb6bff73460aa031d4f90fc1e1d16235cab84d2385c9831efacb2ce32e5409b'}
+static = {'images': {'logo-invenio-white.svg': '5af2c7b67a09798cba3d50cc2e811ca9fd2ff73b40d9d2a52a97237b9ed44008', 'invenio-rdm.svg': '50f09b4d83244a69c58f44aa436a3fa097726d9b47fd0e0782ea92d31f854b65'}, 'robots.txt': 'bb37b06b33e7d97f41aef939f8ef3052898c7f6d6fdfc7c9d37b6d0605c86ff3'}
+

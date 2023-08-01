@@ -1,0 +1,5 @@
+@primaryColor: rgb(0, 33, 71);
+@secondaryColor: rgb(55, 58, 54);
+@navbarBackgroundColor: rgb(0, 62, 116);
+@navbarBackgroundImage: false;
+@primaryDarkenColor: (0, 33, 71);

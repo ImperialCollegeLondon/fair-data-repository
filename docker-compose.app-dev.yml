@@ -1,0 +1,15 @@
+version: '2.2'
+include:
+  - docker-compose.yml
+services:
+  app:
+    extends:
+      file: docker-services.yml
+      service: app
+    ports:
+      - 127.0.0.1:5000:5000
+    command:
+      - sh
+      - -c
+      - |
+        invenio run -h 0.0.0.0 --key app_data/certificates/dev.key --cert app_data/certificates/dev.cert

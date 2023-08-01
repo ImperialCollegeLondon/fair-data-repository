@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 check-manifest = ">=0.25"
+pre-commit = "*"
 
 [packages]
 invenio-app-rdm = {extras = ["postgresql", "opensearch2"], version = "~=11.0.0"}

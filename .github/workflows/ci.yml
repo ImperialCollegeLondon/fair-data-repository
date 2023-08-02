@@ -29,3 +29,16 @@ jobs:
         with:
           push: true
           tags: ${{steps.meta.outputs.tags }}
+      - uses: actions/checkout@v3
+      - name: Get image frontend metadata
+        id: frontend-meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: type=raw,value=frontend-main
+      - name: Build and push frontend Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./docker/nginx
+          push: true
+          tags: ${{steps.frontend-meta.outputs.tags }}

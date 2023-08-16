@@ -13,6 +13,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: qa
     steps:
+      - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -24,12 +25,13 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ghcr.io/${{ github.repository }}
+      - run: cp docker/invenio_production.cfg ./invenio.cfg
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
+          context: .
           push: true
           tags: ${{steps.meta.outputs.tags }}
-      - uses: actions/checkout@v3
       - name: Get image frontend metadata
         id: frontend-meta
         uses: docker/metadata-action@v4

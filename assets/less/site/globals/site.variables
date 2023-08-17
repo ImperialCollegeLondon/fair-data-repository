@@ -1,5 +1,12 @@
-@primaryColor: rgb(0, 33, 71);
-@secondaryColor: rgb(55, 58, 54);
-@navbarBackgroundColor: rgb(0, 62, 116);
+@primaryColor: #003E74;
+@secondaryColor: #002147;
+@navbarBackgroundColor: @primaryColor;
 @navbarBackgroundImage: false;
-@primaryDarkenColor: (0, 33, 71);
+@primaryDarkenColor: #373A36;
+
+
+@footerLightColor: @primaryColor;
+@footerDarkColor: @secondaryColor;
+@subFooterColor: @footerDarkColor;
+@footerTextLightColor: #ffffff;
+@footerTextDarkColor: #ffffff;

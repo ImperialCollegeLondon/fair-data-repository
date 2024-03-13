@@ -4,6 +4,27 @@ Welcome to your InvenioRDM instance.
 
 ## Getting started
 
+### Local Installation
+
+```console
+invenio-cli install
+invenio-cli services setup
+invenio-cli run
+```
+
+Once the Flask server has started visit https://127.0.0.1:5000 in your browser. Once
+finished, stop the running Flask server and use `invenio-cli services stop` to bring
+down the running services.
+
+Subsequently the server may be started with:
+
+```console
+invenio-cli services start
+invenio-cli run
+```
+
+### Docker
+
 Run the following commands in order to start your new InvenioRDM instance:
 
 ```console
@@ -20,6 +41,41 @@ Once running, visit https://127.0.0.1 in your browser.
 
 **Note**: The server is using a self-signed SSL certificate, so your browser
 will issue a warning that you will have to by-pass.
+
+## Development
+
+### QA
+It is strongly recommended to use [pre-commit] to check your individual commits meet the
+QA standards of the project. These are enforced via GitHub Actions and it's easiest to
+make sure you're compliant as you go along. Details of the QA tools can be found in
+`.pre-commit-config.yaml`.
+
+[pre-commit]: https://pre-commit.com/
+
+### Continuous Integration
+
+A simple Continuous Integration setup is provided via GitHub Actions. This checks the
+target commit against the project QA tooling and for commits to the main branch builds
+and pushes Docker images for the web application and frontend.
+
+### Local Installation
+
+The standard local installation as described in [Getting Started] is suitable for
+development.
+
+[Getting Started]: #getting-started
+
+### Docker
+
+A additional Docker Compose file is provided to give a simple development setup using
+Docker. Assuming Invenio services have aleady been setup, it can be used by:
+
+```console
+invenio-cli services start
+docker compose -f docker-compose.app-dev.yml up app
+```
+
+Then access https://127.0.0.1:5000 in the browser.
 
 ## Overview
 

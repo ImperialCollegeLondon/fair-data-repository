@@ -9,7 +9,15 @@ services:
     ports:
       - 127.0.0.1:5000:5000
     command:
-      - sh
-      - -c
       - |
-        invenio run -h 0.0.0.0 --key app_data/certificates/dev.key --cert app_data/certificates/dev.cert
+        celery -A invenio_app.celery worker --beat --loglevel=INFO &
+        invenio run --debug -h 0.0.0.0 --key app_data/certificates/dev.key --cert app_data/certificates/dev.cert
+    volumes:
+      - static_data:/opt/invenio/var/instance/static
+      - uploaded_data:/opt/invenio/var/instance/data
+      - archived_data:/opt/invenio/var/instance/archive
+      - ./:/opt/invenio/src
+volumes:
+  static_data:
+  uploaded_data:
+  archived_data:

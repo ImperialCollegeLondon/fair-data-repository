@@ -8,10 +8,28 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: pre-commit/action@v2.0.3
+  test:
+    needs: qa
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: install system dependencies
+        run: sudo apt-get install libxml2-dev libxmlsec1-dev libxmlsec1-openssl
+      - name: install pipenv and invenio-cli
+        run: pip install pipenv invenio-cli
+      - name: setup project virtual environment
+        run: invenio-cli install
+      - name: start services
+        run: invenio-cli services setup --no-demo-data
+      - name: run tests
+        run: pipenv run pytest
   build-and-publish:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    needs: qa
+    needs: test
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry

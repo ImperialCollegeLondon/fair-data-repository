@@ -16,13 +16,9 @@ invenio-saml = {}
 uwsgi = ">=2.0"
 uwsgitop = ">=0.11"
 uwsgi-tools = ">=1.1.1"
-# Pin sqlalchemy-continuum version for compatibility with pytest-invenio.
-# sqlalchemy-continuum==1.4 implicitly assumes sqlalchemy>=2 but does not specify this
-# constraint. The database fixture of the version of pytest-invenio in use uses an api
-# deprecated in sqlalchemy==2. sqlalchemy-continuum==1.4 assumes use of the
-# sqlalchemy==2 version of the api which causes an issue.
-# Reported via https://github.com/kvesteri/sqlalchemy-continuum/issues/351
-sqlalchemy-continuum = "<1.4"
+# Avoid sqlalchemy-continuum==1.4.0 due to compatibility issue described here:
+# https://github.com/kvesteri/sqlalchemy-continuum/issues/351
+sqlalchemy-continuum = "!=1.4.0"
 
 [requires]
 python_version = "3.9"

@@ -4,6 +4,12 @@ Welcome to your InvenioRDM instance.
 
 ## Getting started
 
+As a starting point it's assumed that you have Python 3.9, [invenio-cli] and Docker
+Compose installed. You should be able to run `invenio-cli check-requirements`
+successfully.
+
+[invenio-cli]: https://github.com/inveniosoftware/invenio-cli
+
 ### Local Installation
 
 ```console

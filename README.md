@@ -58,6 +58,25 @@ A simple Continuous Integration setup is provided via GitHub Actions. This check
 target commit against the project QA tooling and for commits to the main branch builds
 and pushes Docker images for the web application and frontend.
 
+### Tests
+
+A test suite is provided in the `tests` directory. Assuming services have already been
+setup, tests can be run with:
+
+```console
+invenio services start
+pipenv run pytest
+```
+
+All development work should be supported by an appropriate set of tests. Best practices
+around testing are expected to evolve as the project develops.
+
+The [pytest-invenio] plugin is provided to support test development. This extends
+[pytest-flask] to provide fixtures and support for testing Invenio.
+
+[pytest-invenio]: https://pytest-invenio.readthedocs.io/en/latest/
+[pytest-flask]: https://pytest-flask.readthedocs.io/en/latest/
+
 ### Local Installation
 
 The standard local installation as described in [Getting Started] is suitable for

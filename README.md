@@ -120,6 +120,24 @@ Following is an overview of the generated files and folders:
 To learn how to configure, customize, deploy and much more, visit the
 [InvenioRDM Documentation](https://inveniordm.docs.cern.ch/).
 
+## Configuration
+
+This project extends the [configuration approach] used by Invenio RDM.
+
+Inspired by Django the following changes have been made:
+
+- Configuration is stored in the module `ic_data_repo.config`.
+- The module to use as settings can be specified at runtime via the environment variable
+  INVENIO_SETTINGS_MODULE. This defaults to `ic_data_repo.config`.
+- The standard InvenioRDM config file (`invenio.cfg`) now contains only the necessary
+  import machinery to facilitate the above.
+
+Note that overriding settings by environment variable still works.
+
+The default configuration is suitable for development. A production oriented settings
+file is also provided in `ic_data_repo.config.production`.
+
+[configuration approach]: https://inveniordm.docs.cern.ch/install/configuration/
 [getting started]: #getting-started
 [invenio-cli]: https://github.com/inveniosoftware/invenio-cli
 [pre-commit]: https://pre-commit.com/

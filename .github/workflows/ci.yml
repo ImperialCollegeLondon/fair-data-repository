@@ -43,7 +43,6 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ghcr.io/${{ github.repository }}
-      - run: cp docker/invenio_production.cfg ./invenio.cfg
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:

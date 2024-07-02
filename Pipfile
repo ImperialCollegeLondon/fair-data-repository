@@ -11,8 +11,6 @@ pytest-invenio = "*"
 [packages]
 invenio-app-rdm = {extras = ["postgresql", "opensearch2"], version = "~=11.0.0"}
 ic-data-repo = {editable="True", path="./site"}
-invenio-saml = {}
-
 uwsgi = ">=2.0"
 uwsgitop = ">=0.11"
 uwsgi-tools = ">=1.1.1"

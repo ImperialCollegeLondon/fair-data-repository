@@ -6,10 +6,10 @@ For the full list of settings and their values, see
 https://inveniordm.docs.cern.ch/reference/configuration/.
 """
 
+import os
 from datetime import datetime
 
 from invenio_oauthclient.views.client import auto_redirect_login
-from invenio_saml.handlers import acs_handler_factory, default_sls_handler
 
 # Flask
 # =====
@@ -170,14 +170,41 @@ SECURITY_CONFIRMABLE = True  # local login: users can confirm e-mail address
 SECURITY_LOGIN_WITHOUT_CONFIRMATION = (
     False  # require users to confirm email before being able to login
 )
-SECURITY_LOGIN_USER_TEMPLATE = "ic_data_repo/login_user.html"
+SECURITY_LOGIN_USER_TEMPLATE = "invenio_accounts/login_user.html"
 
 # Invenio-OAuthclient
 # -------------------
 # See:
 # https://github.com/inveniosoftware/invenio-oauthclient/blob/master/invenio_oauthclient/config.py
 
-OAUTHCLIENT_REMOTE_APPS = {}  # configure external login providers
+OAUTHCLIENT_REMOTE_APPS = dict()
+
+ICL_OAUTH_CLIENT_ID = os.getenv("ICL_OAUTH_CLIENT_ID")
+ICL_OAUTH_CLIENT_SECRET = os.getenv("ICL_OAUTH_CLIENT_SECRET")
+ICL_OAUTH_WELL_KNOWN_URL = os.getenv("ICL_OAUTH_WELL_KNOWN_URL")
+
+if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET and ICL_OAUTH_WELL_KNOWN_URL:
+    OAUTHCLIENT_REMOTE_APPS["icl"] = dict(
+        title="Imperial College Single Sign On",
+        description="Authentication via membership of Imperial College",
+        icon="",
+        params=dict(
+            request_token_params=dict(scope="openid profile"),
+            base_url="",
+            request_token_url=None,
+            access_token_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/token",  # noqa: E501
+            access_token_method="POST",
+            authorize_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/authorize",  # noqa: E501
+            consumer_key=ICL_OAUTH_CLIENT_ID,
+            consumer_secret=ICL_OAUTH_CLIENT_SECRET,
+        ),
+        authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
+        disconnect_handler="invenio_oauthclient.handlers:disconnect_handler",
+        signup_handler=dict(
+            info="ic_data_repo.auth.oauth:info_handler",
+        ),
+        signup_options=dict(auto_confirm=True, send_register_msg=False),
+    )
 
 ACCOUNTS_LOGIN_VIEW_FUNCTION = (
     auto_redirect_login  # autoredirect to external login if enabled
@@ -204,32 +231,3 @@ OAISERVER_ID_PREFIX = "invenio.rcs.ic.ac.uk"
 SEARCH_INDEX_PREFIX = "ic-data-repo-"
 
 THEME_SHOW_FRONTPAGE_INTRO_SECTION = False
-
-SSO_SAML_IDPS = dict(
-    icl=dict(
-        sp_cert_file="app_data/certificates/saml.cert",
-        sp_key_file="app_data/certificates/saml.key",
-        settings_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/federationmetadata/2007-06/federationmetadata.xml",  # noqa: E501
-        settings=dict(
-            strict=True,
-            debug=True,
-            idp=dict(
-                x509cert="",
-            ),
-            sp=dict(
-                NameIDFormat="urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
-                entityId="api://06ccf553-edc8-4ab1-8958-30088a2eb0b7",
-            ),
-            security=dict(requestedAuthnContext=False),
-        ),
-        mappings=dict(
-            email="http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
-            name="http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname",
-            surname="http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname",
-            external_id="http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
-        ),
-        acs_handler=acs_handler_factory("icl"),
-        sls_handler=default_sls_handler,
-        auto_confirm=True,
-    )
-)

@@ -19,6 +19,9 @@ services:
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://ic-data-repo:ic-data-repo@db/ic-data-repo"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+      - "ICL_OAUTH_CLIENT_ID"
+      - "ICL_OAUTH_CLIENT_SECRET"
+      - "ICL_OAUTH_WELL_KNOWN_URL"
   frontend:
     build: ./docker/nginx/
     image: ic-data-repo-frontend

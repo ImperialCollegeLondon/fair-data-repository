@@ -12,7 +12,6 @@ FROM registry.cern.ch/inveniosoftware/almalinux:1
 
 COPY site ./site
 COPY Pipfile Pipfile.lock ./
-RUN yum install -y libtool-ltdl-devel xmlsec1-openssl && yum clean all
 RUN pipenv install --deploy --system
 
 COPY ./docker/uwsgi/ ${INVENIO_INSTANCE_PATH}

@@ -19,6 +19,8 @@ services:
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://ic-data-repo:ic-data-repo@db/ic-data-repo"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+      - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
+      - "INVENIO_IIIF_CACHE_REDIS_URL=redis://cache:6379/0"
       - "ICL_OAUTH_CLIENT_ID"
       - "ICL_OAUTH_CLIENT_SECRET"
       - "ICL_OAUTH_WELL_KNOWN_URL"

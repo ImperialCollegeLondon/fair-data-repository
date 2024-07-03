@@ -1,11 +1,16 @@
 """Implement OAuth handlers."""
 
+from typing import Any
+
 import jwt
 import requests
 from flask import current_app
+from flask_oauthlib import OAuthRemote
 
 
-def info_handler(remote_app, response_data):
+def info_handler(
+    remote_app: OAuthRemote, response_data: dict[str, Any]
+) -> dict[str, Any]:
     """Extract account info from authorisation response.
 
     Extracts and validates the id_token returned as part of the OIDC workflow using

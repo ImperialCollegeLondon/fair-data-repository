@@ -9,7 +9,7 @@ pre-commit = "*"
 pytest-invenio = "*"
 
 [packages]
-ic-data-repo = {editable="True", path="./site"}
+ic-data-repo = {editable=true, path="./site"}
 uwsgi = ">=2.0"
 uwsgitop = ">=0.11"
 uwsgi-tools = ">=1.1.1"

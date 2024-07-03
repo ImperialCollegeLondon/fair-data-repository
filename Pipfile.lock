@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "61b7350291cd3db6e14a77c9ded7934198a207f60bcc7a164713998e0f8694f8"
+            "sha256": "f91650ed17b79637d5aa7f9456178ae0e5df24a48f5a192733a78837c86d5ea7"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -892,7 +892,7 @@
             "version": "==4.9.0"
         },
         "ic-data-repo": {
-            "editable": "True",
+            "editable": true,
             "path": "./site"
         },
         "idna": {

@@ -1,0 +1,10 @@
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203"]
+required-plugins = ["flake8-docstring"]
+docstring-convention = "google"
+
+[tool.isort]
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true

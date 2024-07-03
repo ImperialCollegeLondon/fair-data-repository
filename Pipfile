@@ -7,6 +7,7 @@ verify_ssl = true
 check-manifest = ">=0.25"
 pre-commit = "*"
 pytest-invenio = "*"
+pytest-mypy = "*"
 
 [packages]
 ic-data-repo = {editable=true, path="./site"}

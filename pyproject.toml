@@ -8,3 +8,20 @@ docstring-convention = "google"
 line_length = 88
 multi_line_output = 3
 include_trailing_comma = true
+
+[tool.mypy]
+disallow_any_generics = true
+warn_unreachable = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+       "flask_oauthlib.*",
+       "invenio_app.*",
+       "invenio_assets.*",
+       "invenio_oauthclient.*",
+       ]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "--mypy --ignore=site/setup.py"

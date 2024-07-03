@@ -23,21 +23,14 @@ SEND_FILE_MAX_AGE_DEFAULT = 300
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Do not commit it to a source code repository.
-# TODO: Set
 SECRET_KEY = "CHANGE_ME"
 
-# Since HAProxy and Nginx route all requests no matter the host header
-# provided, the allowed hosts variable is set to localhost. In production it
-# should be set to the correct host and it is strongly recommended to only
-# route correct hosts to the application.
 APP_ALLOWED_HOSTS = ["0.0.0.0", "localhost", "127.0.0.1"]
-
 
 # Flask-SQLAlchemy
 # ================
 # See https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/
 
-# TODO: Set
 SQLALCHEMY_DATABASE_URI = (
     "postgresql+psycopg2://ic-data-repo:ic-data-repo@localhost/ic-data-repo"
 )
@@ -73,27 +66,6 @@ APP_DEFAULT_SECURE_HEADERS = {
 }
 
 
-# Flask-Babel
-# ===========
-# See https://python-babel.github.io/flask-babel/#configuration
-
-# Default locale (language)
-BABEL_DEFAULT_LOCALE = "en"
-# Default time zone
-BABEL_DEFAULT_TIMEZONE = "Europe/Zurich"
-
-
-# Invenio-I18N
-# ============
-# See https://invenio-i18n.readthedocs.io/en/latest/configuration.html
-
-# Other supported languages (do not include BABEL_DEFAULT_LOCALE in list).
-I18N_LANGUAGES = [
-    # ('de', _('German')),
-    # ('tr', _('Turkish')),
-]
-
-
 # Invenio-Theme
 # =============
 # See https://invenio-theme.readthedocs.io/en/latest/configuration.html
@@ -117,7 +89,6 @@ INSTANCE_THEME_FILE = "./less/theme.less"
 # See:
 # https://github.com/inveniosoftware/invenio-records-resources/blob/master/invenio_records_resources/config.py
 
-# TODO: Set with your own hostname when deploying to production
 SITE_UI_URL = "https://127.0.0.1"
 
 SITE_API_URL = "https://127.0.0.1/api"
@@ -213,9 +184,7 @@ OAUTHCLIENT_AUTO_REDIRECT_TO_EXTERNAL_LOGIN = False  # autoredirect to external 
 
 # Invenio-UserProfiles
 # --------------------
-USERPROFILES_READ_ONLY = (
-    True  # allow users to change profile info (name, email, etc...)
-)
+USERPROFILES_READ_ONLY = True
 
 # OAI-PMH
 # =======

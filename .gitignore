@@ -73,3 +73,6 @@ data/.minio.sys
 
 # Celery
 celerybeat-schedule
+
+# test datasets
+test_data/10.14469_hpc_*

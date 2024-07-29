@@ -13,6 +13,7 @@ include_trailing_comma = true
 disallow_any_generics = true
 warn_unreachable = true
 warn_unused_ignores = true
+exclude = "test_data/.*\\.py"
 
 [[tool.mypy.overrides]]
 module = [
@@ -24,4 +25,4 @@ module = [
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-addopts = "--mypy --ignore=site/setup.py"
+addopts = "--mypy --ignore=site/setup.py --ignore-glob=test_data/*.py"

@@ -137,9 +137,15 @@ Note that overriding settings by environment variable still works.
 The default configuration is suitable for development. A production oriented settings
 file is also provided in `ic_data_repo.config.production`.
 
+## Test Data
+
+Instructions for accessing and working with realistic test data records are provided in
+the [test_data directory].
+
 [configuration approach]: https://inveniordm.docs.cern.ch/install/configuration/
 [getting started]: #getting-started
 [invenio-cli]: https://github.com/inveniosoftware/invenio-cli
 [pre-commit]: https://pre-commit.com/
 [pytest-flask]: https://pytest-flask.readthedocs.io/en/latest/
 [pytest-invenio]: https://pytest-invenio.readthedocs.io/en/latest/
+[test_data directory]: ./test_data/README.md

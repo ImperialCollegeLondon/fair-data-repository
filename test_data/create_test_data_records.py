@@ -146,6 +146,13 @@ def datacite_to_invenio_schema(datacite):
                 for reference in references
             ],
             "identifiers": [],
+            "dates": [
+                {
+                    "date": date_meta["date"],
+                    "type": {"id": date_meta["dateType"].lower()},
+                }
+                for date_meta in data["dates"]
+            ],
         },
     }
 

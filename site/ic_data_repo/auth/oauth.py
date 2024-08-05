@@ -5,11 +5,11 @@ from typing import Any
 import jwt
 import requests
 from flask import current_app
-from flask_oauthlib import OAuthRemote
+from flask_oauthlib.client import OAuthRemoteApp
 
 
 def info_handler(
-    remote_app: OAuthRemote, response_data: dict[str, Any]
+    remote_app: OAuthRemoteApp, response_data: dict[str, Any]
 ) -> dict[str, Any]:
     """Extract account info from authorisation response.
 

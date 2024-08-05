@@ -153,6 +153,12 @@ def datacite_to_invenio_schema(datacite):
                 }
                 for date_meta in data["dates"]
             ],
+            "rights": [
+                {
+                    "id": rights_meta.get("rightsIdentifier", "cc0-1.0").lower(),
+                }
+                for rights_meta in data["rightsList"]
+            ],
         },
     }
 

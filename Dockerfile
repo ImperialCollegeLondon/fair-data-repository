@@ -27,6 +27,6 @@ RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
     invenio webpack buildall
 
 # Make directory owned by Invenio user
-RUN chown -R 1000 test_data/
+RUN chown -R invenio test_data/
 
 ENTRYPOINT [ "bash", "-c"]

@@ -71,10 +71,11 @@ def datacite_to_invenio_schema(datacite):
     }
     version = data["version"]
     description = data["descriptions"][0]["description"]
-    references = [
+    related_identifiers = [
         ri
         for ri in data["relatedIdentifiers"]
-        if ri["relationType"] in ("References", "IsReferencedBy")
+        if not FILE_URI_REGEX.match(ri.get("relatedIdentifier", ""))
+        and not ri.get("relatedMetadataScheme") == "ORE"
     ]
 
     return {
@@ -130,22 +131,35 @@ def datacite_to_invenio_schema(datacite):
                 for contributor in data["contributors"][3:]
             ],
             "languages": [],
-            "related_identifiers": [],
+            "related_identifiers": [
+                {
+                    "identifier": ri["relatedIdentifier"],
+                    "scheme": ri["relatedIdentifierType"].lower(),
+                    "relation_type": dict(id=ri["relationType"].lower()),
+                }
+                for ri in related_identifiers
+            ],
             "sizes": [],
             "formats": [],
             "version": version,
             "description": description,
             "additional_descriptions": [],
             "funding": [],
-            "references": [
-                {
-                    "reference": reference["relationType"],
-                    "identifier": reference["relatedIdentifier"],
-                    "scheme": reference["relatedIdentifierType"].lower(),
-                }
-                for reference in references
-            ],
+            "references": [],
             "identifiers": [],
+            "dates": [
+                {
+                    "date": date_meta["date"],
+                    "type": {"id": date_meta["dateType"].lower()},
+                }
+                for date_meta in data["dates"]
+            ],
+            "rights": [
+                {
+                    "id": rights_meta.get("rightsIdentifier", "cc0-1.0").lower(),
+                }
+                for rights_meta in data["rightsList"]
+            ],
         },
     }
 

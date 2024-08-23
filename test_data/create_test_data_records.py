@@ -19,14 +19,18 @@ Does the following:
 import base64
 import json
 import re
+import time
 from pathlib import Path
 
 from faker import Faker
 from flask import current_app
 from flask_security.utils import hash_password
+from invenio_access.permissions import system_identity
 from invenio_app.factory import create_app
 from invenio_rdm_records.fixtures.tasks import get_authenticated_identity
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_records_resources.proxies import current_service_registry
+from sqlalchemy.exc import NoResultFound
 
 FILE_URI_REGEX = re.compile(
     "https://data.hpc.imperial.ac.uk/resolve/\\?doi=\\d+\\&file=\\d+"
@@ -199,6 +203,21 @@ def add_files_to_draft(draft, datacite, identity, dir_path):
             draft_file_service.set_file_content(identity, draft.id, filename, f)
         draft_file_service.commit_file(identity, draft.id, filename)
 
+def wait_for_ror():
+    """Wait for ror
+    Importing fixtures takes several minutes when deploying, this method
+    holds off importing until the Imperial College ror is available.
+    """
+    affiliations_service = current_service_registry.get("affiliations")
+    waiting = True
+
+    while waiting:
+        try:
+            affiliations_service.read(identity=system_identity, id_=IMPERIAL_COLLEGE_ROR)
+            waiting = False
+        except NoResultFound:
+            time.sleep(5)
+
 
 if __name__ == "__main__":
     paths = Path(".").glob("*/metadata.json")
@@ -206,6 +225,8 @@ if __name__ == "__main__":
     app = create_app()
     with app.app_context():
         user_datastore = current_app.extensions["security"].datastore
+
+        wait_for_ror()
 
         for path in paths:
 

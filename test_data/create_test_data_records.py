@@ -19,6 +19,7 @@ Does the following:
 import base64
 import json
 import re
+import time
 from pathlib import Path
 
 from faker import Faker
@@ -27,6 +28,7 @@ from flask_security.utils import hash_password
 from invenio_app.factory import create_app
 from invenio_rdm_records.fixtures.tasks import get_authenticated_identity
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_records.systemfields.relations import InvalidRelationValue
 
 FILE_URI_REGEX = re.compile(
     "https://data.hpc.imperial.ac.uk/resolve/\\?doi=\\d+\\&file=\\d+"
@@ -175,9 +177,15 @@ def create_user():
 
 def create_draft_record(datacite, identity):
     """Create a draft RDM Record from `datacite` metadata owned by `identity`."""
-    return current_rdm_records_service.create(
-        data=datacite_to_invenio_schema(datacite), identity=identity
-    )
+    try:
+        return current_rdm_records_service.create(
+            data=datacite_to_invenio_schema(datacite), identity=identity
+        )
+    except InvalidRelationValue:
+        # If create fails it is because of fixtures not having loaded yet during
+        # helm deployment
+        time.sleep(5)
+        return create_draft_record(datacite, identity)
 
 
 def add_files_to_draft(draft, datacite, identity, dir_path):

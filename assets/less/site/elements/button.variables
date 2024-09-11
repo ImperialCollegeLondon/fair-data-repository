@@ -1,0 +1,2 @@
+@searchButtonColor: @orange;
+@searchButtonColorHover: @darkOrange;

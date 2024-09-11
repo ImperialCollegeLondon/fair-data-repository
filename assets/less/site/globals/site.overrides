@@ -1,0 +1,17 @@
+.outer-navbar {
+  background-image: None;
+  background-color: @navbarBackgroundColor;
+  border-color: transparent;
+
+  #invenio-nav {
+    background: transparent;
+  }
+
+  a {
+    color: @white;
+  }
+
+  .flashed a {
+    color: inherit; /* Reset the color to inherit from parent */
+  }
+}

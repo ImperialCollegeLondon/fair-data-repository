@@ -1,0 +1,3 @@
+.ui.container.frontpage-header {
+    background-color: @frontpageSearchBarBackgroundColor !important;
+}

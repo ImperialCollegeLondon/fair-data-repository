@@ -1,0 +1,24 @@
+#skip-to-main {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	color: @black;
+	background: transparent;
+	transform: translateY(-100%);
+	transition: transform 0.25s ease-out;
+	z-index: 100;
+
+	&:focus {
+		position: absolute;
+		left: 0px;
+		transform: none;z
+		background: @whiteSmoke;
+		outline: 0;
+	}
+}
+
+ui.button.search:hover {
+    i.icon.search {
+        color: @white;
+    }
+}

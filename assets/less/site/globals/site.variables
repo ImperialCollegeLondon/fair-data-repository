@@ -9,43 +9,43 @@
 @black: #161a1d;
 @white: #ffffff;
 
-@darkGray: #708090;
+@slateGray: #708090;
+@darkGray: @slateGray;
 @green: #006400;
 @red: #ff0000;
 @yellow: #ffff00;
 @teal: #008080;
 @orange: #ffa500;
 @darkOrange: #ff8c00;
+@deepSkyBlue: #00bfff;
+@navyBlue: #000080;
+@whiteSmoke: #f5f5f5;
+@lavender: #e6e6fa;
 
 /*-------------------
     Brand Colors
 --------------------*/
 
+@brandColor: @imperialBlue;
 @primaryColor: @imperialBlue;
 @secondaryColor: @orange;
-@neutralColor: @darkGray;
-@positiveColor: @green;
-@negativeColor: @red;
-@warningColor:  @yellow;
 
-@featuredListBackgroundColor_old: #4899DB;
-@primaryDarkenColor_old: #0267b2;
+@featuredListBackgroundColor: @imperialBlue;
+@primaryDarkenColor: @navyBlue;
 
-// backwards compatibility
-@brandColor_old: @primaryColor;
-@brand-primary_old: @primaryColor;
+@signupColor: @green;
 
-@signupColor_old: @green;
+@accessRightOpen: @green;
+@accessRightRestricted: @red;
+@accessRightEmbargoed: @yellow;
+@accessRightMetadataOnly: @teal;
 
-@accessRightOpen_old: @green;
-@accessRightRestricted_old: @red;
-@accessRightEmbargoed_old: @yellow;
-@accessRightMetadataOnly_old: @teal;
-
+/*-OLD------------------
 @restricted-components-background-color_old: #feeaea;
 @restricted-components-border-color_old: #e0b4b4;
 @embargoed-components-background-color_old: #fbf8ee;
 @embargoed-components-border-color_old: #c9ba9b;
+--------------------*/
 
 @footerLightColor: @primaryColor;
 @footerDarkColor: @black;
@@ -54,21 +54,24 @@
 @footerTextDarkColor: @white;
 
 @invertedTextColor: @white;
-@errorTextColor_old: #9f3a38;
-@focusedFormBorderColor_old: #2185d0;
-@focusedFormMutedBorderColor_old: #2185d0;
+@errorTextColor: @red;
+@focusedFormBorderColor: #deepSkyBlue;
+@focusedFormMutedBorderColor: #deepSkyBlue;
 
-@highlightHeaderColor_old: #ededed;
-@highlightBackgroundColor_old: @highlightHeaderColor;
-@highlightBackgroundColorHover_old:  darken(saturate(@highlightHeaderColor, 20), 15, relative);
-@highlightLandingPageBackgroundColor_old: rgba(173, 206, 224, 0.52);
-@selectedColor_old: #ededed;
+@highlightHeaderColor: @lavender;
+@highlightBackgroundColor: @highlightHeaderColor;
+@highlightBackgroundColorHover:  darken(saturate(@highlightHeaderColor, 20), 15, relative);
+@highlightLandingPageBackgroundColor: @lavender;
+@selectedColor: @lavender;
 
-@navbarBackgroundColor: @primaryColor;
-@versionActiveColor_old: #d9edf7;
+@navbarBackgroundColor: @white;
+@frontpageSearchBarBackgroundColor: @navyBlue;
+@versionActiveColor: @lavender;
 
-@mutedAccordionHeaderColor_old: #f5f5f5;
-@defaultBrandColor_old: #434C5E;
+@inputBackgroundColor: @whiteSmoke;
+
+@mutedAccordionHeaderColor: @whiteSmoke;
+@defaultBrandColor: @imperialBlue;
 
 
 /*-------------------
@@ -80,3 +83,34 @@
 @linkHoverColor: darken(saturate(@linkColor, 20), 15, relative);
 @linkHoverUnderline: underline;
 
+/*-------------------
+      Fonts
+--------------------*/
+
+@fontName: "ImperialSansText", Arial, sans-serif;
+@ImperialSansText: @fontName;
+@ImperialSansDisplay: "ImperialSansDisplay", Arial, sans-serif;
+
+@fontExtralight: 200;
+@fontLight: 300;
+@fontRegular: 400;
+@fontMedium: 500;
+@fontSemibold: 600;
+@fontBold: 700;
+@fontExtrabold: 800;
+
+/*--- 1rem ---*/
+@fontSizeBase: 16px;
+
+@fontSizeHeadline: 5rem;
+@fontSizeSubheadline: 2rem;
+@fontSizeBodyHeader: 1rem;
+@fontSizeCaption: .5rem;
+
+/*-------------------
+Backwards compatibility
+--------------------*/
+@font-size-small: @fontSizeCaption;
+@font-size-tiny: @fontSizeCaption;
+
+@defaultBorderRadius: 0;

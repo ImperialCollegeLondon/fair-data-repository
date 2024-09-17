@@ -1,0 +1,4 @@
+.ui.input {
+    background-color: @inputBackgroundColor !important;
+    border-radius: 0 !important;
+}

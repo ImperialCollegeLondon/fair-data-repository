@@ -1,2 +1,12 @@
-@searchButtonColor: @orange;
-@searchButtonColorHover: @darkOrange;
+@searchButtonColor: @white;
+@searchButtonColorHover: @black;
+
+@fontWeight: @regular;
+
+/*------------------------------
+primary button
+--------------------------------*/
+@primaryButtonBackgroundColor: @primaryColor;
+@primaryButtonTextColor: @white;
+@primaryButtonBackgroundColorHovered: @black;
+@primaryButtonTextColorHovered: @white;

@@ -73,7 +73,7 @@ APP_DEFAULT_SECURE_HEADERS = {
 # Frontpage title
 THEME_FRONTPAGE_TITLE = "Imperial Fair Data Repository"
 # Header logo
-THEME_LOGO = "images/imperial_logo_white.svg"
+THEME_LOGO = "images/imperial_logo_blue.svg"
 
 
 # Invenio-App-RDM

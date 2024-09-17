@@ -1,10 +1,148 @@
+/*-------------------
+  Fonts' definitions
+--------------------*/
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/ImperialSansDisplay-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 300;
+  src: url("../fonts/ImperialSansDisplay-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 600;
+  src: url("../fonts/ImperialSansDisplay-Semibold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 500;
+  src: url("../fonts/ImperialSansDisplay-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 200;
+  src: url("../fonts/ImperialSansDisplay-Extralight.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 700;
+  src: url("../fonts/ImperialSansDisplay-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 800;
+  src: url("../fonts/ImperialSansDisplay-Extrabold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/ImperialSansText-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 300;
+  src: url("../fonts/ImperialSansText-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 600;
+  src: url("../fonts/ImperialSansText-Semibold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 500;
+  src: url("../fonts/ImperialSansText-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 200;
+  src: url("../fonts/ImperialSansText-Extralight.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 700;
+  src: url("../fonts/ImperialSansText-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 800;
+  src: url("../fonts/ImperialSansText-Extrabold.ttf") format("truetype");
+}
+
+html {
+    font-family: @ImperialSansText;
+    font-weight: @fontRegular;
+    font-size: @fontSizeBase;
+    line-height: 1;
+}
+
+h1 {
+    font-family: @ImperialSansDisplay;
+    font-weight: @fontSemibold;
+    font-size: @fontSizeHeadline;
+    line-height: 1;
+}
+
+h2 {
+    font-family: @ImperialSansDisplay;
+    font-weight: @fontSemibold;
+    font-size: @fontSizeSubheadline;
+    line-height: 1;
+}
+
+h3 {
+    font-family: @ImperialSansDisplay;
+    font-weight: @fontSemibold;
+    font-size: @fontSizeBodyHeader;
+    line-height: 1.2;
+}
+
+.small {
+    font-family: @ImperialSansText;
+    font-size: @fontSizeCaption;
+    line-height: 1.25;
+}
+
 .outer-navbar {
-  background-image: None;
-  background-color: @navbarBackgroundColor;
-  border-color: transparent;
+    background-image: None;
+    background-color: transparent;
+    border-color: transparent;
 
   #invenio-nav {
-    background: transparent;
+    background: @white;
+	border-top: 2px solid @brandColor;
+	border-bottom: 2px solid @brandColor;
   }
 
   a {
@@ -14,4 +152,8 @@
   .flashed a {
     color: inherit; /* Reset the color to inherit from parent */
   }
+}
+
+.theme.header {
+  box-shadow: None;
 }

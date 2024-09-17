@@ -1,0 +1,27 @@
+/***********************************************
+         Invenio App RDM Menu Overrides
+***********************************************/
+
+#invenio-nav.ui.menu {
+    margin-top: 2rem;
+    .ui.menu {
+        background-color: transparent;
+        box-shadow: none;
+
+        .item {
+            text-decoration: underline;
+            text-decoration-color: @primaryColor;
+            a:not(.ui.button):not(:has(.icon)) {
+                color: @primaryColor;
+                padding: 2rem 1rem;
+                text-decoration: underline;
+                text-decoration-color: @primaryColor;
+                &:hover {
+                    color: @black;
+                    text-decoration: underline;
+                    text-decoration-color: @black;
+                }
+            }
+        }
+    }
+}

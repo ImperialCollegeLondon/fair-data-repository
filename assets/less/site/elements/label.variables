@@ -42,3 +42,7 @@
 @negativeLabelColor: @negativeColor;
 @negativeBorderLabelColor: @negativeColor;
 @negativeTextLabelColor: @invertedTextColor;
+
+/*--- ------------ ---*/
+@borderRadius: @defaultBorderRadius;
+@fontWeight: @fontRegular;

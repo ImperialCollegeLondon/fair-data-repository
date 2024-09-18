@@ -1,0 +1,10 @@
+.ui.dropdown .menu {
+    min-width: min-content;
+    .item {
+        width: 100%;
+        text-decoration: none;
+        &:hover, &:focus {
+            background-color: @whiteSmoke;
+        }
+    }
+}

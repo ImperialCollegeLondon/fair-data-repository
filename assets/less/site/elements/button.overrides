@@ -1,9 +1,47 @@
+.ui.button {
+    background-color: @defaultButtonBackgroundColor;
+    border: 1px solid @defaultButtonBorderColor;
+    color: @defaultButtonTextColor;
+    &:hover,
+    &:active {
+        background-color: @defaultButtonBackgroundColorHovered;
+        border: 1px solid @defaultButtonBorderColorHovered;
+        color: @defaultButtonTextColorHovered;
+    }
+}
+
+.ui.button.primary {
+    background-color: @primaryButtonBackgroundColor;
+    color: @primaryButtonTextColor;
+    &:hover,
+    &:active {
+        background-color: @primaryButtonBackgroundColorHovered;
+        color: @primaryButtonTextColorHovered;
+    }
+}
+
+.ui.button.secondary {
+    background-color: @primaryButtonBackgroundColor;
+    border: 1px solid @defaultButtonBorderColor;
+    color: @primaryButtonTextColor;
+    &:hover,
+    &:active {
+        background-color: @primaryButtonBackgroundColorHovered;
+        border: 1px solid @defaultButtonBorderColorHovered;
+        color: @primaryButtonTextColorHovered;
+    }
+}
+
 #skip-to-main {
 	position: absolute;
 	top: 0px;
 	left: 0px;
 	color: @black;
-	background: transparent;
+	background: @whiteSmoke;
+	border: none;
+	font-weight: 400;
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
 	transform: translateY(-100%);
 	transition: transform 0.25s ease-out;
 	z-index: 100;
@@ -11,14 +49,17 @@
 	&:focus {
 		position: absolute;
 		left: 0px;
-		transform: none;z
+		transform: none;
 		background: @whiteSmoke;
 		outline: 0;
 	}
 }
 
-ui.button.search:hover {
-    i.icon.search {
-        color: @white;
+.ui.button.search {
+    border: none;
+    &:hover {
+        i.icon.search {
+            color: @white;
+        }
     }
 }

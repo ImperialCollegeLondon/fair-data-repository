@@ -1,7 +1,18 @@
 @searchButtonColor: @white;
 @searchButtonColorHover: @black;
 
-@fontWeight: @regular;
+@fontWeight: @fontRegular;
+
+/*-------------------------------
+default button
+--------------------------------*/
+
+@defaultButtonBackgroundColor: @white;
+@defaultButtonBorderColor: @slateGray;
+@defaultButtonTextColor: @slateGray;
+@defaultButtonBackgroundColorHovered: @black;
+@defaultButtonBorderColorHovered: @black;
+@defaultButtonTextColorHovered: @white;
 
 /*------------------------------
 primary button
@@ -10,3 +21,14 @@ primary button
 @primaryButtonTextColor: @white;
 @primaryButtonBackgroundColorHovered: @black;
 @primaryButtonTextColorHovered: @white;
+
+/*-------------------------------
+secondary button
+--------------------------------*/
+
+@secondaryButtonBackgroundColor: @white;
+@secondaryButtonBorderColor: @primaryColor;
+@secondaryButtonTextColor: @primaryColor;
+@secondaryButtonBackgroundColorHovered: @primaryColor;
+@secondaryButtonBorderColorHovered: @primaryColor;
+@secondaryButtonTextColorHovered: @white;

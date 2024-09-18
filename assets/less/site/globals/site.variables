@@ -21,6 +21,7 @@
 @navyBlue: #000080;
 @whiteSmoke: #f5f5f5;
 @lavender: #e6e6fa;
+@springGreen: #00ff7f;
 
 /*-------------------
     Brand Colors
@@ -47,11 +48,9 @@
 @embargoed-components-border-color_old: #c9ba9b;
 --------------------*/
 
-@footerLightColor: @primaryColor;
 @footerDarkColor: @black;
 @subFooterColor: @footerDarkColor;
 @footerTextLightColor: @white;
-@footerTextDarkColor: @white;
 
 @invertedTextColor: @white;
 @errorTextColor: @red;

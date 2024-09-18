@@ -7,11 +7,11 @@
     .ui.menu {
         background-color: transparent;
         box-shadow: none;
-
         .item {
             text-decoration: underline;
             text-decoration-color: @primaryColor;
-            a:not(.ui.button):not(:has(.icon)) {
+            a:not(.ui.button) {
+                display: inline-block;
                 color: @primaryColor;
                 padding: 2rem 1rem;
                 text-decoration: underline;
@@ -20,6 +20,12 @@
                     color: @black;
                     text-decoration: underline;
                     text-decoration-color: @black;
+                }
+            }
+            a:not(.ui.button):has(.icon) {
+                text-decoration: none;
+                &:hover {
+                    text-decoration: none;
                 }
             }
         }

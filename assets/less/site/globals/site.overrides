@@ -1,5 +1,5 @@
 /*-------------------
-  Fonts' definitions
+  Fonts definitions
 --------------------*/
 
 @font-face {
@@ -139,21 +139,121 @@ h3 {
     background-color: transparent;
     border-color: transparent;
 
-  #invenio-nav {
-    background: @white;
-	border-top: 2px solid @brandColor;
-	border-bottom: 2px solid @brandColor;
-  }
+    #invenio-nav {
+        background: @white;
+        border-top: 2px solid @brandColor;
+        border-bottom: 2px solid @brandColor;
+    }
 
-  a {
-    color: @white;
-  }
-
-  .flashed a {
-    color: inherit; /* Reset the color to inherit from parent */
-  }
+    a {
+        color: @primaryColor;
+    }
 }
 
 .theme.header {
   box-shadow: None;
+}
+
+#rdm-footer-element {
+  color: @footerTextLightColor;
+  font-weight: 500;
+  margin-top: auto;
+  font-size: @fontSizeBase;
+  padding-top: 0;
+
+  a {
+    color: @footerTextLightColor;
+
+    &:hover, &:focus {
+      color: @footerTextDarkColor;
+    }
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+}
+
+.footer-top {
+    background-color: @footerDarkColor;
+    padding: 2rem;
+    height: 100%;
+    .row {
+        margin: 0 !important;
+        padding: 0! important;
+    }
+    .app-rdm-footer {
+        color: @footerTextLightColor;
+        margin-top: auto;
+        font-size: @fontSizeBase;
+        font-weight: @fontMedium;
+        padding-top: 0;
+        height: 100%;
+
+        .footer__common {
+            border-top: 2px solid @white;
+            border-bottom: 2px solid @white;
+            margin-top: 0.5rem;
+            height: 100%;
+
+            .row {
+                height: 100% !important;
+                .footer__contact {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-around;
+                    height: 100%;
+                    padding-block: 2rem;
+                    padding-inline-end: 1.75rem;
+                    border-right: 2px solid @white;
+
+                    .footer__brand {
+                        flex: 1;
+                        svg {
+                            height: 100%;
+                            max-height: 1.75rem;
+                            max-width: 100%;
+                            width: auto;
+                        }
+                    }
+                    .address {
+                        flex: 2;
+                    }
+                }
+                .footer__info {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-around;
+                    height: 100%;
+                    padding-block: 2rem;
+                    &::before {
+                        content: ""; // Empty content
+                        flex: 1; // Take up space like a flex item
+                    }
+                    // Ensure all actual items and the pseudo-element are equally spaced
+                    > * {
+                        flex: 1;
+                    }
+                    .footer__copyright {
+                        display: flex;
+                        align-items: flex-end;
+                        opacity: .5;
+                    }
+                    a {
+                        color: @footerTextLightColor;
+                        text-decoration: none;
+
+                        &:hover, &:focus {
+                            color: @footerTextDarkColor;
+                            text-decoration: underline;
+                            text-decoration-color: @springGreen;
+                        }
+                    }
+                    p {
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+    }
 }

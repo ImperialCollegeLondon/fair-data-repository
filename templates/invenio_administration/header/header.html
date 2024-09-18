@@ -1,0 +1,82 @@
+{#
+    -*- coding: utf-8 -*-
+    Copyright (C) 2022 CERN.
+
+    Invenio App RDM is free software; you can redistribute it and/or modify it
+    under the terms of the MIT License; see LICENSE file for more details.
+#}
+
+{% set menu = current_menu.submenu('admin_navigation').children %}
+{% set active_item_name = namespace(value=None) %}
+
+<header class="ui grid">
+  {%- block navbar %}
+  <div class="six wide mobile four wide tablet three wide computer two wide widescreen column mr-0 pr-0 pb-0">
+
+
+      <nav id="invenio-admin-home-nav" aria-label="{{ _('Home navigation') }}" class="ui menu borderless align-items-center justify-space-between pr-0">
+        {%- if config.INVERTED_THEME_LOGO %}
+          <a href="/" class="logo-link rel-mr-1" title="{{ _('Back to front page')}}">
+            <img class="rdm-logo" src="{{ url_for('static', filename=config.INVERTED_THEME_LOGO)}}" alt="" />
+          </a>
+        {%- else %}
+          <a class="navbar-brand" href="/">{{_(config.THEME_SITENAME)}}</a>
+        {%- endif %}
+
+        <div class="tablet only computer only">
+          {% include 'invenio_administration/header/side_bar_toggle.html'%}
+        </div>
+      </nav>
+    </div>
+
+    <div class="ten wide mobile twelve wide tablet thirteen wide computer fourteen wide widescreen column ml-0 pl-0 pb-0">
+      <nav id="invenio-admin-top-nav" class="ui menu borderless align-items-center pl-0">
+
+        <div class="mobile only">
+          {% include 'invenio_administration/header/side_bar_toggle.html'%}
+        </div>
+
+        <div id="rdm-burger-toggle">
+          <button
+            id="rdm-burger-menu-icon"
+            class="ui button transparent mr-0 pr-0"
+            aria-label="{{ _('Menu') }}"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="invenio-menu"
+          >
+            <span class="navicon"></span>
+          </button>
+        </div>
+
+        <div
+          role="menu"
+          id="invenio-menu"
+          aria-labelledby="rdm-burger-menu-icon"
+          class="ui fluid menu borderless mobile-hidden"
+        >
+          <button
+            id="rdm-close-burger-menu-icon"
+            class="ui button transparent"
+            aria-label="{{ _('Close menu') }}"
+          >
+            <span class="navicon"></span>
+          </button>
+
+          {%- block navbar_right %}
+            <div class="right menu item">
+              <div class="item inbox mobile tablet only">
+                <a role="menuitem" href='{{ url_for("administration.dashboard") }}'
+                  aria-label='{{ _("Administration dashboard") }}'>
+                  <i class="fitted home icon" aria-hidden="true"></i>
+                  <span class="mobile tablet only inline">{{ _("Dashboard") }}</span>
+                </a>
+              </div>
+              {%- include "invenio_administration/header/header_login.html" %}
+            </div>
+          {%- endblock navbar_right %}
+        </div>
+      </nav>
+    </div>
+  {%- endblock navbar %}
+</header>

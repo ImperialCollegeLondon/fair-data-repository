@@ -148,6 +148,46 @@ h3 {
     a {
         color: @primaryColor;
     }
+
+    #rdm-burger-menu-icon {
+        @headerOverlayOpenColor: @primaryColor;
+
+        .header__inner--inverse & {
+            @headerOverlayOpenColor: @white;
+        }
+        background-color: transparent !important;
+        border: none !important;
+        color: none;
+
+        span {
+            top: 1px;
+
+            &::before {
+                top: clamp(0.4375rem, 0.4016rem + 0.1795vw, 0.5625rem); // 7px -> 9px
+                transition: transform 0.2s;
+            }
+
+            &::after {
+                top: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
+                transition: none;
+            }
+        }
+
+        span,
+        span::before,
+        span::after {
+            background-color: var(@headerOverlayOpenColor);
+        }
+
+        &:hover {
+            background-color: transparent !important;
+            border: none !important;
+            // transform: rotate(90deg);
+            span::before {
+                width: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
+            }
+        }
+    }
 }
 
 .theme.header {

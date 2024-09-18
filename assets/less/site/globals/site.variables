@@ -52,6 +52,7 @@
 @subFooterColor: @footerDarkColor;
 @footerTextLightColor: @white;
 
+@darkTextColor: @black;
 @invertedTextColor: @white;
 @errorTextColor: @red;
 @focusedFormBorderColor: #deepSkyBlue;
@@ -106,10 +107,9 @@
 @fontSizeBodyHeader: 1rem;
 @fontSizeCaption: .5rem;
 
-/*-------------------
-Backwards compatibility
---------------------*/
 @font-size-small: @fontSizeCaption;
 @font-size-tiny: @fontSizeCaption;
 
 @defaultBorderRadius: 0;
+
+@adminSideNavColor: @whiteSmoke;

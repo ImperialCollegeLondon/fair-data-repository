@@ -3,18 +3,21 @@
     border: 1px solid @defaultButtonBorderColor;
     color: @defaultButtonTextColor;
     &:hover,
-    &:active {
+    &:active,
+    &:focus {
         background-color: @defaultButtonBackgroundColorHovered;
         border: 1px solid @defaultButtonBorderColorHovered;
         color: @defaultButtonTextColorHovered;
     }
 }
 
-.ui.button.primary {
+.ui.button.primary,
+.ui.button.positive {
     background-color: @primaryButtonBackgroundColor;
     color: @primaryButtonTextColor;
     &:hover,
-    &:active {
+    &:active,
+    &:focus {
         background-color: @primaryButtonBackgroundColorHovered;
         color: @primaryButtonTextColorHovered;
     }
@@ -25,7 +28,8 @@
     border: 1px solid @defaultButtonBorderColor;
     color: @primaryButtonTextColor;
     &:hover,
-    &:active {
+    &:active,
+    &:focus {
         background-color: @primaryButtonBackgroundColorHovered;
         border: 1px solid @defaultButtonBorderColorHovered;
         color: @primaryButtonTextColorHovered;

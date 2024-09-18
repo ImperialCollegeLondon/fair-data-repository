@@ -7,12 +7,12 @@
 default button
 --------------------------------*/
 
-@defaultButtonBackgroundColor: @white;
-@defaultButtonBorderColor: @slateGray;
-@defaultButtonTextColor: @slateGray;
+@defaultButtonBackgroundColor: @whiteSmoke;
+@defaultButtonBorderColor: @black;
+@defaultButtonTextColor: @black;
 @defaultButtonBackgroundColorHovered: @black;
 @defaultButtonBorderColorHovered: @black;
-@defaultButtonTextColorHovered: @white;
+@defaultButtonTextColorHovered: @whiteSmoke;
 
 /*------------------------------
 primary button

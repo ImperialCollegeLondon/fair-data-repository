@@ -31,3 +31,20 @@
         }
     }
 }
+
+#rdm-burger-toggle {
+  font-size: 20px;
+  position: absolute;
+  right: -1.5rem;
+  top: calc(50%);
+  transform: translateY(-50%);
+
+  #rdm-burger-menu-icon {
+    .navicon {
+         color: @primaryColor;
+          &:hover {
+            color: @black;
+          }
+    }
+  }
+}

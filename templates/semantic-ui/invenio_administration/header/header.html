@@ -14,13 +14,13 @@
   <div class="six wide mobile four wide tablet three wide computer two wide widescreen column mr-0 pr-0 pb-0">
 
 
-      <nav id="invenio-admin-home-nav" aria-label="{{ _('Home navigation') }}" class="ui menu borderless align-items-center justify-space-between pr-0">
-        {%- if config.INVERTED_THEME_LOGO %}
-          <a href="/" class="logo-link rel-mr-1" title="{{ _('Back to front page')}}">
-            <img class="rdm-logo" src="{{ url_for('static', filename=config.INVERTED_THEME_LOGO)}}" alt="" />
+      <nav id="invenio-admin-home-nav" aria-label="{{ _('Home navigation') }}" class="ui menu align-items-center justify-space-between pr-0">
+        {%- if config.THEME_LOGO %}
+          <a href="/static" class="logo-link rel-mr-1" title="{{ _('Back to front page')}}">
+            <img class="rdm-logo" src="{{ url_for('static', filename=config.THEME_LOGO)}}" alt="" />
           </a>
         {%- else %}
-          <a class="navbar-brand" href="/">{{_(config.THEME_SITENAME)}}</a>
+          <a class="navbar-brand" href="/static">{{_(config.THEME_SITENAME)}}</a>
         {%- endif %}
 
         <div class="tablet only computer only">

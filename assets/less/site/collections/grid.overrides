@@ -1,15 +1,4 @@
 .invenio-administration.ui.grid > .side-bar.column {
-  background-color: @adminSideNavColor;
-  .item {
-    color: @darkTextColor;
-    font-weight: @fontRegular;
-    text-decoration: underline;
-    text-decoration-color: @darkTextColor;
-    text-decoration-thickness: 1px;
-    &:hover,
-    &:active {
-        font-weight: @fontMedium;
-        text-decoration-thickness: 2px;
-    }
-  }
+  background-color: @lavender;
+  border-right: 2px solid @primaryColor;
 }

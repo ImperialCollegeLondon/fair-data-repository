@@ -1,4 +1,4 @@
-@searchButtonColor: @white;
+@searchButtonColor: @whiteSmoke;
 @searchButtonColorHover: @black;
 
 @fontWeight: @fontRegular;
@@ -7,7 +7,7 @@
 default button
 --------------------------------*/
 
-@defaultButtonBackgroundColor: @whiteSmoke;
+@defaultButtonBackgroundColor: @white;
 @defaultButtonBorderColor: @black;
 @defaultButtonTextColor: @black;
 @defaultButtonBackgroundColorHovered: @black;
@@ -18,8 +18,10 @@ default button
 primary button
 --------------------------------*/
 @primaryButtonBackgroundColor: @primaryColor;
+@primaryButtonBorderColor: @primaryColor;
 @primaryButtonTextColor: @white;
 @primaryButtonBackgroundColorHovered: @black;
+@primaryButtonBorderColorHovered: @black;
 @primaryButtonTextColorHovered: @white;
 
 /*-------------------------------
@@ -32,3 +34,22 @@ secondary button
 @secondaryButtonBackgroundColorHovered: @primaryColor;
 @secondaryButtonBorderColorHovered: @primaryColor;
 @secondaryButtonTextColorHovered: @white;
+
+/*-------------------------------
+negative button
+--------------------------------*/
+
+@negativeButtonBackgroundColor: @white;
+@negativeButtonBorderColor: @red;
+@negativeButtonTextColor: @red;
+@negativeButtonBackgroundColorHovered: @red;
+@negativeButtonBorderColorHovered: @red;
+@negativeButtonTextColorHovered: @white;
+
+/*-------------------------------
+disabled button
+--------------------------------*/
+
+@disabledButtonBackgroundColor: @whiteSmoke;
+@disabledButtonBorderColor: @darkGray;
+@disabledButtonTextColor: @darkGray;

@@ -1,4 +1,37 @@
-.ui.input {
-    background-color: @inputBackgroundColor !important;
-    border-radius: 0 !important;
+.ui.input,
+.ui.input > input {
+        background-color: @inputColor;
+        border-radius: 0 !important;
+        border: 1px solid @whiteSmoke;
+        i.icon.search {
+          color: @primaryColor;
+        }
+        &:focus,
+        &:focus-visible,
+        &:focus-within,
+        &:hover,
+        &:active {
+            outline: @deepSkyBlue;
+            outline-width: 3px;
+            outline-offset: 3px;
+        }
+}
+
+div.ui.search .ui.input input {
+    background-color: @whiteSmoke;
+    border: 1px solid @whiteSmoke;
+    button.ui.button.search {
+        border-color: @whiteSmoke;
+    }
+}
+
+.ui.action.input:not(.frontpage-header--search) {
+    &:focus,
+    &:focus-visible,
+    &:focus-within,
+    &:hover,
+    &:active {
+        outline: 3px solid #c71585;
+        outline-offset: 3px;
+    }
 }

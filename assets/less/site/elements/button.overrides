@@ -1,38 +1,77 @@
-.ui.button {
+.ui.button,
+.ui.basic.buttons .button,
+.ui.basic.button {
     background-color: @defaultButtonBackgroundColor;
-    border: 1px solid @defaultButtonBorderColor;
+    &:not(.search),
+    &:not(#skip-to-main){
+        border-style: solid !important;
+        border-width: 1px !important;
+    }
+    border-color: @defaultButtonBorderColor;
     color: @defaultButtonTextColor;
-    &:hover,
-    &:active,
-    &:focus {
-        background-color: @defaultButtonBackgroundColorHovered;
-        border: 1px solid @defaultButtonBorderColorHovered;
-        color: @defaultButtonTextColorHovered;
+    &:hover {
+        background: @black;
+        color: @white;
     }
 }
 
-.ui.button.primary,
-.ui.button.positive {
+.ui.button.primary:not(.disabled),
+.ui.button.positive:not(.disabled) {
     background-color: @primaryButtonBackgroundColor;
-    color: @primaryButtonTextColor;
+    border-color: @primaryButtonBorderColor;
+    color: @primaryButtonTextColor !important;
     &:hover,
     &:active,
     &:focus {
         background-color: @primaryButtonBackgroundColorHovered;
-        color: @primaryButtonTextColorHovered;
+        border-color: @primaryButtonBorderColorHovered;
+        color: @primaryButtonTextColorHovered !important;
     }
+}
+
+.ui.button.disabled {
+    background-color: @disabledButtonBackgroundColor;
+    border-color: @disabledButtonBorderColor;
+    color: @disabledButtonTextColor !important;
+    &:hover,
+    &:active,
+    &:focus {
+        background-color: @disabledButtonBackgroundColor;
+        border-color: @disabledButtonBorderColor;
+        color: @disabledButtonTextColor !important;
+    }
+}
+
+div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
+    background-color: @green;
+    border-color: @green;
+    color: @white;
 }
 
 .ui.button.secondary {
     background-color: @primaryButtonBackgroundColor;
-    border: 1px solid @defaultButtonBorderColor;
+    border-color: @defaultButtonBorderColor;
     color: @primaryButtonTextColor;
     &:hover,
     &:active,
     &:focus {
         background-color: @primaryButtonBackgroundColorHovered;
-        border: 1px solid @defaultButtonBorderColorHovered;
+        border-color: @defaultButtonBorderColorHovered;
         color: @primaryButtonTextColorHovered;
+    }
+}
+
+.ui.button.negative,
+.ui.button.red {
+    background-color: @negativeButtonBackgroundColor;
+    border-color: @negativeButtonBorderColor;
+    color: @negativeButtonTextColor;
+    &:hover,
+    &:active,
+    &:focus {
+        background-color: @negativeButtonBackgroundColorHovered;
+        border-color: @negativeButtonBorderColorHovered;
+        color: @negativeButtonTextColorHovered;
     }
 }
 
@@ -65,5 +104,24 @@
         i.icon.search {
             color: @white;
         }
+    }
+}
+
+.ui.basic.buttons {
+    .ui.button:not(.active),
+    .ui.basic.button:not(.active){
+        background-color: @white !important;
+        box-shadow: none !important;
+        border: 1px solid rgba(34, 36, 38, 0.15) !important;
+        color: @black !important;
+        &:hover {
+            background: @whiteSmoke !important;        }
+    }
+    .active.button,
+    .ui.button.active,
+    .ui.basic.button.active {
+        background-color: @black !important;
+        border: 1px @black !important;
+        color: @white !important;
     }
 }

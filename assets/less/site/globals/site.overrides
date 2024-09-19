@@ -128,10 +128,30 @@ h3 {
     line-height: 1.2;
 }
 
+p {
+    font-family: @ImperialSansText;
+    font-weight: @fontRegular;
+    font-size: @fontSizeBody;
+    line-height: 1.2;
+}
+
+a {
+    font-family: @ImperialSansText;
+    font-weight: @fontRegular;
+    font-size: @fontSizeBody;
+    line-height: 1.2;
+    color: @primaryColor;
+    text-decoration: underline;
+}
+
 .small {
     font-family: @ImperialSansText;
     font-size: @fontSizeCaption;
     line-height: 1.25;
+}
+
+html.cover-page {
+    background-color: @white;
 }
 
 .outer-navbar {
@@ -143,6 +163,7 @@ h3 {
         background: @white;
         border-top: 2px solid @brandColor;
         border-bottom: 2px solid @brandColor;
+        margin: 1rem 0;
     }
 
     a {
@@ -182,7 +203,7 @@ h3 {
         &:hover {
             background-color: transparent !important;
             border: none !important;
-            // transform: rotate(90deg);
+            transform: rotate(90deg);
             span::before {
                 width: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
             }
@@ -263,17 +284,9 @@ h3 {
                 .footer__info {
                     display: flex;
                     flex-direction: column;
-                    justify-content: space-around;
+                    justify-content: space-between;
                     height: 100%;
                     padding-block: 2rem;
-                    &::before {
-                        content: ""; // Empty content
-                        flex: 1; // Take up space like a flex item
-                    }
-                    // Ensure all actual items and the pseudo-element are equally spaced
-                    > * {
-                        flex: 1;
-                    }
                     .footer__copyright {
                         display: flex;
                         align-items: flex-end;
@@ -281,19 +294,50 @@ h3 {
                     }
                     a {
                         color: @footerTextLightColor;
-                        text-decoration: none;
+                        text-decoration: underline;
+                        text-decoration-color: @springGreen;
+                        text-decoration-thickness: 1px;
 
                         &:hover, &:focus {
                             color: @footerTextDarkColor;
                             text-decoration: underline;
-                            text-decoration-color: @springGreen;
+                            text-decoration-color: @white;
+                            text-decoration-thickness: 2px;
                         }
                     }
                     p {
                         margin-bottom: 0;
+                        align-self: flex-end;
                     }
                 }
             }
         }
     }
+}
+
+a.with-arrow {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: @primaryColor;
+  svg {
+    fill: @primaryColor;
+    width: 1rem;
+    height: 1rem;
+    margin-right: .5rem;
+  }
+  &:hover {
+    color: @black;
+    svg {
+        fill: @black;
+    }
+  }
+}
+
+::placeholder {
+    color: @darkGray;
+    opacity: .5;
+}
+::-ms-input-placeholder { /* Edge 12 -18 */
+  color: @darkGray;
 }

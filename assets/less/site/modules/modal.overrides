@@ -1,0 +1,5 @@
+.ui.modal {
+    .header {
+        background-color: @lavender;
+    }
+}

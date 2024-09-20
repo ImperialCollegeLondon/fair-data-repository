@@ -1,0 +1,3 @@
+.ui.dropdown .menu .selected.item {
+    font-weight: @fontMedium;
+}

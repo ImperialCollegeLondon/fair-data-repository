@@ -1,0 +1,129 @@
+/***********************************************
+         Invenio App RDM Menu Overrides
+***********************************************/
+
+#invenio-nav.ui.menu {
+    margin-top: 2rem;
+    .ui.menu {
+        background-color: transparent;
+        box-shadow: none;
+        .item {
+            text-decoration: underline;
+            text-decoration-color: @primaryColor;
+            a:not(.ui.button) {
+                display: inline-block;
+                color: @primaryColor;
+                padding: 2rem 1rem;
+                text-decoration: underline;
+                text-decoration-color: @primaryColor;
+                &:hover {
+                    color: @black;
+                    text-decoration: underline;
+                    text-decoration-color: @black;
+                }
+            }
+            a:not(.ui.button):has(.icon) {
+                text-decoration: none;
+                &:hover {
+                    text-decoration: none;
+                }
+            }
+        }
+        &.transition.visible {
+            a.item {
+                text-decoration: none;
+                &:hover {
+                    text-decoration: none;
+                }
+            }
+        }
+    }
+}
+
+#rdm-burger-toggle {
+    font-size: 20px;
+    position: absolute;
+    right: -1.5rem;
+    top: calc(50%);
+    border: none;
+
+    #rdm-burger-menu-icon {
+        .navicon {
+            background: @primaryColor;
+            color: @primaryColor;
+            &:hover {
+                color: @black;
+            }
+        }
+    }
+}
+
+.ui.secondary.pointing.menu .item {
+    padding: @itemVerticalPadding @itemHorizontalPadding;
+    &.active {
+        border-color: @primaryColor;
+        font-weight: @fontSemibold;
+    }
+    &:hover {
+        border-color: @black;
+    }
+}
+
+.ui.menu {
+    box-shadow: none;
+}
+
+.ui.vertical.menu {
+    .ui.header.item {
+        font-weight: @fontSemibold;
+    }
+    a.item {
+        i {
+            text-decoration: none !important;
+        }
+        color: @darkTextColor;
+        font-weight: @fontRegular;
+        text-decoration: none;
+    }
+}
+
+.invenio-administration .side-menu-toggle {
+    color: @primaryColor;
+}
+
+#invenio-admin-home-nav {
+    box-shadow: none;
+    background: @lavender;
+    border-right: 2px @primaryColor solid;
+}
+
+.invenio-administration #invenio-admin-top-nav.ui.menu {
+    background: @white;
+}
+
+.ui.dropdown .menu.visible.transition {
+    min-width: min-content;
+    .item:not(.disabled) {
+        width: 100%;
+        text-decoration: none;
+        &:hover, &:focus {
+            background-color: @whiteSmoke;
+        }
+    }
+    .item.disabled:not(.active) {
+        background-color: transparent;
+        color: @slateGray;
+        &:hover, &:focus {
+            i {
+                text-decoration: none !important;
+            }
+            color: @slateGray;
+            background-color: transparent;
+            font-weight: @fontRegular;
+            text-decoration: none;
+        }
+    }
+    .item:not(.active) {
+        background-color: @whiteSmoke;
+    }
+}

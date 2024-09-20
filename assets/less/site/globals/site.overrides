@@ -1,0 +1,343 @@
+/*-------------------
+  Fonts definitions
+--------------------*/
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/ImperialSansDisplay-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 300;
+  src: url("../fonts/ImperialSansDisplay-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 600;
+  src: url("../fonts/ImperialSansDisplay-Semibold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 500;
+  src: url("../fonts/ImperialSansDisplay-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 200;
+  src: url("../fonts/ImperialSansDisplay-Extralight.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 700;
+  src: url("../fonts/ImperialSansDisplay-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansDisplay";
+  font-style: normal;
+  font-weight: 800;
+  src: url("../fonts/ImperialSansDisplay-Extrabold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/ImperialSansText-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 300;
+  src: url("../fonts/ImperialSansText-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 600;
+  src: url("../fonts/ImperialSansText-Semibold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 500;
+  src: url("../fonts/ImperialSansText-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 200;
+  src: url("../fonts/ImperialSansText-Extralight.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 700;
+  src: url("../fonts/ImperialSansText-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "ImperialSansText";
+  font-style: normal;
+  font-weight: 800;
+  src: url("../fonts/ImperialSansText-Extrabold.ttf") format("truetype");
+}
+
+html {
+    font-family: @ImperialSansText;
+    font-weight: @fontRegular;
+    font-size: @fontSizeBase;
+    line-height: 1;
+}
+
+h1 {
+    font-family: @ImperialSansDisplay;
+    font-weight: @fontSemibold;
+    font-size: @fontSizeHeadline;
+    line-height: 1;
+}
+
+h2 {
+    font-family: @ImperialSansDisplay;
+    font-weight: @fontSemibold;
+    font-size: @fontSizeSubheadline;
+    line-height: 1;
+}
+
+h3 {
+    font-family: @ImperialSansDisplay;
+    font-weight: @fontSemibold;
+    font-size: @fontSizeBodyHeader;
+    line-height: 1.2;
+}
+
+p {
+    font-family: @ImperialSansText;
+    font-weight: @fontRegular;
+    font-size: @fontSizeBody;
+    line-height: 1.2;
+}
+
+a {
+    font-family: @ImperialSansText;
+    font-weight: @fontRegular;
+    font-size: @fontSizeBody;
+    line-height: 1.2;
+    color: @primaryColor;
+    text-decoration: underline;
+}
+
+.small {
+    font-family: @ImperialSansText;
+    font-size: @fontSizeCaption;
+    line-height: 1.25;
+}
+
+html.cover-page {
+    background-color: @white;
+}
+
+.outer-navbar {
+    background-image: None;
+    background-color: transparent;
+    border-color: transparent;
+
+    #invenio-nav {
+        background: @white;
+        border-top: 2px solid @brandColor;
+        border-bottom: 2px solid @brandColor;
+        margin: 1rem 0;
+    }
+
+    a {
+        color: @primaryColor;
+    }
+
+    #rdm-burger-menu-icon {
+        @headerOverlayOpenColor: @primaryColor;
+
+        .header__inner--inverse & {
+            @headerOverlayOpenColor: @white;
+        }
+        background-color: transparent !important;
+        border: none !important;
+        color: none;
+
+        span {
+            top: 1px;
+
+            &::before {
+                top: clamp(0.4375rem, 0.4016rem + 0.1795vw, 0.5625rem); // 7px -> 9px
+                transition: transform 0.2s;
+            }
+
+            &::after {
+                top: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
+                transition: none;
+            }
+        }
+
+        span,
+        span::before,
+        span::after {
+            background-color: var(@headerOverlayOpenColor);
+        }
+
+        &:hover {
+            background-color: transparent !important;
+            border: none !important;
+            transform: rotate(90deg);
+            span::before {
+                width: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
+            }
+        }
+    }
+}
+
+.theme.header {
+  box-shadow: None;
+}
+
+#rdm-footer-element {
+  color: @footerTextLightColor;
+  font-weight: 500;
+  margin-top: auto;
+  font-size: @fontSizeBase;
+  padding-top: 0;
+
+  a {
+    color: @footerTextLightColor;
+
+    &:hover, &:focus {
+      color: @footerTextDarkColor;
+    }
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+}
+
+.footer-top {
+    background-color: @footerDarkColor;
+    padding: 2rem;
+    height: 100%;
+    .row {
+        margin: 0 !important;
+        padding: 0! important;
+    }
+    .app-rdm-footer {
+        color: @footerTextLightColor;
+        margin-top: auto;
+        font-size: @fontSizeBase;
+        font-weight: @fontMedium;
+        padding-top: 0;
+        height: 100%;
+
+        .footer__common {
+            border-top: 2px solid @white;
+            border-bottom: 2px solid @white;
+            margin-top: 0.5rem;
+            height: 100%;
+
+            .row {
+                height: 100% !important;
+                .footer__contact {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-around;
+                    height: 100%;
+                    padding-block: 2rem;
+                    padding-inline-end: 1.75rem;
+                    border-right: 2px solid @white;
+
+                    .footer__brand {
+                        flex: 1;
+                        svg {
+                            height: 100%;
+                            max-height: 1.75rem;
+                            max-width: 100%;
+                            width: auto;
+                        }
+                    }
+                    .address {
+                        flex: 2;
+                    }
+                }
+                .footer__info {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    height: 100%;
+                    padding-block: 2rem;
+                    .footer__copyright {
+                        display: flex;
+                        align-items: flex-end;
+                        opacity: .5;
+                    }
+                    a {
+                        color: @footerTextLightColor;
+                        text-decoration: underline;
+                        text-decoration-color: @springGreen;
+                        text-decoration-thickness: 1px;
+
+                        &:hover, &:focus {
+                            color: @footerTextDarkColor;
+                            text-decoration: underline;
+                            text-decoration-color: @white;
+                            text-decoration-thickness: 2px;
+                        }
+                    }
+                    p {
+                        margin-bottom: 0;
+                        align-self: flex-end;
+                    }
+                }
+            }
+        }
+    }
+}
+
+a.with-arrow {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: @primaryColor;
+  svg {
+    fill: @primaryColor;
+    width: 1rem;
+    height: 1rem;
+    margin-right: .5rem;
+  }
+  &:hover {
+    color: @black;
+    svg {
+        fill: @black;
+    }
+  }
+}
+
+::placeholder {
+    color: @darkGray;
+    opacity: .5;
+}
+::-ms-input-placeholder { /* Edge 12 -18 */
+  color: @darkGray;
+}

@@ -1,12 +1,129 @@
-@primaryColor: #003E74;
-@secondaryColor: #002147;
-@navbarBackgroundColor: @primaryColor;
-@navbarBackgroundImage: false;
-@primaryDarkenColor: #373A36;
+/***********************************************
+    Invenio App RDM Site Variables
+***********************************************/
 
+/*-------------------
+      Site Colors
+--------------------*/
+@imperialBlue: #0000cd;
+@black: #161a1d;
+@white: #ffffff;
 
-@footerLightColor: @primaryColor;
-@footerDarkColor: @secondaryColor;
+@slateGray: #708090;
+@darkGray: @slateGray;
+@green: #006400;
+@red: #ff0000;
+@yellow: #ffff00;
+@teal: #008080;
+@orange: #ffa500;
+@darkOrange: #ff8c00;
+@deepSkyBlue: #00bfff;
+@navyBlue: #000080;
+@whiteSmoke: #f5f5f5;
+@lavender: #e6e6fa;
+@springGreen: #00ff7f;
+@brown: #8b4513;
+@lightCyan: #dff8f8;
+
+@orangeBackground: rgba(255,140,0,0.05);
+@redBackground: rgba(255,0,0,0.05);
+@greenBackground: rgba(0,255,0,0.05);
+
+/*-------------------
+    Brand Colors
+--------------------*/
+
+@brandColor: @imperialBlue;
+@primaryColor: @imperialBlue;
+@secondaryColor: @orange;
+
+@featuredListBackgroundColor: @imperialBlue;
+@primaryDarkenColor: @navyBlue;
+
+@signupColor: @green;
+
+@accessRightOpen: @green;
+@accessRightRestricted: @red;
+@accessRightEmbargoed: @yellow;
+@accessRightMetadataOnly: @teal;
+
+/*-OLD------------------
+@restricted-components-background-color_old: #feeaea;
+@restricted-components-border-color_old: #e0b4b4;
+@embargoed-components-background-color_old: #fbf8ee;
+@embargoed-components-border-color_old: #c9ba9b;
+--------------------*/
+
+@footerDarkColor: @black;
 @subFooterColor: @footerDarkColor;
-@footerTextLightColor: #ffffff;
-@footerTextDarkColor: #ffffff;
+@footerTextLightColor: @white;
+
+@darkTextColor: @black;
+@invertedTextColor: @white;
+@errorTextColor: @red;
+
+@highlightHeaderColor: @lavender;
+@highlightBackgroundColor: @highlightHeaderColor;
+@highlightBackgroundColorHover:  darken(saturate(@highlightHeaderColor, 20), 15, relative);
+@highlightLandingPageBackgroundColor: @lavender;
+@selectedColor: @lavender;
+@subheaderColor: @lightCyan;
+
+@navbarBackgroundColor: @white;
+@navbarBackgroundImage: none;
+@frontpageSearchBarBackgroundColor: @navyBlue;
+@versionActiveColor: @lavender;
+
+@inputColor: @white;
+@inputBorderColor: @whiteSmoke;
+
+@mutedAccordionHeaderColor: @whiteSmoke;
+@defaultBrandColor: @imperialBlue;
+
+@itemVerticalPadding: 1rem;
+@itemHorizontalPadding: 1rem;
+
+
+/*-------------------
+      Links
+--------------------*/
+
+@linkColor: @primaryColor;
+@linkUnderline: none;
+@linkHoverColor: darken(saturate(@linkColor, 20), 15, relative);
+@linkHoverUnderline: underline;
+
+/*-------------------
+      Fonts
+--------------------*/
+
+@fontName: "ImperialSansText", Arial, sans-serif;
+@ImperialSansText: @fontName;
+@ImperialSansDisplay: "ImperialSansDisplay", Arial, sans-serif;
+
+@fontExtralight: 200;
+@fontLight: 300;
+@fontRegular: 400;
+@fontMedium: 500;
+@fontSemibold: 600;
+@fontBold: 700;
+@fontExtrabold: 800;
+
+/*--- 1rem ---*/
+@fontSizeBase: 16px;
+
+@fontSizeHeadline: 5rem;
+@fontSizeSubheadline: 2rem;
+@fontSizeItemHeadline: 1.25rem;
+@fontSizeBodyHeader: 1rem;
+@fontSizeBody: 1rem;
+@fontSizeCaption: .5rem;
+
+@font-size-small: @fontSizeCaption;
+@font-size-tiny: @fontSizeCaption;
+
+@defaultBorderRadius: 0;
+
+@adminSideNavColor: @whiteSmoke;
+
+@darkBrandCover: @navyBlue;

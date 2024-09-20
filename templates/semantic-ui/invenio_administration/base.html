@@ -1,0 +1,62 @@
+{#
+Copyright (C) 2020 CERN.
+
+Invenio App RDM is free software; you can redistribute it and/or modify it
+under the terms of the MIT License; see LICENSE file for more details.
+#}
+
+<!DOCTYPE html>
+{%- extends config.ADMINISTRATION_THEME_BASE_TEMPLATE %}
+
+{% block bypasslinks %}
+{% endblock %}
+
+{% block body_inner %}
+<div class="ui grid invenio-administration">
+
+    <div class="sixteen wide column">
+        {% block admin_topnav %}
+        {% include "invenio_administration/header/header.html" %}
+        {% endblock admin_topnav %}
+    </div>
+
+    {% block admin_side_column %}
+    {% block admin_sidenav %}
+
+    <section id="admin-side-menu" aria-label="{{ _('Side menu') }}"
+             class="six wide mobile four wide tablet three wide computer two wide widescreen side-bar column ml-0 mr-0 pr-0">
+        {% block admin_sidenav_menu %}
+        {% include "invenio_administration/sidebar/sidenav.html" %}
+        {% endblock %}
+    </section>
+
+    {% endblock admin_sidenav %}
+    {% endblock %}
+
+    {% block admin_main_column %}
+    <main id="admin-main-content"
+          class="ten wide mobile twelve wide tablet thirteen wide computer fourteen wide widescreen column">
+
+        <div class="ui container fluid pl-10 pr-25 pt-10 pb-10">
+            {% block page_title %}
+                {% if title or name %}
+                    <h1 class="ui header">{{ title or name }}</h1>
+                    <div class="ui divider" aria-hidden="true"></div>
+                {% endif %}
+            {% endblock page_title %}
+
+            {% block admin_page_content %}
+
+            {% endblock admin_page_content %}
+
+        </div>
+    </main>
+    {% endblock %}
+
+</div>
+{% block javascript %}
+{{ super() }}
+{{ webpack['base-admin-theme.js'] }}
+{% endblock %}
+
+{% endblock %}

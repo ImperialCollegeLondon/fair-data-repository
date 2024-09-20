@@ -1,0 +1,6 @@
+.ui.accordion.invenio-accordion-field .title:not(.ui),
+.ui.accordion.invenio-accordion-field.error.secondary.inverted .title {
+    background-color: @lavender;
+    color: black;
+    font-weight: bold;
+}

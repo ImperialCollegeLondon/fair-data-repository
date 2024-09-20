@@ -1,0 +1,12 @@
+.ui.container.frontpage-header {
+    background-color: @frontpageSearchBarBackgroundColor !important;
+}
+
+.ui.container.page-subheader {
+    padding-inline: @itemVerticalPadding @itemHorizontalPadding;
+    display: flex;
+    align-items: center;
+    &-outer {
+        background-color: @subheaderColor;
+    }
+}

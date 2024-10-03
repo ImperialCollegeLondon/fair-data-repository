@@ -167,8 +167,7 @@ if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET and ICL_OAUTH_WELL_KNOWN_URL:
             access_token_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/token",  # noqa: E501
             access_token_method="POST",
             authorize_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/authorize",  # noqa: E501
-            consumer_key=ICL_OAUTH_CLIENT_ID,
-            consumer_secret=ICL_OAUTH_CLIENT_SECRET,
+            app_key="ICL_APP_CREDENTIALS",
         ),
         authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
         disconnect_handler="invenio_oauthclient.handlers:disconnect_handler",
@@ -177,6 +176,10 @@ if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET and ICL_OAUTH_WELL_KNOWN_URL:
         ),
         signup_options=dict(auto_confirm=True, send_register_msg=False),
     )
+    ICL_APP_CREDENTIALS = {
+        "consumer_key": ICL_OAUTH_CLIENT_ID,
+        "consumer_secret": ICL_OAUTH_CLIENT_SECRET,
+    }
 
 ACCOUNTS_LOGIN_VIEW_FUNCTION = (
     auto_redirect_login  # autoredirect to external login if enabled

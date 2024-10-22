@@ -8,4 +8,9 @@
  * Add here all the overridden components of your app.
  */
 
-export const overriddenComponents = {}
+import { OptionalRoleCreatibutorsField, NoRoleCreatibutorsField } from "../../ic_data_repo/OptionalRoleCreatibutors"
+
+export const overriddenComponents = {
+    "InvenioAppRdm.Deposit.ContributorsField.container": OptionalRoleCreatibutorsField,
+    "InvenioAppRdm.Deposit.CreatorsField.container": NoRoleCreatibutorsField,
+};

@@ -378,6 +378,7 @@ class OptionalRoleCreatibutorsFieldForm extends Component {
       autocompleteNames,
       addButtonLabel,
       includeRole,
+      helpText,
     } = this.props;
 
     const creatibutorsList = getIn(values, fieldPath, []);
@@ -447,6 +448,10 @@ class OptionalRoleCreatibutorsFieldForm extends Component {
             </Label>
           )}
         </Form.Field>
+        {
+          // eslint-disable-next-line jsx-a11y/label-has-associated-control
+          helpText && <label className="helptext">{helpText}</label>
+        }
       </DndProvider>
     );
   }
@@ -470,17 +475,12 @@ export class OptionalRoleCreatibutorsField extends CreatibutorsField {
 
 OptionalRoleCreatibutorsField.propTypes = {
   includeRole: PropTypes.bool,
+  helpText: PropTypes.sting,
   ...CreatibutorsField.propTypes,
 }
 
 OptionalRoleCreatibutorsField.defaultProps = {
   includeRole: true,
+  helpText: "",
   ...CreatibutorsField.defaultProps,
-}
-
-export class NoRoleCreatibutorsField extends OptionalRoleCreatibutorsField {}
-
-NoRoleCreatibutorsField.defaultProps = {
-  includeRole: false,
-  ...CreatibutorsField.defaultProps
 }

@@ -12,7 +12,12 @@ const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
     includeRole: false,
 });
 
+const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {
+    helpText: "Individuals or institutions, in addition to the creators, responsible for collecting, managing, distributing or other-wise contributing to the development of the resource.",
+    includeRole: true,
+});
+
 export const overriddenComponents = {
-    "InvenioAppRdm.Deposit.ContributorsField.container": OptionalRoleCreatibutorsField,
+    "InvenioAppRdm.Deposit.ContributorsField.container": ContributorsField,
     "InvenioAppRdm.Deposit.CreatorsField.container": CreatorsField,
 };

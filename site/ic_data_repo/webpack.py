@@ -9,7 +9,7 @@ theme = WebpackThemeBundle(
     themes={
         "semantic-ui": dict(
             entry={
-                # Add your webpack entrypoints
+                "optional-role-creatibutors": "./js/ic_data_repo/OptionalRoleCreatibutors.js"  # noqa: E501
             },
         ),
     },

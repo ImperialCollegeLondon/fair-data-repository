@@ -4,8 +4,20 @@
 // Invenio App RDM is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
-/**
- * Add here all the overridden components of your app.
- */
+import { OptionalRoleCreatibutorsField } from "../../ic_data_repo/OptionalRoleCreatibutors";
+import { parametrize } from "react-overridable";
 
-export const overriddenComponents = {}
+const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
+    helpText: "The main individuals or institutions involved in creating the data set.",
+    includeRole: false,
+});
+
+const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {
+    helpText: "Individuals or institutions, in addition to the creators, responsible for collecting, managing, distributing or other-wise contributing to the development of the resource.",
+    includeRole: true,
+});
+
+export const overriddenComponents = {
+    "InvenioAppRdm.Deposit.ContributorsField.container": ContributorsField,
+    "InvenioAppRdm.Deposit.CreatorsField.container": CreatorsField,
+};

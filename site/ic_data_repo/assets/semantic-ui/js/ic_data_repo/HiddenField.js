@@ -28,6 +28,7 @@ export class HiddenField extends Component {
             return (
               <Form.Input
                 type="hidden"
+                className="hidden-form-input"
                 {...field}
                 error={
                   error ||

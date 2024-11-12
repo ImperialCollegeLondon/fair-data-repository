@@ -95,6 +95,7 @@ SITE_UI_URL = "https://127.0.0.1"
 SITE_API_URL = "https://127.0.0.1/api"
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
+    "resource_type": "dataset",
     "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),
     "rights": [
         {
@@ -109,7 +110,7 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
             "link": "https://creativecommons.org/licenses/by/4.0/legalcode",
         }
     ],
-    "publisher": "Imperial Fair Data Repository",
+    "publisher": "Imperial College London",
 }
 
 # See:

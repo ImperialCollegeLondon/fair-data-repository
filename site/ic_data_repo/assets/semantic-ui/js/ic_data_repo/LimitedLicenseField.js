@@ -16,7 +16,7 @@ import { FieldLabel } from "react-invenio-forms";
 import { Button, Form, Icon, List } from "semantic-ui-react";
 
 import { LimitedLicenseModal } from "./LimitedLicenseModal";
-import { LicenseFieldItem } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseFieldItem";
+import { LimitedLicenseFieldItem } from "./LimitedLicenseFieldItem";
 import { i18next } from "@translations/invenio_rdm_records/i18next";
 
 /**
@@ -86,7 +86,7 @@ class LicenseFieldForm extends Component {
             {getIn(values, fieldPath, []).map((value, index) => {
               const license = new VisibleLicense(uiRights, value, index);
               return (
-                <LicenseFieldItem
+                <LimitedLicenseFieldItem
                   key={license.key}
                   license={license}
                   moveLicense={formikArrayMove}
@@ -103,30 +103,16 @@ class LicenseFieldForm extends Component {
             trigger={
               <Button type="button" key="standard" icon labelPosition="left">
                 <Icon name="add" />
-                {i18next.t("Add standard")}
+                {i18next.t("Add license")}
               </Button>
             }
             onLicenseChange={(selectedLicense) => {
               formikArrayPush(selectedLicense);
             }}
-            mode="standard"
             action="add"
+            licenses={values.metadata.rights.length}
             serializeLicenses={serializeLicenses}
           />
-          {/* <LicenseModal
-            searchConfig={searchConfig}
-            trigger={
-              <Button type="button" key="custom" icon labelPosition="left">
-                <Icon name="add" />
-                {i18next.t("Add custom")}
-              </Button>
-            }
-            onLicenseChange={(selectedLicense) => {
-              formikArrayPush(selectedLicense);
-            }}
-            mode="custom"
-            action="add"
-          /> */}
         </Form.Field>
       </DndProvider>
     );

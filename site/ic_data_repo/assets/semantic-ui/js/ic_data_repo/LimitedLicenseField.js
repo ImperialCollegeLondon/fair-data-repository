@@ -15,7 +15,7 @@ import { DndProvider } from "react-dnd";
 import { FieldLabel } from "react-invenio-forms";
 import { Button, Form, Icon, List } from "semantic-ui-react";
 
-import { LicenseModal } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseModal";
+import { LimitedLicenseModal } from "./LimitedLicenseModal";
 import { LicenseFieldItem } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseFieldItem";
 import { i18next } from "@translations/invenio_rdm_records/i18next";
 
@@ -71,6 +71,11 @@ class LicenseFieldForm extends Component {
       serializeLicenses,
     } = this.props;
 
+    // Limiting the search results
+    searchConfig.initialQueryState.filters = [['tags', 'data']];
+    searchConfig.initialQueryState.size = 2;
+    searchConfig.initialQueryState.queryString = 'id: cc-by-4.0 OR cc0-1.0';
+
     const uiRights = getIn(values, uiFieldPath, []);
 
     return (
@@ -93,7 +98,7 @@ class LicenseFieldForm extends Component {
               );
             })}
           </List>
-          <LicenseModal
+          <LimitedLicenseModal
             searchConfig={searchConfig}
             trigger={
               <Button type="button" key="standard" icon labelPosition="left">
@@ -102,7 +107,6 @@ class LicenseFieldForm extends Component {
               </Button>
             }
             onLicenseChange={(selectedLicense) => {
-              console.log(selectedLicense);
               formikArrayPush(selectedLicense);
             }}
             mode="standard"

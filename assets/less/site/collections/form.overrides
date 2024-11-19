@@ -3,3 +3,7 @@
         border-radius: 0;
     }
 }
+
+.ui.form div.hidden-form-input {
+    display: none;
+}

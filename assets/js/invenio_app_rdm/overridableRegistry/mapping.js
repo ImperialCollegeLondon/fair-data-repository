@@ -6,6 +6,7 @@
 
 import { HiddenField } from "../../ic_data_repo/HiddenField";
 import { OptionalRoleCreatibutorsField } from "../../ic_data_repo/OptionalRoleCreatibutors";
+import { LimitedLicenseField } from "../../ic_data_repo/LimitedLicenseField";
 import { parametrize } from "react-overridable";
 import { TextAreaField } from "react-invenio-forms";
 
@@ -28,4 +29,7 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.PublisherField.container": HiddenField,
   "InvenioAppRdm.Deposit.PublicationDateField.container": HiddenField,
   "InvenioAppRdm.Deposit.DescriptionsField.container": TextAreaField,
+  "InvenioAppRdm.Deposit.ContributorsField.container": ContributorsField,
+  "InvenioAppRdm.Deposit.CreatorsField.container": CreatorsField,
+  "InvenioAppRdm.Deposit.LicenseField.container": LimitedLicenseField
 };

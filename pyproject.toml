@@ -21,6 +21,9 @@ module = [
        "invenio_app.*",
        "invenio_assets.*",
        "invenio_oauthclient.*",
+       "invenio_records_resources.*",
+       "marshmallow.*",
+       "marshmallow_utils.*"
        ]
 ignore_missing_imports = true
 

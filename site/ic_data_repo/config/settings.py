@@ -11,7 +11,7 @@ from datetime import datetime
 
 from invenio_oauthclient.views.client import auto_redirect_login
 
-from .custom_fields import *  # noqa
+from .custom_fields import *  # noqa: F401,F403
 
 # Flask
 # =====

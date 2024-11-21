@@ -29,7 +29,5 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.PublisherField.container": HiddenField,
   "InvenioAppRdm.Deposit.PublicationDateField.container": HiddenField,
   "InvenioAppRdm.Deposit.DescriptionsField.container": TextAreaField,
-  "InvenioAppRdm.Deposit.ContributorsField.container": ContributorsField,
-  "InvenioAppRdm.Deposit.CreatorsField.container": CreatorsField,
   "InvenioAppRdm.Deposit.LicenseField.container": LimitedLicenseField
 };

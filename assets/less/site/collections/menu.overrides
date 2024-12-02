@@ -11,7 +11,6 @@
             text-decoration: underline;
             text-decoration-color: @primaryColor;
             a:not(.ui.button) {
-                display: inline-block;
                 color: @primaryColor;
                 padding: 2rem 1rem;
                 text-decoration: underline;

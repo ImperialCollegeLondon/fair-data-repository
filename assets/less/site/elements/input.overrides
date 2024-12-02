@@ -15,6 +15,10 @@
             outline-width: 3px;
             outline-offset: 3px;
         }
+        &::placeholder{
+           color: @darkGray;
+        }
+
 }
 
 div.ui.search .ui.input input {

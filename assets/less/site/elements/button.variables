@@ -53,3 +53,9 @@ disabled button
 @disabledButtonBackgroundColor: @whiteSmoke;
 @disabledButtonBorderColor: @darkGray;
 @disabledButtonTextColor: @darkGray;
+
+/*----------------------------------------
+@warningButtonColor: @orange;
+@warningButtonBorderColor: @orange;
+@warningButtonTextColor: @black;
+-------------------------------------------*/

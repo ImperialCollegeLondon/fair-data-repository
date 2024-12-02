@@ -170,45 +170,43 @@ html.cover-page {
         color: @primaryColor;
     }
 
-    #rdm-burger-menu-icon {
-        @headerOverlayOpenColor: @primaryColor;
+.header__nav-open {
+	color: var(--header-overlay-open-color);
+	margin-inline-start: $space-m;
 
-        .header__inner--inverse & {
-            @headerOverlayOpenColor: @white;
-        }
-        background-color: transparent !important;
-        border: none !important;
-        color: none;
+	span {
+		top: 1px;
 
-        span {
-            top: 1px;
+		&::before {
+			top: clamp(0.4375rem, 0.4016rem + 0.1795vw, 0.5625rem); // 7px -> 9px
+			transition: transform 0.2s;
+		}
 
-            &::before {
-                top: clamp(0.4375rem, 0.4016rem + 0.1795vw, 0.5625rem); // 7px -> 9px
-                transition: transform 0.2s;
-            }
+		&::after {
+			top: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
+			transition: none;
+		}
+	}
 
-            &::after {
-                top: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
-                transition: none;
-            }
-        }
+	span,
+	span::before,
+	span::after {
+		background-color: var(--header-overlay-open-color);
+	}
 
-        span,
-        span::before,
-        span::after {
-            background-color: var(@headerOverlayOpenColor);
-        }
+	&:hover {
+		--header-overlay-open-color: #{$base-color};
 
-        &:hover {
-            background-color: transparent !important;
-            border: none !important;
-            transform: rotate(90deg);
-            span::before {
-                width: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
-            }
-        }
-    }
+		.header__inner--inverse & {
+			--header-overlay-open-color: #{$base-light};
+		}
+
+		span::before {
+			left: 1px;
+			transform: rotate(90deg);
+			width: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
+		}
+	}
 }
 
 .theme.header {

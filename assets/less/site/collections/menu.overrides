@@ -39,21 +39,59 @@
     }
 }
 
-#rdm-burger-toggle {
-    font-size: 20px;
-    position: absolute;
-    right: -1.5rem;
-    top: calc(50%);
-    border: none;
+.outer-navbar {
+    background-image: None;
+    background-color: transparent;
+    border-color: transparent;
 
-    #rdm-burger-menu-icon {
-        .navicon {
-            background: @primaryColor;
-            color: @primaryColor;
-            &:hover {
-                color: @black;
+    #invenio-nav {
+        background: @white;
+        border-top: 2px solid @brandColor;
+        border-bottom: 2px solid @brandColor;
+        margin: 1rem 0;
+    }
+
+    a {
+        color: @primaryColor;
+    }
+
+    .header__nav-open#rdm-burger-menu-icon {
+        color: @navyBlue;
+        margin-inline-start: 1rem;
+        border-style: unset !important;
+        border-width: 0 !important;
+
+        span {
+            top: 1px;
+
+            &::before {
+                top: clamp(0.4375rem, 0.4016rem + 0.1795vw, 0.5625rem); // 7px -> 9px
+                transition: unset;
+            }
+
+            &::after {
+                top: clamp(0.875rem, 0.8032rem + 0.3591vw, 1.125rem); // 14px -> 18px
+                transition: uset;
             }
         }
+
+        span,
+        span::before,
+        span::after {
+            background-color: @navyBlue;
+        }
+
+        &:hover {
+
+            span,
+            span::before,
+            span::after {
+                left: 0px;
+                transform: none;
+                width: clamp(0.875rem, 1.1623rem, 1.125rem);
+                background-color: @darkGray;
+            }
+	    }
     }
 }
 

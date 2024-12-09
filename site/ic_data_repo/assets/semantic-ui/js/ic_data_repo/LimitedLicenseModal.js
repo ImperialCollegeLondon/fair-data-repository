@@ -22,6 +22,7 @@ import {
 } from "react-searchkit";
 import { Button, Form, Grid, Menu, Modal } from "semantic-ui-react";
 import * as Yup from "yup";
+import { LicenseModal } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseModal";
 import { LicenseFilter } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseFilter";
 import { LicenseResults } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseResults";
 import { LicenseSearchBar } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseSearchBar";
@@ -42,29 +43,7 @@ const LicenseSchema = Yup.object().shape({
   }),
 });
 
-export class LimitedLicenseModal extends Component {
-  state = {
-    open: false,
-  };
-
-  openModal = () => {
-    this.setState({ open: true });
-  };
-
-  closeModal = () => {
-    this.setState({ open: false });
-  };
-
-  onSubmit = (values, formikBag) => {
-    // We have to close the modal first because onLicenseChange and passing
-    // license as an object makes React get rid of this component. Otherwise
-    // we get a memory leak warning.
-    const { onLicenseChange } = this.props;
-    this.closeModal();
-    onLicenseChange(values.selectedLicense);
-    formikBag.resetForm();
-  };
-
+export class LimitedLicenseModal extends LicenseModal {
   render() {
     const {
       trigger,

@@ -6,12 +6,12 @@
 
 import { HiddenField } from "../../ic_data_repo/HiddenField";
 import { OptionalRoleCreatibutorsField } from "../../ic_data_repo/OptionalRoleCreatibutors";
+import { LimitedLicenseField } from "../../ic_data_repo/LimitedLicenseField";
 import { parametrize } from "react-overridable";
 import { TextAreaField } from "react-invenio-forms";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
-  helpText:
-    "The main individuals or institutions involved in creating the data set.",
+  helpText: "The main individuals or institutions involved in creating the data set.",
   includeRole: false,
 });
 
@@ -28,5 +28,6 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.PublisherField.container": HiddenField,
   "InvenioAppRdm.Deposit.PublicationDateField.container": HiddenField,
   "InvenioAppRdm.Deposit.DescriptionsField.container": TextAreaField,
+  "InvenioAppRdm.Deposit.LicenseField.container": LimitedLicenseField,
   "InvenioAppRdm.Deposit.AccordionFieldReferences.container": HiddenField,
 };

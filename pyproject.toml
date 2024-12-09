@@ -17,6 +17,7 @@ exclude = "test_data/.*\\.py"
 
 [[tool.mypy.overrides]]
 module = [
+       "flask_login.*",
        "flask_oauthlib.*",
        "invenio_app.*",
        "invenio_assets.*",

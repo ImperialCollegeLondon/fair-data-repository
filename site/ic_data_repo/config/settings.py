@@ -12,6 +12,7 @@ from datetime import datetime
 from invenio_oauthclient.views.client import auto_redirect_login
 
 from .custom_fields import *  # noqa: F401,F403
+from .utils import get_user_form_default
 
 # Flask
 # =====
@@ -113,6 +114,7 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
         }
     ],
     "publisher": "Imperial College London",
+    "creators": lambda: get_user_form_default(),
 }
 
 # See:

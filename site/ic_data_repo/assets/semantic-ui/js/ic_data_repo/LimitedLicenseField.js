@@ -99,7 +99,7 @@ class LicenseFieldForm extends Component {
               );
             })}
           </List>
-          <LimitedLicenseModal
+          {values.metadata.rights.length === 0 && (<LimitedLicenseModal
             searchConfig={searchConfig}
             trigger={
               <Button type="button" key="standard" icon labelPosition="left">
@@ -111,9 +111,9 @@ class LicenseFieldForm extends Component {
               formikArrayPush(selectedLicense);
             }}
             action="add"
-            licenses={values.metadata.rights.length}
             serializeLicenses={serializeLicenses}
-          />
+          />)
+          }
         </Form.Field>
       </DndProvider>
     );

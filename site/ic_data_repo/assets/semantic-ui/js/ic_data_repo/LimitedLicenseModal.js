@@ -67,7 +67,6 @@ export class LimitedLicenseModal extends Component {
 
   render() {
     const {
-      licenses,
       trigger,
       action,
       searchConfig,
@@ -82,10 +81,6 @@ export class LimitedLicenseModal extends Component {
       id: null,
       link: "",
     };
-
-    // Do not display the add button if a license has been selected
-    if(licenses)
-        return null;
 
     const searchApi = new InvenioSearchApi(searchConfig.searchApi);
     return (

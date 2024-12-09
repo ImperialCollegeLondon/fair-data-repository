@@ -1,11 +1,11 @@
 """Utilities for settings."""
 
-from typing import Any, List, Optional
+from typing import Any, List
 
 from flask_login import current_user
 
 
-def get_user() -> Optional[List[dict[str, Any]]]:
+def get_user_form_default() -> List[dict[str, Any]]:
     """Format the current user profile for the submission form.
 
     The default user profile schema has two string properties;

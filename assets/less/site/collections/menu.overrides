@@ -127,3 +127,15 @@
         background-color: @whiteSmoke;
     }
 }
+
+a[href="/communities"] {
+    display: none !important;
+}
+
+a[href="/communities/new"] {
+    display: none !important;
+}
+
+a[href="/me/communities"] {
+    display: none !important;
+}

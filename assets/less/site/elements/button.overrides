@@ -75,6 +75,20 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
     }
 }
 
+.ui.button.warning,
+.ui.button.orange {
+    background-color: @warningButtonBackgroundColor;
+    border-color: @warningButtonBorderColor;
+    color: @warningButtonTextColor;
+    &:hover,
+    &:active,
+    &:focus {
+        background-color: @warningButtonBackgroundColorHovered;
+        border-color: @warningButtonBorderColorHovered;
+        color: @warningButtonTextColorHovered;
+    }
+}
+
 #skip-to-main {
 	position: absolute;
 	top: 0px;

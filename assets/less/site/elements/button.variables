@@ -64,4 +64,3 @@ warning button
 @warningButtonBackgroundColorHovered: @darkOrange;
 @warningButtonBorderColorHovered: @darkOrange;
 @warningButtonTextColorHovered: @black;
-

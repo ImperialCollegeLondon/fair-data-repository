@@ -1,6 +1,23 @@
 # Imperial Fair Data Repository
 
-Welcome to your InvenioRDM instance.
+This repository contains the source code for the Imperial Fair Data Repository. It is an
+instance of [InvenioRDM](https://inveniordm.docs.cern.ch/) customised and configured for
+use by Imperial.
+
+See the documentation at
+<https://imperialcollegelondon.github.io/fair-data-repository/>.
+
+## Features
+
+In addition to the base InvenioRDM functionality, the following features are
+implemented:
+
+- Imperial College London branding.
+- Login with Imperial College London single sign-on.
+- Customised metadata schema supporting only datasets.
+- A centralised review and approval process for all deposits.
+
+See the [customisation documentation] for technical details
 
 ## Getting started
 
@@ -143,6 +160,7 @@ Instructions for accessing and working with realistic test data records are prov
 the [test_data directory].
 
 [configuration approach]: https://inveniordm.docs.cern.ch/install/configuration/
+[customisation documentation]: https://imperialcollegelondon.github.io/fair-data-repository/customisation/
 [getting started]: #getting-started
 [invenio-cli]: https://github.com/inveniosoftware/invenio-cli
 [pre-commit]: https://pre-commit.com/

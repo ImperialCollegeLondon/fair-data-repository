@@ -38,7 +38,7 @@ def info_handler(
         user=dict(
             email=data["email"],
             profile=dict(
-                username=data["preferred_username"].rstrip("@ic.ac.uk"),
+                username=data["preferred_username"].removesuffix("@ic.ac.uk"),
                 full_name=data["name"],
             ),
         ),

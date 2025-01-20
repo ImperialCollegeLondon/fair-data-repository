@@ -1,6 +1,7 @@
 .ui.input,
 .ui.input > input {
-        background-color: @inputColor;
+        background-color: @inputBackgroundColor;
+        color: @inputColor;
         border-radius: 0 !important;
         border: 1px solid @whiteSmoke;
         i.icon.search {

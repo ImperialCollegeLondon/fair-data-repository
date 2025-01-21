@@ -75,6 +75,7 @@
 @versionActiveColor: @lavender;
 
 @inputColor: @black;
+@inputBackgroundColor: @white;
 @inputBorderColor: @whiteSmoke;
 
 @mutedAccordionHeaderColor: @whiteSmoke;

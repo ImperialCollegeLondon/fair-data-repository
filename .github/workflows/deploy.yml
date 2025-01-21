@@ -1,0 +1,53 @@
+name: Deploy
+
+env:
+  AZURE_CONTAINER_REGISTRY: MY_REGISTRY_NAME # set this to the name of your container registry
+  PROJECT_NAME: MY_PROJECT_NAME              # set this to your project's name
+  RESOURCE_GROUP: invenio-dev                # the resource group containing your AKS cluster
+  CLUSTER_NAME: InvenioRDM-Dev               # the name of your AKS cluster
+  CHART_PATH: "~/helm-invenio/charts/invenio/Chart.yml"                         # set this to the path to your helm file
+  CHART_OVERRIDE_PATH: "~/helm-invenio/charts/invenio/values-overrides-imperial.yaml"     # array of override file paths
+
+on:
+  workflow_run:
+    workflows: [Build and Publish]           # Only run this once Build and Publish has succeeded (image is available)
+    types: [completed]
+    branches: [develop, feature/actions_deploy]                      # Only deploy develop branch to our CI dev instance
+
+permissions:
+  id-token: write   # for Azure OIDC, see https://github.com/Azure/login
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout the Helm charts to deploy our published instance
+        uses: actions/checkout@v4
+        with:
+          repository: ImperialCollegeLondon/helm-invenio   # Currently public, need to add a token if set to private
+          token: ${{ secrets.TOKEN_TO_PULL_HELM_REPO }}
+          fetch-depth: 0
+
+      - name: Login to Azure to deploy our chart
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Gets K8s context
+        uses: azure/aks-set-context@v4
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ env.RESOURCE_GROUP }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+        id: login
+
+      - name: Configure deployment
+        uses: azure/k8s-bake@61041e8c2f75c1f01186c8f05fb8b24e1fc507d8
+        with:
+          renderEngine: 'helm'
+          helmChart: ${{ env.CHART_PATH }}
+          overrideFiles: ${{ env.CHART_OVERRIDE_PATH }}
+          helm-version: 'latest'
+        id: bake

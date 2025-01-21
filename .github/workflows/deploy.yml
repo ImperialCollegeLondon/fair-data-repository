@@ -1,34 +1,31 @@
 name: Deploy
 
-env:
-  AZURE_CONTAINER_REGISTRY: MY_REGISTRY_NAME # set this to the name of your container registry
-  PROJECT_NAME: MY_PROJECT_NAME              # set this to your project's name
-  RESOURCE_GROUP: invenio-dev                # the resource group containing your AKS cluster
-  CLUSTER_NAME: InvenioRDM-Dev               # the name of your AKS cluster
-  CHART_PATH: "~/helm-invenio/charts/invenio/Chart.yml"                         # set this to the path to your helm file
-  CHART_OVERRIDE_PATH: "~/helm-invenio/charts/invenio/values-overrides-imperial.yaml"     # array of override file paths
-
 on:
-  workflow_run:
-    workflows: [Build and Publish]           # Only run this once Build and Publish has succeeded (image is available)
-    types: [completed]
-    branches: [develop, feature/actions_deploy]                      # Only deploy develop branch to our CI dev instance
+  push:
+    branches:
+      - feature/actions_deploy
+  # workflow_run:
+  #   workflows: [Build and Publish] # Only run this once Build and Publish has succeeded (image is available)
+  #   types: [completed]
+  #   branches: [develop, feature/actions_deploy] # Only deploy develop branch to our CI dev instance
 
 permissions:
-  id-token: write   # for Azure OIDC, see https://github.com/Azure/login
+  id-token: write
   contents: read
+  actions: read
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    environment: develop
     steps:
       - name: checkout the Helm charts to deploy our published instance
         uses: actions/checkout@v4
         with:
-          repository: ImperialCollegeLondon/helm-invenio   # Currently public, need to add a token if set to private
-          token: ${{ secrets.TOKEN_TO_PULL_HELM_REPO }}
-          fetch-depth: 0
+          repository: ImperialCollegeLondon/helm-invenio
+          path: helm-invenio
+          ref: imperial_deployment
 
       - name: Login to Azure to deploy our chart
         uses: azure/login@v2
@@ -38,16 +35,32 @@ jobs:
       - name: Gets K8s context
         uses: azure/aks-set-context@v4
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          resource-group: ${{ env.RESOURCE_GROUP }}
-          cluster-name: ${{ env.CLUSTER_NAME }}
+          resource-group: ${{ vars.RESOURCE_GROUP }}
+          cluster-name: ${{ vars.CLUSTER_NAME }}
         id: login
 
       - name: Configure deployment
-        uses: azure/k8s-bake@61041e8c2f75c1f01186c8f05fb8b24e1fc507d8
+        uses: azure/k8s-bake@v3
         with:
-          renderEngine: 'helm'
-          helmChart: ${{ env.CHART_PATH }}
-          overrideFiles: ${{ env.CHART_OVERRIDE_PATH }}
-          helm-version: 'latest'
+          renderEngine: "helm"
+          helmChart: ${{ vars.CHART_PATH }}
+          overrideFiles: ${{ vars.CHART_OVERRIDE_PATH }}
+          helm-version: "latest"
+          releaseName: "develop"
+          namespace: invenio
+          overrides: |
+            invenio.secret_key: ${{ secrets.INVENIO_SECRET_KEY }}
+            invenio.security_login_salt: ${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}
+            invenio.csrf_secret_salt: ${{ secrets.INVENIO_CSRF_SECRET_SALT }}
+            invenio.extraConfig.ICL_OAUTH_CLIENT_ID: ${{ vars.ICL_OAUTH_CLIENT_ID }}
+            invenio.extraConfig.ICL_OAUTH_CLIENT_SECRET: ${{ secrets.ICL_OAUTH_CLIENT_SECRET }}
+            invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL: ${{ vars.ICL_OAUTH_WELL_KNOWN_URL }}
+            rabbitmq.auth.password: ${{ secrets.RABBITMQ_AUTH_PASSWORD }}
+            postgresql.auth.password: ${{ secrets.POSTGRESQL_AUTH_PASSWORD }}
+            invenio.web.image: ${{ vars.IMAGE_NAME }}
         id: bake
+      - name: Deploys application
+        uses: Azure/k8s-deploy@v5
+        with:
+          manifests: ${{ steps.bake.outputs.manifestsBundle }}
+          namespace: invenio

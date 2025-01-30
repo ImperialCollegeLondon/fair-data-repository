@@ -21,10 +21,11 @@ module = [
        "flask_oauthlib.*",
        "invenio_app.*",
        "invenio_assets.*",
+       "invenio_notifications.*",
        "invenio_oauthclient.*",
        "invenio_records_resources.*",
        "marshmallow.*",
-       "marshmallow_utils.*"
+       "marshmallow_utils.*",
        ]
 ignore_missing_imports = true
 

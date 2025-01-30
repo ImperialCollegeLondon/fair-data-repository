@@ -9,6 +9,7 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 import os
 from datetime import datetime
 
+from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 
 from .custom_fields import *  # noqa: F401,F403
@@ -213,3 +214,7 @@ THEME_SHOW_FRONTPAGE_INTRO_SECTION = False
 RDM_COMMUNITY_REQUIRED_TO_PUBLISH = True
 
 RDM_ALLOW_METADATA_ONLY_RECORDS = False
+
+NOTIFICATION_BACKENDS = {
+    EmailNotificationBackend.id: EmailNotificationBackend,
+}

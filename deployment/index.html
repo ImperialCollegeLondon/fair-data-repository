@@ -13,7 +13,7 @@
     
     
       
-        <title>Customisation - Imperial College London Fair Data Repository</title>
+        <title>Deployment - Imperial College London Fair Data Repository</title>
       
     
     
@@ -63,11 +63,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#ui-updates" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -97,7 +92,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Customisation
+              Deployment
             
           </span>
         </div>
@@ -196,82 +191,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Customisation
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../customisation/" class="md-nav__link">
         Customisation
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#ui-updates" class="md-nav__link">
-    UI Updates
-  </a>
-  
-    <nav class="md-nav" aria-label="UI Updates">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#layout-and-styling" class="md-nav__link">
-    Layout and Styling
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hiding-communities-feature" class="md-nav__link">
-    Hiding Communities Feature
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#deposit-form" class="md-nav__link">
-    Deposit Form
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    Authentication
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -294,55 +218,6 @@
   
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#ui-updates" class="md-nav__link">
-    UI Updates
-  </a>
-  
-    <nav class="md-nav" aria-label="UI Updates">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#layout-and-styling" class="md-nav__link">
-    Layout and Styling
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#hiding-communities-feature" class="md-nav__link">
-    Hiding Communities Feature
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#deposit-form" class="md-nav__link">
-    Deposit Form
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    Authentication
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -356,67 +231,11 @@
                   
 
 
-  <h1>Customisation</h1>
+  <h1>Deployment</h1>
 
-<p>We have made a variety of customisations to the base InvenioRDM app. These are potential
-pain points, particularly when upgrading to a new version of InvenioRDM. On upgrade all
-of the below should be carefully checked to ensure that they are still working as
-intended.</p>
-<h2 id="ui-updates">UI Updates</h2>
-<h3 id="layout-and-styling">Layout and Styling</h3>
-<p>Changes have been made to apply Imperial College London branding to the site. Changes
-have been made to style sheets via overrides in the <code>assets/less/site</code> directory. HTML
-templates have also been overriden in the <code>templates/semantic-ui</code> directory. The layout
-and styling customisations shoud be carefully rechecked on upgrade (particularly of
-<code>invenio-app-rdm</code>) to ensure that they are still working as intended.</p>
-<h3 id="hiding-communities-feature">Hiding Communities Feature</h3>
-<p>InvenioRDM provides a feature for creating communities of deposits with an associated
-review and approval process for publication. In order to facilitate a central review
-process by the library for all deposits created a single Imperial wide community and
-have hidden references to communities in the UI. This was implemented via a style sheet
-override in <a href="https://github.com/ImperialCollegeLondon/fair-data-repository/pull/97/files">PR #97</a>.</p>
-<h3 id="deposit-form">Deposit Form</h3>
-<p>Some changes to the deposit form have made use of the support in InvenioRDM for
-overriding React components. See <a href="https://inveniordm.docs.cern.ch/develop/howtos/override_components/">InvenioRDM Docs: How to override UI React components</a>
-for more details. Overriden components are stored in
-<code>assets/js/invenio_app_rdm/overridableRegistry/mapping.js</code>. In summary:</p>
 <ul>
-<li>The <code>creators</code> field has been customised to remove the <code>role</code> subfield as this was
-  considered confusing and to provide better alignment with the Datacite metadata
-  schema. Implemented by the custom component <code>OptionalRoleCreatibutorsField</code> that
-  allows control over whether the role subfield is displayed as well as the display of
-  clarifying help text. The implementation of <code>OptionalRoleCreatibutorsField</code>
-  unfortunately required extensive copy-pasting of the original <a href="https://github.com/inveniosoftware/invenio-rdm-records/blob/v10.9.1/invenio_rdm_records/assets/semantic-ui/js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsField.js">CreatibutorsField</a>
-  component so any updates to <code>invenio-rdm-records</code> should be carefully checked and any
-  changes manually ported over.</li>
-<li>The <code>contributors</code> field has been customised to add additional help text. This is also
-  implemented using the custom <code>OptionalRoleCreatibutorsField</code> component.</li>
-<li>The following fields have been hidden - <code>resource_type</code>, <code>publisher</code>,
-  <code>publication_date</code> and <code>references</code>. This has been implemented by overriding with the
-  custom <code>HiddenField</code> component. Some values have still had a default value set where
-  we want values to be present in the metadata but not editable by the user.</li>
-<li>The <code>description</code> field has been customised to use a standard textarea rather than a
-  rich text editor as it was considered that plain text was more appropriate for this
-  field.</li>
-<li>The <code>license</code> field has been customised to provide a selection of licenses from a
-  fixed list. Implemented by the custom component <code>LimitedLicenseField</code>. Similar to the
-  <code>OptionalRoleCreatibutorsField</code> this required extensive copy-pasting of the original
-  <a href="https://github.com/inveniosoftware/invenio-rdm-records/blob/v10.9.1/invenio_rdm_records/assets/semantic-ui/js/invenio_rdm_records/src/deposit/fields/License/LicenseField.js">LicensesField</a> component so the same checks and changes should be applied on update
-  of <code>invenio-rdm-records</code>.</li>
+<li>Secret expiry of service principal used for CD</li>
 </ul>
-<p>Other customisations have used the <a href="https://github.com/inveniosoftware/invenio-app-rdm/blob/af193c7a5fcb728343c7898ac4f52a5a5b44c95a/invenio_app_rdm/config.py#L917-L940">APP_RDM_DEPOSIT_FORM_DEFAULTS</a> setting (set in
-<code>site/ic_data_repo/config/settings.py</code>). In summary:</p>
-<ul>
-<li><code>resource_type</code> has been set to "dataset".</li>
-<li><code>publication_data</code> is set to the current date.</li>
-<li><code>rights</code> is set to the CC-BY-4.0 license.</li>
-<li><code>publisher</code> is set to "Imperial College London".</li>
-<li><code>creators</code> is set to the logged in user.</li>
-</ul>
-<h2 id="authentication">Authentication</h2>
-<p>Authentication via Imperial SSO is handled by the <code>ic_data_repo.auth.oauth</code> module. This
-implements an <code>info_handler</code> function that extracts user information the SSO response.
-Relevant settings for are set in <code>ic_data_repo.config.settings</code>.</p>
 
 
 
@@ -432,27 +251,6 @@ Relevant settings for are set in <code>ic_data_repo.config.settings</code>.</p>
       </main>
       
         <footer class="md-footer">
-  
-    
-    <nav class="md-footer__inner md-grid" aria-label="Footer" >
-      
-        
-        <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home" rel="prev">
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
-          </div>
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Previous
-              </span>
-              Home
-            </div>
-          </div>
-        </a>
-      
-      
-    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">

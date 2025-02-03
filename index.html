@@ -248,6 +248,19 @@
     Local Installation
   </a>
   
+    <nav class="md-nav" aria-label="Local Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logging-in" class="md-nav__link">
+    Logging In
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -399,6 +412,19 @@
   <a href="#local-installation" class="md-nav__link">
     Local Installation
   </a>
+  
+    <nav class="md-nav" aria-label="Local Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logging-in" class="md-nav__link">
+    Logging In
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -581,6 +607,13 @@ warning. Once finished, stop the running Flask server and use
 <p>We’ve emailed you these order details and will text you about your order.rvices.</p>
 <p>If you want to restart the setup process from scratch you can use
 <code>invenio-cli services destroy</code> remove all the services and data.</p>
+<h3 id="logging-in">Logging In</h3>
+<p>In order to log in to the application you will need to create a user account:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="go">invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active</span>
+</span></code></pre></div>
+<p>You can also optionally make this user an admin with:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="go">invenio access allow administration-access user DUMMY_EMAIL</span>
+</span></code></pre></div>
 <h2 id="development">Development</h2>
 <h3 id="qa">QA</h3>
 <p>It is strongly recommended to use <a href="https://pre-commit.com/">pre-commit</a> to check your individual commits meet the
@@ -594,8 +627,8 @@ and pushes Docker images for the web application and frontend.</p>
 <h3 id="tests">Tests</h3>
 <p>A test suite is provided in the <code>tests</code> directory. Assuming services have already been
 setup, tests can be run with:</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="go">invenio services start</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="go">pipenv run pytest</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="go">invenio services start</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">pipenv run pytest</span>
 </span></code></pre></div>
 <p>All development work should be supported by an appropriate set of tests. Best practices
 around testing are expected to evolve as the project develops.</p>

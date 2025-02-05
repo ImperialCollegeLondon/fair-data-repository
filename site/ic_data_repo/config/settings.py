@@ -11,6 +11,9 @@ from datetime import datetime
 
 from invenio_oauthclient.views.client import auto_redirect_login
 
+from .custom_fields import *  # noqa: F401,F403
+from .utils import get_user_form_default
+
 # Flask
 # =====
 # See https://flask.palletsprojects.com/en/1.1.x/config/
@@ -73,7 +76,8 @@ APP_DEFAULT_SECURE_HEADERS = {
 # Frontpage title
 THEME_FRONTPAGE_TITLE = "Imperial Fair Data Repository"
 # Header logo
-THEME_LOGO = "images/imperial_logo_white.svg"
+THEME_LOGO = "images/imperial_logo_blue.svg"
+INVERTED_THEME_LOGO = "images/imperial_white_blue.svg"
 
 
 # Invenio-App-RDM
@@ -94,6 +98,7 @@ SITE_UI_URL = "https://127.0.0.1"
 SITE_API_URL = "https://127.0.0.1/api"
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
+    "resource_type": "dataset",
     "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),
     "rights": [
         {
@@ -108,7 +113,8 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
             "link": "https://creativecommons.org/licenses/by/4.0/legalcode",
         }
     ],
-    "publisher": "Imperial Fair Data Repository",
+    "publisher": "Imperial College London",
+    "creators": lambda: get_user_form_default(),
 }
 
 # See:
@@ -166,8 +172,7 @@ if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET and ICL_OAUTH_WELL_KNOWN_URL:
             access_token_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/token",  # noqa: E501
             access_token_method="POST",
             authorize_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/authorize",  # noqa: E501
-            consumer_key=ICL_OAUTH_CLIENT_ID,
-            consumer_secret=ICL_OAUTH_CLIENT_SECRET,
+            app_key="ICL_APP_CREDENTIALS",
         ),
         authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
         disconnect_handler="invenio_oauthclient.handlers:disconnect_handler",
@@ -176,6 +181,10 @@ if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET and ICL_OAUTH_WELL_KNOWN_URL:
         ),
         signup_options=dict(auto_confirm=True, send_register_msg=False),
     )
+    ICL_APP_CREDENTIALS = {
+        "consumer_key": ICL_OAUTH_CLIENT_ID,
+        "consumer_secret": ICL_OAUTH_CLIENT_SECRET,
+    }
 
 ACCOUNTS_LOGIN_VIEW_FUNCTION = (
     auto_redirect_login  # autoredirect to external login if enabled
@@ -200,3 +209,7 @@ OAISERVER_ID_PREFIX = "invenio.rcs.ic.ac.uk"
 SEARCH_INDEX_PREFIX = "ic-data-repo-"
 
 THEME_SHOW_FRONTPAGE_INTRO_SECTION = False
+
+RDM_COMMUNITY_REQUIRED_TO_PUBLISH = True
+
+RDM_ALLOW_METADATA_ONLY_RECORDS = False

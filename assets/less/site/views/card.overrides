@@ -1,0 +1,28 @@
+.ui.card.borderless.facet {
+    padding: 1rem;
+}
+
+.ui.card.borderless.facet > .content h2.header:not(.ui) {
+    font-size: @fontSizeItemHeadline;
+    line-height: 1.2;
+    font-weight: @fontSemibold;
+    font-family: @ImperialSansDisplay;
+    text-decoration: none;
+}
+
+.ui.card:not(:has(.facet-container)):has(a) {
+    background-color: @lightCyan;
+    .content > h2.header {
+        color: @black;
+    }
+    a {
+        color: @navyBlue;
+        text-decoration: none;
+        &:hover {
+            color: @black;
+            text-decoration: underline;
+            text-decoration-color: @springGreen;
+            text-decoration-thickness: 2px;
+        }
+    }
+}

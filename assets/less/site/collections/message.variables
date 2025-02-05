@@ -1,0 +1,26 @@
+.ui.message {
+    background-color: @white;
+    color: @black;
+    margin-bottom: .5rem;
+    &.positive {
+        background-color: @greenBackground;
+        border: 1px solid @green;
+        .header {
+            color: @green;
+        }
+    }
+    &.warning {
+        border: 1px solid @darkOrange;
+        background: @orangeBackground;
+        .header {
+            color: @brown;
+        }
+    }
+    &.negative {
+        background-color: @redBackground;
+        border: 1px solid red;
+        .header {
+            color: @red;
+        }
+    }
+}

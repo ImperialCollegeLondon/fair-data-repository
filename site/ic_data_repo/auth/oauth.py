@@ -1,11 +1,16 @@
 """Implement OAuth handlers."""
 
+from typing import Any
+
 import jwt
 import requests
 from flask import current_app
+from flask_oauthlib.client import OAuthRemoteApp
 
 
-def info_handler(remote_app, response_data):
+def info_handler(
+    remote_app: OAuthRemoteApp, response_data: dict[str, Any]
+) -> dict[str, Any]:
     """Extract account info from authorisation response.
 
     Extracts and validates the id_token returned as part of the OIDC workflow using
@@ -33,7 +38,7 @@ def info_handler(remote_app, response_data):
         user=dict(
             email=data["email"],
             profile=dict(
-                username=data["preferred_username"].rstrip("@ic.ac.uk"),
+                username=data["preferred_username"].removesuffix("@ic.ac.uk"),
                 full_name=data["name"],
             ),
         ),

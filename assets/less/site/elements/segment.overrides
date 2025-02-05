@@ -1,0 +1,3 @@
+.ui.segment.file-upload-area {
+    background-color: @whiteSmoke;
+}

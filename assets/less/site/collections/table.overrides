@@ -1,0 +1,7 @@
+.ui.table thead th {
+    background-color: @lavender;
+}
+
+.ui.table tbody tr td.collapsing > .ui.buttons {
+    flex-wrap: wrap;
+}

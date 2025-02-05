@@ -1,0 +1,27 @@
+.ui.items > .item > .content > .header {
+    background-color: inherit;
+    font-weight: @fontRegular;
+    a {
+        font-size: @fontSizeItemHeadline;
+        line-height: 1.2;
+        font-weight: @fontMedium;
+        font-family: @ImperialSansDisplay;
+        text-decoration: none;
+    }
+    &:hover {
+        a {
+            color: @black;
+            text-decoration: underline;
+        }
+    }
+}
+
+a.creatibutor-link {
+    text-decoration: none;
+    &:hover {
+        span {
+            color: @black;
+            text-decoration: none;
+        }
+    }
+}

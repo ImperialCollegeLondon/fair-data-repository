@@ -10,3 +10,5 @@
 !translations
 !static
 !assets
+!test_data
+test_data/10.14469_hpc_*

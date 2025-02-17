@@ -32,7 +32,7 @@ services:
       - "80"
       - "443"
   cache:
-    image: redis:7
+    image: redis:7.2
     restart: "unless-stopped"
     read_only: true
     ports:

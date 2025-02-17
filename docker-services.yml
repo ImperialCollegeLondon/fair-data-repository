@@ -57,7 +57,7 @@ services:
     volumes:
       - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
   mq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.12-management
     restart: "unless-stopped"
     ports:
       - "15672:15672"

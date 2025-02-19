@@ -24,6 +24,7 @@ from pathlib import Path
 from faker import Faker
 from flask import current_app
 from flask_security.utils import hash_password
+from invenio_access.permissions import system_identity
 from invenio_app.factory import create_app
 from invenio_rdm_records.fixtures.tasks import get_authenticated_identity
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -208,15 +209,12 @@ if __name__ == "__main__":
         user_datastore = current_app.extensions["security"].datastore
 
         for path in paths:
-
             with path.open() as f:
                 datacite = json.load(f)
 
-            identity = create_user()
+            draft = create_draft_record(datacite, system_identity)
 
-            draft = create_draft_record(datacite, identity)
-
-            add_files_to_draft(draft, datacite, identity, path.parent)
+            add_files_to_draft(draft, datacite, system_identity, path.parent)
 
             # make public
-            current_rdm_records_service.publish(id_=draft.id, identity=identity)
+            current_rdm_records_service.publish(id_=draft.id, identity=system_identity)

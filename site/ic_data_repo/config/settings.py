@@ -159,9 +159,9 @@ OAUTHCLIENT_REMOTE_APPS = dict()
 
 ICL_OAUTH_CLIENT_ID = os.getenv("ICL_OAUTH_CLIENT_ID")
 ICL_OAUTH_CLIENT_SECRET = os.getenv("ICL_OAUTH_CLIENT_SECRET")
-ICL_OAUTH_WELL_KNOWN_URL = os.getenv("ICL_OAUTH_WELL_KNOWN_URL")
+ICL_OAUTH_WELL_KNOWN_URL = "https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/v2.0/.well-known/openid-configuration"  # noqa: E501
 
-if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET and ICL_OAUTH_WELL_KNOWN_URL:
+if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET:
     OAUTHCLIENT_REMOTE_APPS["icl"] = dict(
         title="Imperial College Single Sign On",
         description="Authentication via membership of Imperial College",

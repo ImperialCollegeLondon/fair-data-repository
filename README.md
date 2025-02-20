@@ -64,8 +64,8 @@ a warning that you will have to by-pass.
 
 ### Imperial Single Sign-On
 
-To be able to log in using Imperial SSO the following environment variables must be set.
-ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET. Appropriate values for use in
+To be able to log in using Imperial SSO the following environment variables must be set:
+`ICL_OAUTH_CLIENT_ID` and `ICL_OAUTH_CLIENT_SECRET`. Appropriate values for use in
 development are available from the Imperial password safe. Ask Chris C-A for access.
 
 Direct links:

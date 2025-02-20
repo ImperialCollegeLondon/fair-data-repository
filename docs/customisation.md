@@ -17,9 +17,16 @@ and styling customisations shoud be carefully rechecked on upgrade (particularly
 
 InvenioRDM provides a feature for creating communities of deposits with an associated
 review and approval process for publication. In order to facilitate a central review
-process by the library for all deposits created a single Imperial wide community and
-have hidden references to communities in the UI. This was implemented via a style sheet
-override in [PR #97].
+process by the library for all deposits we have made use of the in-built communities
+feature. Under this model there is a single community to which all deposits are added
+and the application UI is updated to remove links and references to communities in key
+places.
+
+This has been implemented by the following changes:
+
+- Hiding UI links to pages for creating or listing communities [PR #97].
+- Updating links to create a new deposit to have the "icl" community pre-selected.
+- Hiding the communities header on the new deposit page.
 
 ### Deposit Form
 

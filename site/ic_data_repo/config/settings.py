@@ -11,6 +11,7 @@ from datetime import datetime
 
 from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
+from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 
 from .custom_fields import *  # noqa: F401,F403
 from .utils import get_user_form_default
@@ -131,6 +132,9 @@ DATACITE_PASSWORD = ""
 DATACITE_PREFIX = ""
 DATACITE_TEST_MODE = True
 DATACITE_DATACENTER_SYMBOL = ""
+
+# Remove "external" as a DOI provider
+RDM_PERSISTENT_IDENTIFIERS["doi"]["providers"].remove("external")
 
 # Authentication - Invenio-Accounts and Invenio-OAuthclient
 # =========================================================

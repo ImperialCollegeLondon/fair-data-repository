@@ -1,5 +1,6 @@
 """Client interface for the Microsoft Graph API."""
 
+from http import HTTPStatus
 from typing import Any, Optional
 
 import requests
@@ -12,7 +13,7 @@ def _get_app_access_token() -> str:
     Fetches an access token that is enabled for app-only access i.e. not on behalf of a
     logged in user.
     """
-    tenant_id = current_app.config["ICL_OAUTH_WELL_KNOWN_URL"].split("/")[3]
+    tenant_id = current_app.config["ICL_MICROSOFT_TENANT_ID"]
     response = requests.post(
         f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token",
         data={
@@ -22,6 +23,12 @@ def _get_app_access_token() -> str:
             "scope": "https://graph.microsoft.com/.default",
         },
     )
+    if not response.status_code == HTTPStatus.OK:
+        raise RuntimeError(
+            "Unable to retrieve access token for Microsoft Graph API: "
+            f"{response.status_code} - {response.reason}"
+        )
+
     return response.json()["access_token"]
 
 

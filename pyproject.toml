@@ -24,6 +24,7 @@ module = [
        "invenio_notifications.*",
        "invenio_oauthclient.*",
        "invenio_records_resources.*",
+       "invenio_rdm_records.*",
        "marshmallow.*",
        "marshmallow_utils.*",
        ]

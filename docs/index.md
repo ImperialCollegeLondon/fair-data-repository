@@ -124,11 +124,12 @@ You can also optionally make this user an admin with:
 invenio access allow administration-access user DUMMY_EMAIL
 ```
 
-### Imperial Single Sign-On
+### Imperial Single Sign-On and Microsoft Graph API Access
 
-To be able to log in using Imperial SSO the following environment variables must be set:
-`ICL_OAUTH_CLIENT_ID` and `ICL_OAUTH_CLIENT_SECRET`. Appropriate values for use in
-development are available from the Imperial password safe. Ask Chris C-A for access.
+To be able to log in using Imperial SSO use functionality relating to the Microsoft
+graph API the following environment variables must be set: `ICL_OAUTH_CLIENT_ID` and
+`ICL_OAUTH_CLIENT_SECRET`. Appropriate values for use in development are available from
+the Imperial password safe. Ask Chris C-A for access.
 
 Direct links:
 

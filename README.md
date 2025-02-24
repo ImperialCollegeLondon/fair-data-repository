@@ -33,7 +33,7 @@ invenio-cli services setup
 invenio-cli run
 ```
 
-Once the Flask server has started visit https://127.0.0.1:5000 in your browser. Once
+Once the Flask server has started visit <https://127.0.0.1:5000> in your browser. Once
 finished, stop the running Flask server and use `invenio-cli services stop` to bring
 down the running services.
 
@@ -57,10 +57,21 @@ application and related services (database, Elasticsearch, Redis and RabbitMQ). 
 build and boot process will take some time to complete, especially the first time as
 docker images have to be downloaded during the process.
 
-Once running, visit https://127.0.0.1 in your browser.
+Once running, visit <https://127.0.0.1> in your browser.
 
 **Note**: The server is using a self-signed SSL certificate, so your browser will issue
 a warning that you will have to by-pass.
+
+### Imperial Single Sign-On
+
+To be able to log in using Imperial SSO the following environment variables must be set:
+`ICL_OAUTH_CLIENT_ID` and `ICL_OAUTH_CLIENT_SECRET`. Appropriate values for use in
+development are available from the Imperial password safe. Ask Chris C-A for access.
+
+Direct links:
+
+- [ICL_OAUTH_CLIENT_ID]
+- [ICL_OAUTH_CLIENT_SECRET]
 
 ## Development
 
@@ -108,7 +119,7 @@ invenio-cli services start
 docker compose -f docker-compose.app-dev.yml up app
 ```
 
-Then access https://127.0.0.1:5000 in the browser.
+Then access <https://127.0.0.1:5000> in the browser.
 
 ## Overview
 
@@ -162,6 +173,8 @@ the [test_data directory].
 [configuration approach]: https://inveniordm.docs.cern.ch/install/configuration/
 [customisation documentation]: https://imperialcollegelondon.github.io/fair-data-repository/customisation/
 [getting started]: #getting-started
+[icl_oauth_client_id]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456013&ORGN_NAME=MSP
+[icl_oauth_client_secret]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456012&ORGN_NAME=MSP
 [invenio-cli]: https://github.com/inveniosoftware/invenio-cli
 [pre-commit]: https://pre-commit.com/
 [pytest-flask]: https://pytest-flask.readthedocs.io/en/latest/

@@ -37,14 +37,16 @@ required and is covered in more detail below.
     the frontend.
 - Docker and Docker Compose are used to manage the services required to run the
     application, namely the database, OpenSearch, Redis and RabbitMQ.
-- `invenio` - is a command line that can be used to interact with some Invenio
-    components. It is installed within the virtual environment managed by `pipenv` so
-    must be invoked via `pipenv run invenio`.
+- `invenio` - is the core application of InvenioRDM. Whilst a few operations require
+    invoking it directly it mostly called indirectly via `invenio-cli`. It is installed
+    within the virtual environment managed by `pipenv` so must be invoked via
+    `pipenv run invenio`.
 
 ### `invenio-cli`
 
-As mentioned above `invenio-cli` is the primary tool for managing the project and most
-operations are performed by invoking it. It's main subcommands are sumarised below:
+As mentioned above `invenio-cli` is the primary tool for managing the project in
+development and most operations are performed by invoking it. It's main subcommands are
+sumarised below:
 
 - `invenio-cli install` - Installs the project and its dependencies. Creates the virtual
     environment if necessary, syncs the dependencies with Pipfile.lock, builds the
@@ -53,6 +55,8 @@ operations are performed by invoking it. It's main subcommands are sumarised bel
 - `invenio-cli services` - Manages the Docker services required to run the application.
     Can be used to setup, start, stop and teardown the services.
 - `invenio-cli run` - Starts the Flask development server and a set of Celery workers.
+    Note that in development this should always be used rather than `invenio run` as
+    this passes appropriate configuration.
 - `invenio-cli packages` - Wraps `pipenv` to manage Python dependencies. Can be used to
     install, uninstall and update packages.
 - `invenio-cli pyshell` - Starts a shell in the virtual environment with an initialised
@@ -103,9 +107,7 @@ executing. This can be a bit resource intensive and make things a bit sluggish.
 Once the Flask server has started visit <https://127.0.0.1:5000> in your browser. The
 development setup uses a self-signed TLS certificate so may need to bypass a security
 warning. Once finished, stop the running Flask server and use
-`invenio-cli services stop` to bring down the running seOrder complete
-
-We’ve emailed you these order details and will text you about your order.rvices.
+`invenio-cli services stop` to bring down the running services.
 
 If you want to restart the setup process from scratch you can use
 `invenio-cli services destroy` remove all the services and data.
@@ -140,6 +142,14 @@ Direct links:
 
 ### QA
 
+[pre-commit] is a tool for running automated checks whenever you make a new commit. If
+you don't already have it installed pre-commit is included along with the development
+dependencies of the project. If you have a separate installation of pre-commit you can
+set it up to check your individual commits with `pre-commit install`. If you're using
+pre-commit from the development dependencies then you can set it up
+`pipenv run pre-commit install`. Note that in this later case you may need to run this
+command again if the pipenv managed virtual environment changes.
+
 It is strongly recommended to use [pre-commit] to check your individual commits meet the
 QA standards of the project. These are enforced via GitHub Actions and it's easiest to
 make sure you're compliant as you go along. Details of the QA tools can be found in
@@ -157,7 +167,7 @@ A test suite is provided in the `tests` directory. Assuming services have alread
 setup, tests can be run with:
 
 ```console
-invenio services start
+invenio-cli services start
 pipenv run pytest
 ```
 
@@ -215,7 +225,7 @@ Inspired by Django the following changes have been made:
 
 - Configuration is stored in the module `ic_data_repo.config`.
 - The module to use as settings can be specified at runtime via the environment variable
-    INVENIO_SETTINGS_MODULE. This defaults to `ic_data_repo.config`.
+    `INVENIO_SETTINGS_MODULE`. This defaults to `ic_data_repo.config`.
 - The standard InvenioRDM config file (`invenio.cfg`) now contains only the necessary
     import machinery to facilitate the above.
 

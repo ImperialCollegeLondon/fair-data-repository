@@ -42,11 +42,14 @@ from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 _POSSIBLE_CONTRIBUTOR_ROLES = {
     "Employee",
     "Ex-Employee",
+    "Research Postgraduate",
     "Honorary",
     "Visiting Researcher",
     "Casual & Bursary",
     "Emeritus",
     "Sponsored Researcher",
+    "MRC Employees",
+    "MRC Employees (CWK)",
 }
 """The role types that we consider when searching for possible contributors."""
 

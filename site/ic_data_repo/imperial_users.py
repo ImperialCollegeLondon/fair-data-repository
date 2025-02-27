@@ -59,7 +59,7 @@ class ImperialUser:
     """A user at Imperial College London."""
 
     username: str
-    """The username, including the @ic.ac.uk suffix."""
+    """The username, not including the @ic.ac.uk suffix."""
     full_name: str
     """The user's specified display name."""
 
@@ -94,6 +94,7 @@ async def get_imperial_users(
             username = user.user_principal_name
             if not username:
                 continue
+            username = username.removesuffix("@ic.ac.uk")
 
             full_name = user.display_name or username
             yield ImperialUser(username=username, full_name=full_name)

@@ -1,7 +1,7 @@
 """Functions for obtaining Imperial users.
 
 This is mostly so that we can obtain a list of potential collaborators, which we do by
-filtering users by their role type.
+filtering users by their role type and job family.
 
 The current list of possible role types is:
 
@@ -28,18 +28,35 @@ The current list of possible role types is:
 - MRC Employees (CWK)
 - External
 - Staff
+
+The current list of possible job families is:
+
+- Honorary Academics
+- Professional Services
+- Academic & Research
+- Visiting Researcher
+- Learning & Teaching
+- Technical Services
+- Operational Services
+- Clinical Academic
+- Non Staff
+- Clinical Research
+- NHS Nurses
+- Academic Visitors
+
+There are also many users with no job family specified.
 """
 
 import asyncio
 from dataclasses import dataclass
-from typing import AsyncIterable, Optional
+from typing import AsyncIterable, Iterable, Optional
 
 from azure.identity.aio import ClientSecretCredential
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph import GraphServiceClient
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 
-_POSSIBLE_CONTRIBUTOR_ROLES = {
+_POSSIBLE_CONTRIBUTOR_INCLUDE_ROLE_TYPES = {
     "Employee",
     "Ex-Employee",
     "Research Postgraduate",
@@ -53,8 +70,19 @@ _POSSIBLE_CONTRIBUTOR_ROLES = {
 }
 """The role types that we consider when searching for possible contributors."""
 
+_POSSIBLE_CONTRIBUTOR_EXCLUDE_JOB_FAMILIES = {
+    "Professional Services",
+    "Technical Services",
+    "Operational Services",
+    "NHS Nurses",
+}
+"""The job families to *exclude* from possible contributors."""
+
 _ROLE_TYPE_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute6"
 """The name of the attribute which contains the role type."""
+
+_JOB_FAMILY_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute14"
+"""The name of the attribute which contains the job family."""
 
 _QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
 
@@ -116,13 +144,26 @@ async def get_possible_imperial_contributors(
     client: GraphServiceClient,
 ) -> AsyncIterable[ImperialUser]:
     """Get Imperial users who may be contributors based on their role type."""
-    config = _get_request_config_for_roles(_POSSIBLE_CONTRIBUTOR_ROLES)
+    config = _get_request_config_for_roles(
+        _POSSIBLE_CONTRIBUTOR_INCLUDE_ROLE_TYPES,
+        _POSSIBLE_CONTRIBUTOR_EXCLUDE_JOB_FAMILIES,
+    )
     async for user in get_imperial_users(client, config):
         yield user
 
 
+def _filter_expr_in_set(attr_name: str, possible_values: Iterable[str]) -> str:
+    """Create a $filter expression to check for an attribute in some values.
+
+    >>> _filter_expr_in_set("my_attr", ["a", "b"])
+    "my_attr in ('a', 'b')"
+    """
+    set_str = ", ".join(f"'{value}'" for value in possible_values)
+    return f"{attr_name} in ({set_str})"
+
+
 def _get_request_config_for_roles(
-    roles: set[str],
+    include_role_types: set[str], exclude_job_families: set[str]
 ) -> RequestConfiguration[_QueryParameters]:
     """Get the configuration to select only the users we want.
 
@@ -130,8 +171,13 @@ def _get_request_config_for_roles(
     this work for some reason. See:
         https://stackoverflow.com/questions/49764678/microsoft-graph-filter-for-onpremisesextensionattributes
     """  # noqa: E501
-    roles_str = ", ".join(f"'{role}'" for role in roles)
-    filter = f"{_ROLE_TYPE_ATTR_NAME} in ({roles_str})"
+    # Include only some role types and exclude certain job families
+    role_type_filter = _filter_expr_in_set(_ROLE_TYPE_ATTR_NAME, include_role_types)
+    job_family_filter = (
+        f"not {_filter_expr_in_set(_JOB_FAMILY_ATTR_NAME, exclude_job_families)}"
+    )
+    filter = f"{role_type_filter} and {job_family_filter}"
+
     query_params = _QueryParameters(
         select=["displayName", "userPrincipalName"],
         filter=filter,

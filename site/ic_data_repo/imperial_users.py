@@ -130,7 +130,8 @@ def _get_request_config_for_roles(
     this work for some reason. See:
         https://stackoverflow.com/questions/49764678/microsoft-graph-filter-for-onpremisesextensionattributes
     """  # noqa: E501
-    filter = " or ".join(f"{_ROLE_TYPE_ATTR_NAME} eq '{role}'" for role in roles)
+    roles_str = ", ".join(f"'{role}'" for role in roles)
+    filter = f"{_ROLE_TYPE_ATTR_NAME} in ({roles_str})"
     query_params = _QueryParameters(
         select=["displayName", "userPrincipalName"],
         filter=filter,

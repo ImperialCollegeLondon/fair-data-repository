@@ -123,11 +123,7 @@ def _get_request_config_for_roles(roles: set[str]) -> RequestConfiguration[Any]:
     """  # noqa: E501
     filter = " or ".join(f"{_ROLE_TYPE_ATTR_NAME} eq '{role}'" for role in roles)
     query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
-        select=[
-            "displayName",
-            "userPrincipalName",
-            "onPremisesExtensionAttributes",
-        ],
+        select=["displayName", "userPrincipalName"],
         filter=filter,
         count=True,
     )

@@ -32,7 +32,7 @@ The current list of possible role types is:
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any, AsyncIterable, Optional
+from typing import AsyncIterable, Optional
 
 from azure.identity.aio import ClientSecretCredential
 from kiota_abstractions.base_request_configuration import RequestConfiguration
@@ -52,6 +52,8 @@ _POSSIBLE_CONTRIBUTOR_ROLES = {
 
 _ROLE_TYPE_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute6"
 """The name of the attribute which contains the role type."""
+
+_QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
 
 
 @dataclass
@@ -73,7 +75,8 @@ def get_client(
 
 
 async def get_imperial_users(
-    client: GraphServiceClient, config: Optional[RequestConfiguration[Any]] = None
+    client: GraphServiceClient,
+    config: Optional[RequestConfiguration[_QueryParameters]] = None,
 ) -> AsyncIterable[ImperialUser]:
     """Get Imperial users.
 
@@ -115,7 +118,9 @@ async def get_possible_imperial_contributors(
         yield user
 
 
-def _get_request_config_for_roles(roles: set[str]) -> RequestConfiguration[Any]:
+def _get_request_config_for_roles(
+    roles: set[str],
+) -> RequestConfiguration[_QueryParameters]:
     """Get the configuration to select only the users we want.
 
     Note that we have to add the count parameter and the ConsistencyLevel header to make
@@ -123,7 +128,7 @@ def _get_request_config_for_roles(roles: set[str]) -> RequestConfiguration[Any]:
         https://stackoverflow.com/questions/49764678/microsoft-graph-filter-for-onpremisesextensionattributes
     """  # noqa: E501
     filter = " or ".join(f"{_ROLE_TYPE_ATTR_NAME} eq '{role}'" for role in roles)
-    query_params = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters(
+    query_params = _QueryParameters(
         select=["displayName", "userPrincipalName"],
         filter=filter,
         count=True,

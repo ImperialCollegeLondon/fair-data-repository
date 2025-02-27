@@ -38,7 +38,7 @@ services:
     ports:
       - "6379:6379"
   db:
-    image: postgres:16.2
+    image: postgres:16.1
     restart: "unless-stopped"
     environment:
       - "POSTGRES_USER=ic-data-repo"

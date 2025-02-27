@@ -9,7 +9,9 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 import os
 from datetime import datetime
 
+from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
+from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 
 from .custom_fields import *  # noqa: F401,F403
 from .utils import get_user_form_default
@@ -131,6 +133,9 @@ DATACITE_PREFIX = ""
 DATACITE_TEST_MODE = True
 DATACITE_DATACENTER_SYMBOL = ""
 
+# Remove "external" as a DOI provider
+RDM_PERSISTENT_IDENTIFIERS["doi"]["providers"].remove("external")
+
 # Authentication - Invenio-Accounts and Invenio-OAuthclient
 # =========================================================
 # See: https://inveniordm.docs.cern.ch/customize/authentication/
@@ -158,9 +163,10 @@ OAUTHCLIENT_REMOTE_APPS = dict()
 
 ICL_OAUTH_CLIENT_ID = os.getenv("ICL_OAUTH_CLIENT_ID")
 ICL_OAUTH_CLIENT_SECRET = os.getenv("ICL_OAUTH_CLIENT_SECRET")
-ICL_OAUTH_WELL_KNOWN_URL = os.getenv("ICL_OAUTH_WELL_KNOWN_URL")
+ICL_OAUTH_WELL_KNOWN_URL = "https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/v2.0/.well-known/openid-configuration"  # noqa: E501
+ICL_MICROSOFT_TENANT_ID = "2b897507-ee8c-4575-830b-4f8267c3d307"
 
-if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET and ICL_OAUTH_WELL_KNOWN_URL:
+if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET:
     OAUTHCLIENT_REMOTE_APPS["icl"] = dict(
         title="Imperial College Single Sign On",
         description="Authentication via membership of Imperial College",
@@ -213,3 +219,7 @@ THEME_SHOW_FRONTPAGE_INTRO_SECTION = False
 RDM_COMMUNITY_REQUIRED_TO_PUBLISH = True
 
 RDM_ALLOW_METADATA_ONLY_RECORDS = False
+
+NOTIFICATION_BACKENDS = {
+    EmailNotificationBackend.id: EmailNotificationBackend,
+}

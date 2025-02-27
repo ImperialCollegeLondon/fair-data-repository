@@ -93,8 +93,14 @@ class ImperialUser:
 
     username: str
     """The username, not including the @ic.ac.uk suffix."""
-    full_name: str
-    """The user's specified display name."""
+    given_name: str
+    """The user's first name."""
+    family_name: str
+    """The user's last name."""
+
+    def __str__(self) -> str:
+        """Format as string."""
+        return f"{self.family_name}, {self.given_name} ({self.username})"
 
 
 def get_client(
@@ -122,16 +128,17 @@ async def get_imperial_users(
             return
 
         for user in users.value:
-            # It seems unlikely that the returned users won't contain both a username
-            # and a display name, but the type hints seem to suggest this is a
-            # possibility, so we check for both
+            # It seems unlikely that the returned users won't contain a username as well
+            # as first and last names, but the type hints seem to suggest this is a
+            # possibility, so let's check it
             username = user.user_principal_name
-            if not username:
+            if not username or not user.given_name or not user.surname:
                 continue
             username = username.removesuffix("@ic.ac.uk")
 
-            full_name = user.display_name or username
-            yield ImperialUser(username=username, full_name=full_name)
+            yield ImperialUser(
+                username=username, given_name=user.given_name, family_name=user.surname
+            )
 
         # If there are more users left to retrieve, the API gives a link to get the next
         # 100
@@ -179,7 +186,7 @@ def _get_request_config_for_roles(
     filter = f"{role_type_filter} and {job_family_filter}"
 
     query_params = _QueryParameters(
-        select=["displayName", "userPrincipalName"],
+        select=["givenName", "surname", "userPrincipalName"],
         filter=filter,
         count=True,
     )
@@ -203,6 +210,6 @@ if __name__ == "__main__":
 
         print("Possible Imperial contributors:")
         async for user in get_possible_imperial_contributors(client):
-            print(f" - {user.full_name} ({user.username})")
+            print(f" - {user}")
 
     asyncio.run(main())

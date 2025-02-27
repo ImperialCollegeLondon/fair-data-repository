@@ -32,13 +32,13 @@ services:
       - "80"
       - "443"
   cache:
-    image: redis:7
+    image: redis:7.2
     restart: "unless-stopped"
     read_only: true
     ports:
       - "6379:6379"
   db:
-    image: postgres:12.4
+    image: postgres:16.1
     restart: "unless-stopped"
     environment:
       - "POSTGRES_USER=ic-data-repo"
@@ -57,13 +57,13 @@ services:
     volumes:
       - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
   mq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.12-management
     restart: "unless-stopped"
     ports:
       - "15672:15672"
       - "5672:5672"
   search:
-    image: opensearchproject/opensearch:2.3.0
+    image: opensearchproject/opensearch:2.18.0
     restart: "unless-stopped"
     environment:
       # settings only for development. DO NOT use in production!

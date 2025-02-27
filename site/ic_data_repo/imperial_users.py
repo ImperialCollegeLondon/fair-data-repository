@@ -80,14 +80,17 @@ async def get_imperial_users(
     By default, this function will return all Imperial users, but you can modify this
     with the config argument.
     """
-    # As the Graph API only returns 100 results at a time, we have to make repeated
-    # requests if there are more
     users_request = client.users
     while True:
+        # Retrieve some more users from the API (maximum 100)
         users = await users_request.get(config)
         if not users or not users.value:
             return
+
         for user in users.value:
+            # It seems unlikely that the returned users won't contain both a username
+            # and a display name, but the type hints seem to suggest this is a
+            # possibility, so we check for both
             username = user.user_principal_name
             if not username:
                 continue
@@ -95,6 +98,8 @@ async def get_imperial_users(
             full_name = user.display_name or username
             yield ImperialUser(username=username, full_name=full_name)
 
+        # If there are more users left to retrieve, the API gives a link to get the next
+        # 100
         if not users.odata_next_link:
             return
         users_request = client.users.with_url(users.odata_next_link)

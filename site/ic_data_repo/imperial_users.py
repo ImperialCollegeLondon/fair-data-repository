@@ -48,9 +48,14 @@ There are also many users with no job family specified.
 """
 
 import asyncio
+import subprocess as sp
 from dataclasses import dataclass
+from pathlib import Path
+from shutil import which
+from time import perf_counter
 from typing import Any, AsyncIterable, Iterable, Optional
 
+import yaml
 from azure.identity.aio import ClientSecretCredential
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph import GraphServiceClient
@@ -83,6 +88,13 @@ _ROLE_TYPE_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute6"
 
 _JOB_FAMILY_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute14"
 """The name of the attribute which contains the job family."""
+
+_NAMES_VOCAB_PATH = Path(__file__).parent / "imperial-names-vocab.yaml"
+"""The path to the names vocab config file.
+
+This config file is just needed to tell the `invenio` program that the input is in YAML
+format and coming from /dev/stdin.
+"""
 
 _QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
 
@@ -212,19 +224,82 @@ def _get_request_config_for_roles(
     return config
 
 
+async def import_imperial_contributors_to_invenio(
+    client: GraphServiceClient, max_count: Optional[int] = None
+) -> None:
+    """Import Imperial users which are possible contributors into the names vocab."""
+    print("Importing Imperial users")
+    users = []
+    t0 = t1 = perf_counter()
+    async for user in get_possible_imperial_contributors(client, max_count):
+        users.append(user)
+        t2 = perf_counter()
+
+        # Print status every 5s to let user know something is happening
+        if t2 - t1 > 5.0:
+            print(f"Loaded {len(users)} so far...")
+            t1 = t2
+
+    print(f"Loaded {len(users)} possible contributors in {t2 - t0}s.")
+
+    print("Adding names to Invenio")
+    t0 = perf_counter()
+    _add_names_to_invenio(users)
+    print(f"Added names in {perf_counter() - t0}s.")
+
+
+def _get_invenio_path() -> str:
+    """Get the path to the Invenio command-line tool."""
+    path = which("invenio")
+    if not path:
+        raise RuntimeError("Could not find path to invenio program")
+    return path
+
+
+def _add_names_to_invenio(users: list[ImperialUser]):
+    """Add the specified Imperial users to the names vocab."""
+    # Path to invenio program
+    invenio_path = _get_invenio_path()
+
+    # Pass in names YAML via stdin
+    names_str = yaml.dump(list(user.as_invenio_record() for user in users))
+    sp.run(
+        [
+            invenio_path,
+            "vocabularies",
+            "import",
+            "--vocabulary",
+            "names",
+            "--filepath",
+            str(_NAMES_VOCAB_PATH),
+        ],
+        input=names_str.encode(),
+        check=True,
+    )
+
+
 if __name__ == "__main__":
 
     async def main():
-        """Print out all the possible Imperial collaborators."""
+        """Import all possible contributors to the names vocab."""
         import os
+        import sys
 
         client_id = os.getenv("ICL_OAUTH_CLIENT_ID")
         client_secret = os.getenv("ICL_OAUTH_CLIENT_SECRET")
         tenant_id = "2b897507-ee8c-4575-830b-4f8267c3d307"
         client = get_client(tenant_id, client_id, client_secret)
 
-        print("Possible Imperial contributors:")
-        async for user in get_possible_imperial_contributors(client):
-            print(f" - {user}")
+        # Make sure services are running
+        sp.run(
+            ["invenio-cli", "services", "start"],
+            check=True,
+            stdout=sp.DEVNULL,
+        )
+
+        # Let user specify max number of users to retrieve so they can things without
+        # loading the lot
+        max_count = int(sys.argv[1]) if len(sys.argv) > 1 else None
+        await import_imperial_contributors_to_invenio(client, max_count)
 
     asyncio.run(main())

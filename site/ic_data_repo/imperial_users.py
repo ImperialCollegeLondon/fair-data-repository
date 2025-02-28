@@ -49,7 +49,7 @@ There are also many users with no job family specified.
 
 import asyncio
 from dataclasses import dataclass
-from typing import AsyncIterable, Iterable, Optional
+from typing import Any, AsyncIterable, Iterable, Optional
 
 from azure.identity.aio import ClientSecretCredential
 from kiota_abstractions.base_request_configuration import RequestConfiguration
@@ -101,6 +101,15 @@ class ImperialUser:
     def __str__(self) -> str:
         """Format as string."""
         return f"{self.family_name}, {self.given_name} ({self.username})"
+
+    def as_invenio_record(self) -> dict[str, Any]:
+        """Get this user in the form expected by the Invenio names vocabulary."""
+        return {
+            "family_name": self.family_name,
+            "given_name": self.given_name,
+            "id": self.username,
+            "affiliations": [{"name": "Imperial College London"}],
+        }
 
 
 def get_client(

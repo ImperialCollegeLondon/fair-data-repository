@@ -148,15 +148,21 @@ async def get_imperial_users(
 
 
 async def get_possible_imperial_contributors(
-    client: GraphServiceClient,
+    client: GraphServiceClient, max_count: Optional[int] = None
 ) -> AsyncIterable[ImperialUser]:
     """Get Imperial users who may be contributors based on their role type."""
     config = _get_request_config_for_roles(
         _POSSIBLE_CONTRIBUTOR_INCLUDE_ROLE_TYPES,
         _POSSIBLE_CONTRIBUTOR_EXCLUDE_JOB_FAMILIES,
     )
+
+    count = 0
     async for user in get_imperial_users(client, config):
         yield user
+
+        count += 1
+        if max_count is not None and count == max_count:
+            return
 
 
 def _filter_expr_in_set(attr_name: str, possible_values: Iterable[str]) -> str:

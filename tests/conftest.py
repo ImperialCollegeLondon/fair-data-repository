@@ -1,7 +1,7 @@
 """Global test fixtures."""
 
 import pytest
-from invenio_app.factory import create_app as app_factory
+from invenio_app.factory import create_app
 
 
 @pytest.fixture(scope="module")
@@ -15,6 +15,8 @@ def app_config(app_config):
 
 
 @pytest.fixture(scope="module")
-def create_app():
+def app():
     """Provide the Flask app object used by tests."""
-    return app_factory
+    app = create_app()
+    with app.app_context():
+        yield app

@@ -138,6 +138,13 @@ Direct links:
 - [ICL_OAUTH_CLIENT_ID]
 - [ICL_OAUTH_CLIENT_SECRET]
 
+### Creating deposits
+
+You will not be able to create a new upload (or access the deposit page via the UI
+links) until you have created a community to contain the records. This community must
+have the id "icl" but its other properties are unimportant. The easiest way to create a
+community is via the UI at <https://127.0.0.1:5000/communities/new>.
+
 ## Development
 
 ### QA

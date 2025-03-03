@@ -4,6 +4,7 @@
 // Invenio App RDM is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
+import { Component } from "react";
 import { HiddenField } from "../../ic_data_repo/HiddenField";
 import { OptionalRoleCreatibutorsField } from "../../ic_data_repo/OptionalRoleCreatibutors";
 import { LimitedLicenseField } from "../../ic_data_repo/LimitedLicenseField";
@@ -22,6 +23,13 @@ const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {
   includeRole: true,
 });
 
+/* A simple empty element to remove non-field components via override */
+class NullElement extends Component {
+  render() {
+    return null;
+  }
+}
+
 export const overriddenComponents = {
   "InvenioAppRdm.Deposit.ContributorsField.container": ContributorsField,
   "InvenioAppRdm.Deposit.CreatorsField.container": CreatorsField,
@@ -32,4 +40,6 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.DescriptionsField.container": TextAreaField,
   "InvenioAppRdm.Deposit.LicenseField.container": LimitedLicenseField,
   "InvenioAppRdm.Deposit.AccordionFieldReferences.container": HiddenField,
+  "InvenioAppRdm.Deposit.CommunityHeader.container": NullElement,
+  "InvenioAppRdm.DashboardUploads.EmptyResults.element": NullElement,
 };

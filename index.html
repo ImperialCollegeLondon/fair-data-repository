@@ -258,6 +258,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#imperial-single-sign-on-and-microsoft-graph-api-access" class="md-nav__link">
+    Imperial Single Sign-On and Microsoft Graph API Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-deposits" class="md-nav__link">
+    Creating deposits
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -423,6 +437,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#imperial-single-sign-on-and-microsoft-graph-api-access" class="md-nav__link">
+    Imperial Single Sign-On and Microsoft Graph API Access
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-deposits" class="md-nav__link">
+    Creating deposits
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -547,13 +575,15 @@ required and is covered in more detail below.</p>
     the frontend.</li>
 <li>Docker and Docker Compose are used to manage the services required to run the
     application, namely the database, OpenSearch, Redis and RabbitMQ.</li>
-<li><code>invenio</code> - is a command line that can be used to interact with some Invenio
-    components. It is installed within the virtual environment managed by <code>pipenv</code> so
-    must be invoked via <code>pipenv run invenio</code>.</li>
+<li><code>invenio</code> - is the core application of InvenioRDM. Whilst a few operations require
+    invoking it directly it mostly called indirectly via <code>invenio-cli</code>. It is installed
+    within the virtual environment managed by <code>pipenv</code> so must be invoked via
+    <code>pipenv run invenio</code>.</li>
 </ul>
 <h3 id="invenio-cli"><code>invenio-cli</code></h3>
-<p>As mentioned above <code>invenio-cli</code> is the primary tool for managing the project and most
-operations are performed by invoking it. It's main subcommands are sumarised below:</p>
+<p>As mentioned above <code>invenio-cli</code> is the primary tool for managing the project in
+development and most operations are performed by invoking it. It's main subcommands are
+sumarised below:</p>
 <ul>
 <li><code>invenio-cli install</code> - Installs the project and its dependencies. Creates the virtual
     environment if necessary, syncs the dependencies with Pipfile.lock, builds the
@@ -561,7 +591,9 @@ operations are performed by invoking it. It's main subcommands are sumarised bel
     environment.</li>
 <li><code>invenio-cli services</code> - Manages the Docker services required to run the application.
     Can be used to setup, start, stop and teardown the services.</li>
-<li><code>invenio-cli run</code> - Starts the Flask development server and a set of Celery workers.</li>
+<li><code>invenio-cli run</code> - Starts the Flask development server and a set of Celery workers.
+    Note that in development this should always be used rather than <code>invenio run</code> as
+    this passes appropriate configuration.</li>
 <li><code>invenio-cli packages</code> - Wraps <code>pipenv</code> to manage Python dependencies. Can be used to
     install, uninstall and update packages.</li>
 <li><code>invenio-cli pyshell</code> - Starts a shell in the virtual environment with an initialised
@@ -601,11 +633,10 @@ operations are performed by invoking it. It's main subcommands are sumarised bel
 background. If the services are not already running then they will be started. The first
 time this is run after setup there will be a backlog of Celery tasks that starts
 executing. This can be a bit resource intensive and make things a bit sluggish.</p>
-<p>Once the Flask server has started visit https://127.0.0.1:5000 in your browser. The
+<p>Once the Flask server has started visit <a href="https://127.0.0.1:5000">https://127.0.0.1:5000</a> in your browser. The
 development setup uses a self-signed TLS certificate so may need to bypass a security
 warning. Once finished, stop the running Flask server and use
-<code>invenio-cli services stop</code> to bring down the running seOrder complete</p>
-<p>We’ve emailed you these order details and will text you about your order.rvices.</p>
+<code>invenio-cli services stop</code> to bring down the running services.</p>
 <p>If you want to restart the setup process from scratch you can use
 <code>invenio-cli services destroy</code> remove all the services and data.</p>
 <h3 id="logging-in">Logging In</h3>
@@ -615,8 +646,30 @@ warning. Once finished, stop the running Flask server and use
 <p>You can also optionally make this user an admin with:</p>
 <div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="go">invenio access allow administration-access user DUMMY_EMAIL</span>
 </span></code></pre></div>
+<h3 id="imperial-single-sign-on-and-microsoft-graph-api-access">Imperial Single Sign-On and Microsoft Graph API Access</h3>
+<p>To be able to log in using Imperial SSO use functionality relating to the Microsoft
+graph API the following environment variables must be set: <code>ICL_OAUTH_CLIENT_ID</code> and
+<code>ICL_OAUTH_CLIENT_SECRET</code>. Appropriate values for use in development are available from
+the Imperial password safe. Ask Chris C-A for access.</p>
+<p>Direct links:</p>
+<ul>
+<li><a href="https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456013&amp;ORGN_NAME=MSP">ICL_OAUTH_CLIENT_ID</a></li>
+<li><a href="https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456012&amp;ORGN_NAME=MSP">ICL_OAUTH_CLIENT_SECRET</a></li>
+</ul>
+<h3 id="creating-deposits">Creating deposits</h3>
+<p>You will not be able to create a new upload (or access the deposit page via the UI
+links) until you have created a community to contain the records. This community must
+have the id "icl" but its other properties are unimportant. The easiest way to create a
+community is via the UI at <a href="https://127.0.0.1:5000/communities/new">https://127.0.0.1:5000/communities/new</a>.</p>
 <h2 id="development">Development</h2>
 <h3 id="qa">QA</h3>
+<p><a href="https://pre-commit.com/">pre-commit</a> is a tool for running automated checks whenever you make a new commit. If
+you don't already have it installed pre-commit is included along with the development
+dependencies of the project. If you have a separate installation of pre-commit you can
+set it up to check your individual commits with <code>pre-commit install</code>. If you're using
+pre-commit from the development dependencies then you can set it up
+<code>pipenv run pre-commit install</code>. Note that in this later case you may need to run this
+command again if the pipenv managed virtual environment changes.</p>
 <p>It is strongly recommended to use <a href="https://pre-commit.com/">pre-commit</a> to check your individual commits meet the
 QA standards of the project. These are enforced via GitHub Actions and it's easiest to
 make sure you're compliant as you go along. Details of the QA tools can be found in
@@ -628,7 +681,7 @@ and pushes Docker images for the web application and frontend.</p>
 <h3 id="tests">Tests</h3>
 <p>A test suite is provided in the <code>tests</code> directory. Assuming services have already been
 setup, tests can be run with:</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="go">invenio services start</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="go">invenio-cli services start</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">pipenv run pytest</span>
 </span></code></pre></div>
 <p>All development work should be supported by an appropriate set of tests. Best practices
@@ -675,7 +728,7 @@ issues the below information may help with troubleshooting:</p>
 <ul>
 <li>Configuration is stored in the module <code>ic_data_repo.config</code>.</li>
 <li>The module to use as settings can be specified at runtime via the environment variable
-    INVENIO_SETTINGS_MODULE. This defaults to <code>ic_data_repo.config</code>.</li>
+    <code>INVENIO_SETTINGS_MODULE</code>. This defaults to <code>ic_data_repo.config</code>.</li>
 <li>The standard InvenioRDM config file (<code>invenio.cfg</code>) now contains only the necessary
     import machinery to facilitate the above.</li>
 </ul>

@@ -169,20 +169,20 @@ async def get_imperial_users(
 
 async def get_possible_imperial_contributors(
     client: GraphServiceClient, max_count: Optional[int] = None
-) -> AsyncIterable[ImperialUser]:
+) -> list[ImperialUser]:
     """Get Imperial users who may be contributors based on their role type."""
     config = _get_request_config_for_roles(
         _POSSIBLE_CONTRIBUTOR_INCLUDE_ROLE_TYPES,
         _POSSIBLE_CONTRIBUTOR_EXCLUDE_JOB_FAMILIES,
     )
 
-    count = 0
+    users = []
     async for user in get_imperial_users(client, config):
-        yield user
+        users.append(user)
 
-        count += 1
-        if max_count is not None and count == max_count:
-            return
+        if max_count is not None and len(users) == max_count:
+            break
+    return users
 
 
 def _filter_expr_in_set(attr_name: str, possible_values: Iterable[str]) -> str:
@@ -228,9 +228,7 @@ async def import_imperial_contributors_to_invenio(
 ) -> None:
     """Import Imperial users which are possible contributors into the names vocab."""
     print("Importing Imperial users...")
-    users = []
-    async for user in get_possible_imperial_contributors(client, max_count):
-        users.append(user)
+    users = await get_possible_imperial_contributors(client, max_count)
     print(f"Loaded {len(users)} possible contributors.")
 
     print("Adding names to Invenio")

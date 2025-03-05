@@ -119,7 +119,7 @@ class ImperialUser:
             "family_name": self.family_name,
             "given_name": self.given_name,
             "id": self.username,
-            "affiliations": [{"id": "041kmwe10"}],
+            "affiliations": [{"name": "Imperial College London"}],
         }
 
 

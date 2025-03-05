@@ -12,7 +12,7 @@ def app():
     # blank out sqlalchemy options as the defaults (inherited from
     # invenio_app_rdm.config) contain "pool_timeout" which is not valid for use with
     # the test sqlite database
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = ""
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
 
     with app.app_context():
         yield app

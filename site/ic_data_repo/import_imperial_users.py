@@ -223,12 +223,12 @@ def _get_request_config_for_roles(
     return config
 
 
-async def import_imperial_contributors_to_invenio(
+def import_imperial_contributors_to_invenio(
     client: GraphServiceClient, max_count: Optional[int] = None
 ) -> None:
     """Import Imperial users which are possible contributors into the names vocab."""
     print("Importing Imperial users...")
-    users = await get_possible_imperial_contributors(client, max_count)
+    users = asyncio.run(get_possible_imperial_contributors(client, max_count))
     print(f"Loaded {len(users)} possible contributors.")
 
     print("Adding names to Invenio")
@@ -267,27 +267,26 @@ def _add_names_to_invenio(users: list[ImperialUser]):
 
 
 if __name__ == "__main__":
+    import os
+    import sys
 
-    async def main():
-        """Import all possible contributors to the names vocab."""
-        import os
-        import sys
-
-        client_id = os.getenv("ICL_OAUTH_CLIENT_ID")
-        client_secret = os.getenv("ICL_OAUTH_CLIENT_SECRET")
-        tenant_id = "2b897507-ee8c-4575-830b-4f8267c3d307"
-        client = get_client(tenant_id, client_id, client_secret)
-
-        # Make sure services are running
-        sp.run(
-            ["invenio-cli", "services", "start"],
-            check=True,
-            stdout=sp.DEVNULL,
+    client_id = os.getenv("ICL_OAUTH_CLIENT_ID")
+    client_secret = os.getenv("ICL_OAUTH_CLIENT_SECRET")
+    tenant_id = "2b897507-ee8c-4575-830b-4f8267c3d307"
+    if not client_id or not client_secret:
+        raise RuntimeError(
+            "ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT secret env vars must be set"
         )
+    client = get_client(tenant_id, client_id, client_secret)
 
-        # Let user specify max number of users to retrieve so they can things without
-        # loading the lot
-        max_count = int(sys.argv[1]) if len(sys.argv) > 1 else None
-        await import_imperial_contributors_to_invenio(client, max_count)
+    # Make sure services are running
+    sp.run(
+        ["invenio-cli", "services", "start"],
+        check=True,
+        stdout=sp.DEVNULL,
+    )
 
-    asyncio.run(main())
+    # Let user specify max number of users to retrieve so they can things without
+    # loading the lot
+    max_count = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    import_imperial_contributors_to_invenio(client, max_count)

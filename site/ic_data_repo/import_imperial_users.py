@@ -88,7 +88,9 @@ _ROLE_TYPE_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute6"
 _JOB_FAMILY_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute14"
 """The name of the attribute which contains the job family."""
 
-_NAMES_VOCAB_PATH = Path(__file__).parent / "imperial-names-vocab.yaml"
+_NAMES_VOCAB_PATH = (
+    Path(__file__).parent.parent.parent / "app_data" / "imperial-names-vocab.yaml"
+)
 """The path to the names vocab config file.
 
 This config file is just needed to tell the `invenio` program that the input is in YAML

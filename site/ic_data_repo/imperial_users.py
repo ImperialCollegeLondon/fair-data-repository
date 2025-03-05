@@ -52,7 +52,6 @@ import subprocess as sp
 from dataclasses import dataclass
 from pathlib import Path
 from shutil import which
-from time import perf_counter
 from typing import Any, AsyncIterable, Iterable, Optional
 
 import yaml
@@ -228,24 +227,15 @@ async def import_imperial_contributors_to_invenio(
     client: GraphServiceClient, max_count: Optional[int] = None
 ) -> None:
     """Import Imperial users which are possible contributors into the names vocab."""
-    print("Importing Imperial users")
+    print("Importing Imperial users...")
     users = []
-    t0 = t1 = perf_counter()
     async for user in get_possible_imperial_contributors(client, max_count):
         users.append(user)
-        t2 = perf_counter()
-
-        # Print status every 5s to let user know something is happening
-        if t2 - t1 > 5.0:
-            print(f"Loaded {len(users)} so far...")
-            t1 = t2
-
-    print(f"Loaded {len(users)} possible contributors in {t2 - t0}s.")
+    print(f"Loaded {len(users)} possible contributors.")
 
     print("Adding names to Invenio")
-    t0 = perf_counter()
     _add_names_to_invenio(users)
-    print(f"Added names in {perf_counter() - t0}s.")
+    print("Added names.")
 
 
 def _get_invenio_path() -> str:

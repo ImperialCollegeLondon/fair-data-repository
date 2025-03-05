@@ -18,6 +18,8 @@ jobs:
   test:
     needs: qa
     runs-on: ubuntu-latest
+    env:
+      INVENIO_SETTINGS_MODULE: ic_data_repo.config.testing
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v5
@@ -29,6 +31,6 @@ jobs:
       - name: setup project virtual environment
         run: invenio-cli install
       - name: start services
-        run: invenio-cli services start
+        run: invenio-cli services setup --no-demo-data
       - name: run tests
         run: pipenv run pytest

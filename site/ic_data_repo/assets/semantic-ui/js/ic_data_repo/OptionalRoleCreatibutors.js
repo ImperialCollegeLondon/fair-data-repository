@@ -280,17 +280,18 @@ class OptionalRoleCreatibutorsModal extends CreatibutorsModal {
                       />
                     </>
                   )}
-                  {(_get(values, typeFieldPath) === CREATIBUTOR_TYPE.ORGANIZATION ||
-                    (showPersonForm &&
-                      _get(values, typeFieldPath) === CREATIBUTOR_TYPE.PERSON)) && includeRole && (
+                {(_get(values, typeFieldPath) === CREATIBUTOR_TYPE.ORGANIZATION ||
+                  (showPersonForm &&
+                    _get(values, typeFieldPath) === CREATIBUTOR_TYPE.PERSON)) &&
+                  includeRole &&
+                  !this.isCreator() && (
                     <div>
                       <SelectField
                         fieldPath={roleFieldPath}
                         label={i18next.t("Role")}
                         options={roleOptions}
                         placeholder={i18next.t("Select role")}
-                        {...(this.isCreator() && { clearable: true })}
-                        required={!this.isCreator()}
+                        required={true}
                         optimized
                         scrolling
                       />

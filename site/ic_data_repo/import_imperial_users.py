@@ -250,7 +250,9 @@ def _add_names_to_invenio(users: list[ImperialUser]):
     invenio_path = _get_invenio_path()
 
     # Pass in names YAML via stdin
-    names_str = yaml.dump(list(user.as_invenio_record() for user in users))
+    names_str = yaml.dump(
+        list(user.as_invenio_record() for user in users), sort_keys=False
+    )
     sp.run(
         [
             invenio_path,

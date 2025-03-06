@@ -3,7 +3,7 @@
     "1": {
       "Name": "ic-data-repo-db",
       "Group": "Servers",
-      "Host": "ic-data-repo-db-1",
+      "Host": "ic-data-repo-db",
       "Port": 5432,
       "MaintenanceDB": "postgres",
       "Username": "ic-data-repo",

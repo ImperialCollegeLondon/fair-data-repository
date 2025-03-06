@@ -376,7 +376,6 @@ class OptionalRoleCreatibutorsFieldItem extends Component {
       if (role) {
         const friendlyRole =
           roleOptions.find(({ value }) => value === role)?.text ?? role;
-  
         return <Label size="tiny">{friendlyRole}</Label>;
       }
     };

@@ -372,6 +372,14 @@ class OptionalRoleCreatibutorsFieldItem extends Component {
       editLabel,
       autocompleteNames,
     } = this.props;
+    const renderRole = (role, roleOptions) => {
+      if (role) {
+        const friendlyRole =
+          roleOptions.find(({ value }) => value === role)?.text ?? role;
+  
+        return <Label size="tiny">{friendlyRole}</Label>;
+      }
+    };
 
     return (
       <List.Item key={compKey} className="mb-5">
@@ -399,7 +407,7 @@ class OptionalRoleCreatibutorsFieldItem extends Component {
             />
         </List.Content>
         <List.Icon name="bars" className="mr-10" />
-        <List.Content>{displayName}</List.Content>
+        <List.Content>{displayName} {renderRole(initialCreatibutor?.role, roleOptions)}</List.Content>
       </List.Item>
     );
   }

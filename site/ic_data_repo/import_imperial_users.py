@@ -97,6 +97,9 @@ This config file is just needed to tell the `invenio` program that the input is 
 format and coming from /dev/stdin.
 """
 
+_ICL_ROR_ID = "041kmwe10"
+"""The ROR identifier for Imperial."""
+
 _QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
 
 
@@ -121,7 +124,7 @@ class ImperialUser:
             "family_name": self.family_name,
             "given_name": self.given_name,
             "id": self.username,
-            "affiliations": [{"id": "041kmwe10"}],
+            "affiliations": [{"id": _ICL_ROR_ID}],
         }
 
 

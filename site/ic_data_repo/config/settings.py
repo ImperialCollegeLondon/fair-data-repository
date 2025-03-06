@@ -9,10 +9,13 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 import os
 from datetime import datetime
 
+import invenio_rdm_records
 from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
+from marshmallow_utils.fields import NestedAttribute
 
+from ..imperial_schema import ImperialMetadataSchema
 from .custom_fields import *  # noqa: F401,F403
 from .utils import get_user_form_default
 
@@ -118,6 +121,14 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "publisher": "Imperial College London",
     "creators": lambda: get_user_form_default(),
 }
+
+# This is a hacky way to overwrite the record metadata schema
+record_metadata_schema = (
+    invenio_rdm_records.services.config.RDMRecordServiceConfig.schema
+)
+record_metadata_schema._declared_fields.update(
+    {"metadata": NestedAttribute(ImperialMetadataSchema)}
+)
 
 # See:
 # https://github.com/inveniosoftware/invenio-app-rdm/blob/master/invenio_app_rdm/config.py

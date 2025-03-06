@@ -356,6 +356,55 @@ class OptionalRoleCreatibutorsModal extends CreatibutorsModal {
 }
 
 
+class OptionalRoleCreatibutorsFieldItem extends Component {
+  render() {
+    const {
+      displayName,
+      index,
+      roleOptions,
+      schema,
+      compKey,
+      initialCreatibutor,
+      removeCreatibutor,
+      replaceCreatibutor,
+      moveCreatibutor,
+      addLabel,
+      editLabel,
+      autocompleteNames,
+    } = this.props;
+
+    return (
+      <List.Item key={compKey} className="mb-5">
+        <List.Content floated="right">
+            <Button size="mini" type="button" onClick={() => removeCreatibutor(index)}>
+              {i18next.t("Remove")}
+            </Button>
+            <OptionalRoleCreatibutorsModal
+              onCreatibutorChange={(selectedCreatibutor) => {
+                replaceCreatibutor(index, selectedCreatibutor);
+              }}
+              initialCreatibutor={initialCreatibutor}
+              action={ModalActions.EDIT}
+              addLabel={addLabel}
+              editLabel={editLabel}
+              roleOptions={sortOptions(roleOptions)}
+              schema={schema}
+              autocompleteNames={autocompleteNames}
+              includeRole={schema !== "creators"} // Only include role for contributors, not creators
+              trigger={
+                <Button size="mini" primary type="button">
+                  {i18next.t("Edit")}
+                </Button>
+              }
+            />
+        </List.Content>
+        <List.Icon name="bars" className="mr-10" />
+        <List.Content>{displayName}</List.Content>
+      </List.Item>
+    );
+  }
+}
+
 
 
 class OptionalRoleCreatibutorsFieldForm extends Component {
@@ -406,7 +455,7 @@ class OptionalRoleCreatibutorsFieldForm extends Component {
               const displayName = creatibutorNameDisplay(value);
 
               return (
-                <CreatibutorsFieldItem
+                <OptionalRoleCreatibutorsFieldItem
                   key={key}
                   identifiersError={identifiersError}
                   {...{

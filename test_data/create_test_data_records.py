@@ -1,5 +1,9 @@
 """Script to upload realistic test datasets for the Imperial FAIR Data repository.
 
+usage: pipenv run python create_test_data_records.py COMMUNITY_ID
+
+The COMMUNITY_ID specifies a pre-existing community that the new records are created in.
+
 Make sure you've started the Invenio services have been setup and are running. Should be
 run in the `test_data` directory. Assumes you've already run the `download_test_data`
 script and (meta)data is stored in the working directory under the expected directory
@@ -7,26 +11,33 @@ structure.
 
 Does the following:
 
+- Checks the community specified exists.
 - Finds all files matching the glob `*/metadata.json`.
 - For each file:
   - Reads in the metadata in Datacite json format.
-  - Creates a new user to own the record..
   - Creates a draft record by converting the Datacite metadata to the repository schema.
   - Uploads the files associated with the dataset to the draft record.
   - Publishes the record.
+  - Creates a community inclusion request.
+  - Accepts the record into the community.
 """
 
 import base64
 import json
 import re
+import sys
 from pathlib import Path
 
 from faker import Faker
-from flask import current_app
-from flask_security.utils import hash_password
+from invenio_access.permissions import system_identity
 from invenio_app.factory import create_app
-from invenio_rdm_records.fixtures.tasks import get_authenticated_identity
-from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_communities.proxies import current_communities
+from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_rdm_records.proxies import (
+    current_rdm_records_service,
+    current_record_communities_service,
+)
+from invenio_requests.proxies import current_requests_service
 
 FILE_URI_REGEX = re.compile(
     "https://data.hpc.imperial.ac.uk/resolve/\\?doi=\\d+\\&file=\\d+"
@@ -164,15 +175,6 @@ def datacite_to_invenio_schema(datacite):
     }
 
 
-def create_user():
-    """Create a new user, save in database and return associated identity."""
-    user = user_datastore.create_user(
-        email=fake.email(), password=hash_password(fake.password()), active=True
-    )
-    user_datastore.commit()
-    return get_authenticated_identity(user.id)
-
-
 def create_draft_record(datacite, identity):
     """Create a draft RDM Record from `datacite` metadata owned by `identity`."""
     return current_rdm_records_service.create(
@@ -201,22 +203,40 @@ def add_files_to_draft(draft, datacite, identity, dir_path):
 
 
 if __name__ == "__main__":
+    try:
+        community_id = sys.argv[1]
+    except IndexError:
+        raise ValueError(
+            "You must provide a community identifier as a command line argument."
+        )
+
     paths = Path(".").glob("*/metadata.json")
     fake = Faker()
     app = create_app()
     with app.app_context():
-        user_datastore = current_app.extensions["security"].datastore
+        try:
+            current_communities.service.read(system_identity, id_=community_id).data
+        except PIDDoesNotExistError:
+            raise ValueError(f"Could not find community with id - '{community_id}'")
 
         for path in paths:
-
             with path.open() as f:
                 datacite = json.load(f)
 
-            identity = create_user()
+            draft = create_draft_record(datacite, system_identity)
 
-            draft = create_draft_record(datacite, identity)
-
-            add_files_to_draft(draft, datacite, identity, path.parent)
+            add_files_to_draft(draft, datacite, system_identity, path.parent)
 
             # make public
-            current_rdm_records_service.publish(id_=draft.id, identity=identity)
+            record = current_rdm_records_service.publish(
+                id_=draft.id, identity=system_identity
+            )
+            request_id = current_record_communities_service.add(
+                system_identity,
+                record.id,
+                dict(communities=[dict(id=community_id, require_review=False)]),
+            )[0][0]["request_id"]
+
+            current_requests_service.execute_action(
+                system_identity, request_id, "accept"
+            )

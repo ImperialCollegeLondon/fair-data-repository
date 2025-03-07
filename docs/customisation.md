@@ -17,9 +17,16 @@ and styling customisations shoud be carefully rechecked on upgrade (particularly
 
 InvenioRDM provides a feature for creating communities of deposits with an associated
 review and approval process for publication. In order to facilitate a central review
-process by the library for all deposits created a single Imperial wide community and
-have hidden references to communities in the UI. This was implemented via a style sheet
-override in [PR #97].
+process by the library for all deposits we have made use of the in-built communities
+feature. Under this model there is a single community to which all deposits are added
+and the application UI is updated to remove links and references to communities in key
+places.
+
+This has been implemented by the following changes:
+
+- Hiding UI links to pages for creating or listing communities [PR #97].
+- Updating links to create a new deposit to have the "icl" community pre-selected.
+- Hiding the communities header on the new deposit page.
 
 ### Deposit Form
 
@@ -29,27 +36,27 @@ for more details. Overriden components are stored in
 `assets/js/invenio_app_rdm/overridableRegistry/mapping.js`. In summary:
 
 - The `creators` field has been customised to remove the `role` subfield as this was
-  considered confusing and to provide better alignment with the Datacite metadata
-  schema. Implemented by the custom component `OptionalRoleCreatibutorsField` that
-  allows control over whether the role subfield is displayed as well as the display of
-  clarifying help text. The implementation of `OptionalRoleCreatibutorsField`
-  unfortunately required extensive copy-pasting of the original [CreatibutorsField]
-  component so any updates to `invenio-rdm-records` should be carefully checked and any
-  changes manually ported over.
+    considered confusing and to provide better alignment with the Datacite metadata
+    schema. Implemented by the custom component `OptionalRoleCreatibutorsField` that
+    allows control over whether the role subfield is displayed as well as the display of
+    clarifying help text. The implementation of `OptionalRoleCreatibutorsField`
+    unfortunately required extensive copy-pasting of the original [CreatibutorsField]
+    component so any updates to `invenio-rdm-records` should be carefully checked and
+    any changes manually ported over.
 - The `contributors` field has been customised to add additional help text. This is also
-  implemented using the custom `OptionalRoleCreatibutorsField` component.
+    implemented using the custom `OptionalRoleCreatibutorsField` component.
 - The following fields have been hidden - `resource_type`, `publisher`,
-  `publication_date` and `references`. This has been implemented by overriding with the
-  custom `HiddenField` component. Some values have still had a default value set where
-  we want values to be present in the metadata but not editable by the user.
+    `publication_date` and `references`. This has been implemented by overriding with
+    the custom `HiddenField` component. Some values have still had a default value set
+    where we want values to be present in the metadata but not editable by the user.
 - The `description` field has been customised to use a standard textarea rather than a
-  rich text editor as it was considered that plain text was more appropriate for this
-  field.
+    rich text editor as it was considered that plain text was more appropriate for this
+    field.
 - The `license` field has been customised to provide a selection of licenses from a
-  fixed list. Implemented by the custom component `LimitedLicenseField`. Similar to the
-  `OptionalRoleCreatibutorsField` this required extensive copy-pasting of the original
-  [LicensesField] component so the same checks and changes should be applied on update
-  of `invenio-rdm-records`.
+    fixed list. Implemented by the custom component `LimitedLicenseField`. Similar to
+    the `OptionalRoleCreatibutorsField` this required extensive copy-pasting of the
+    original [LicensesField] component so the same checks and changes should be applied
+    on update of `invenio-rdm-records`.
 
 Other customisations have used the [APP_RDM_DEPOSIT_FORM_DEFAULTS] setting (set in
 `site/ic_data_repo/config/settings.py`). In summary:

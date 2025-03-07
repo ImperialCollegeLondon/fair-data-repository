@@ -46,7 +46,7 @@
 
         <div role="menu" aria-labelledby="quick-create-dropdown-btn" id="quick-create-menu" class="menu">
           {%- for item in plus_menu_items if item.visible %}
-            <a role="menuitem" class="item" href="{{ item.url }}">{{ item.text|safe }}</a>
+            <a role="menuitem" class="item" href="{{ item.url }}{% if item.url == '/uploads/new'%}?community=icl{% endif %}">{{ item.text|safe }}</a>
           {%- endfor %}
         </div>
       </div>

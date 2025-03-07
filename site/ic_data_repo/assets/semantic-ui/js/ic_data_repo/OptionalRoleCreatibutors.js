@@ -280,17 +280,18 @@ class OptionalRoleCreatibutorsModal extends CreatibutorsModal {
                       />
                     </>
                   )}
-                  {(_get(values, typeFieldPath) === CREATIBUTOR_TYPE.ORGANIZATION ||
-                    (showPersonForm &&
-                      _get(values, typeFieldPath) === CREATIBUTOR_TYPE.PERSON)) && includeRole && (
+                {(_get(values, typeFieldPath) === CREATIBUTOR_TYPE.ORGANIZATION ||
+                  (showPersonForm &&
+                    _get(values, typeFieldPath) === CREATIBUTOR_TYPE.PERSON)) &&
+                  includeRole &&
+                  !this.isCreator() && (
                     <div>
                       <SelectField
                         fieldPath={roleFieldPath}
                         label={i18next.t("Role")}
                         options={roleOptions}
                         placeholder={i18next.t("Select role")}
-                        {...(this.isCreator() && { clearable: true })}
-                        required={!this.isCreator()}
+                        required={true}
                         optimized
                         scrolling
                       />
@@ -355,6 +356,62 @@ class OptionalRoleCreatibutorsModal extends CreatibutorsModal {
 }
 
 
+class OptionalRoleCreatibutorsFieldItem extends Component {
+  render() {
+    const {
+      displayName,
+      index,
+      roleOptions,
+      schema,
+      compKey,
+      initialCreatibutor,
+      removeCreatibutor,
+      replaceCreatibutor,
+      moveCreatibutor,
+      addLabel,
+      editLabel,
+      autocompleteNames,
+    } = this.props;
+    const renderRole = (role, roleOptions) => {
+      if (role) {
+        const friendlyRole =
+          roleOptions.find(({ value }) => value === role)?.text ?? role;
+        return <Label size="tiny">{friendlyRole}</Label>;
+      }
+    };
+
+    return (
+      <List.Item key={compKey} className="mb-5">
+        <List.Content floated="right">
+            <Button size="mini" type="button" onClick={() => removeCreatibutor(index)}>
+              {i18next.t("Remove")}
+            </Button>
+            <OptionalRoleCreatibutorsModal
+              onCreatibutorChange={(selectedCreatibutor) => {
+                replaceCreatibutor(index, selectedCreatibutor);
+              }}
+              initialCreatibutor={initialCreatibutor}
+              action={ModalActions.EDIT}
+              addLabel={addLabel}
+              editLabel={editLabel}
+              roleOptions={sortOptions(roleOptions)}
+              schema={schema}
+              autocompleteNames={autocompleteNames}
+              includeRole={schema !== "creators"} // Only include role for contributors, not creators
+              trigger={
+                <Button size="mini" primary type="button">
+                  {i18next.t("Edit")}
+                </Button>
+              }
+            />
+        </List.Content>
+        <List.Icon name="bars" className="mr-10" />
+        <List.Content>{displayName} {renderRole(initialCreatibutor?.role, roleOptions)}</List.Content>
+      </List.Item>
+    );
+  }
+}
+
 
 
 class OptionalRoleCreatibutorsFieldForm extends Component {
@@ -405,7 +462,7 @@ class OptionalRoleCreatibutorsFieldForm extends Component {
               const displayName = creatibutorNameDisplay(value);
 
               return (
-                <CreatibutorsFieldItem
+                <OptionalRoleCreatibutorsFieldItem
                   key={key}
                   identifiersError={identifiersError}
                   {...{

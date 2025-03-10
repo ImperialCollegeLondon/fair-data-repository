@@ -56,7 +56,7 @@
         <h2 class="ui small header">{{ _("Actions") }}</h2>
         <div role="menu">
           {%- for item in plus_menu_items if item.visible %}
-            <a role="menuitem" class="item" href="{{ item.url }}">
+            <a role="menuitem" class="item" href="{{ item.url }}{% if item.url == '/uploads/new'%}?community=icl{% endif %}">
               <i class="plus icon"></i>
               {{ item.text|safe }}
             </a>

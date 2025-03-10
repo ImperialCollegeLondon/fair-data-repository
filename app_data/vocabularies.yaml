@@ -5,11 +5,10 @@ subjects:
       name: Fields of Science and Technology
       uri: "http://www.oecd.org/science/inno/38235147.pdf"
       data-file: vocabularies/subjects_oecd_fos.yaml
-# Minimimal example vocabularies
-# can be used for quick testing, or a basis for building your own customized vocabularies.
-#names:
-#  pid-type: names
-#  data-file: vocabularies/names.yaml
+# prevent loading of sample names by overriding with a blank file
+names:
+  pid-type: names
+  data-file: vocabularies/names_empty.yaml
 #licenses:
 #  pid-type: lic
 #  data-file: vocabularies/cc_licences.csv

@@ -44,6 +44,8 @@ services:
       - "POSTGRES_USER=ic-data-repo"
       - "POSTGRES_PASSWORD=ic-data-repo"
       - "POSTGRES_DB=ic-data-repo"
+    hostname:
+      ic-data-repo-db
     ports:
       - "5432:5432"
   pgadmin:

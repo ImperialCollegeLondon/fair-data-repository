@@ -48,9 +48,13 @@ There are also many users with no job family specified.
 """
 
 import asyncio
+import subprocess as sp
 from dataclasses import dataclass
-from typing import AsyncIterable, Iterable, Optional
+from pathlib import Path
+from shutil import which
+from typing import Any, AsyncIterable, Iterable, Optional
 
+import yaml
 from azure.identity.aio import ClientSecretCredential
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph import GraphServiceClient
@@ -84,6 +88,18 @@ _ROLE_TYPE_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute6"
 _JOB_FAMILY_ATTR_NAME = "onPremisesExtensionAttributes/extensionAttribute14"
 """The name of the attribute which contains the job family."""
 
+_NAMES_VOCAB_PATH = (
+    Path(__file__).parent.parent.parent / "app_data" / "imperial-names-vocab.yaml"
+)
+"""The path to the names vocab config file.
+
+This config file is just needed to tell the `invenio` program that the input is in YAML
+format and coming from /dev/stdin.
+"""
+
+_ICL_ROR_ID = "041kmwe10"
+"""The ROR identifier for Imperial."""
+
 _QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
 
 
@@ -101,6 +117,15 @@ class ImperialUser:
     def __str__(self) -> str:
         """Format as string."""
         return f"{self.family_name}, {self.given_name} ({self.username})"
+
+    def as_invenio_record(self) -> dict[str, Any]:
+        """Get this user in the form expected by the Invenio names vocabulary."""
+        return {
+            "family_name": self.family_name,
+            "given_name": self.given_name,
+            "id": self.username,
+            "affiliations": [{"id": _ICL_ROR_ID}],
+        }
 
 
 def get_client(
@@ -148,15 +173,21 @@ async def get_imperial_users(
 
 
 async def get_possible_imperial_contributors(
-    client: GraphServiceClient,
-) -> AsyncIterable[ImperialUser]:
+    client: GraphServiceClient, max_count: Optional[int] = None
+) -> list[ImperialUser]:
     """Get Imperial users who may be contributors based on their role type."""
     config = _get_request_config_for_roles(
         _POSSIBLE_CONTRIBUTOR_INCLUDE_ROLE_TYPES,
         _POSSIBLE_CONTRIBUTOR_EXCLUDE_JOB_FAMILIES,
     )
+
+    users = []
     async for user in get_imperial_users(client, config):
-        yield user
+        users.append(user)
+
+        if max_count is not None and len(users) == max_count:
+            break
+    return users
 
 
 def _filter_expr_in_set(attr_name: str, possible_values: Iterable[str]) -> str:
@@ -197,19 +228,46 @@ def _get_request_config_for_roles(
     return config
 
 
-if __name__ == "__main__":
+def import_imperial_contributors_to_invenio(
+    client: GraphServiceClient, max_count: Optional[int] = None
+) -> None:
+    """Import Imperial users which are possible contributors into the names vocab."""
+    print("Importing Imperial users...")
+    users = asyncio.run(get_possible_imperial_contributors(client, max_count))
+    print(f"Loaded {len(users)} possible contributors.")
 
-    async def main():
-        """Print out all the possible Imperial collaborators."""
-        import os
+    print("Adding names to Invenio")
+    _add_names_to_invenio(users)
+    print("Added names.")
 
-        client_id = os.getenv("ICL_OAUTH_CLIENT_ID")
-        client_secret = os.getenv("ICL_OAUTH_CLIENT_SECRET")
-        tenant_id = "2b897507-ee8c-4575-830b-4f8267c3d307"
-        client = get_client(tenant_id, client_id, client_secret)
 
-        print("Possible Imperial contributors:")
-        async for user in get_possible_imperial_contributors(client):
-            print(f" - {user}")
+def _get_invenio_path() -> str:
+    """Get the path to the Invenio command-line tool."""
+    path = which("invenio")
+    if not path:
+        raise RuntimeError("Could not find path to invenio program")
+    return path
 
-    asyncio.run(main())
+
+def _add_names_to_invenio(users: list[ImperialUser]):
+    """Add the specified Imperial users to the names vocab."""
+    # Path to invenio program
+    invenio_path = _get_invenio_path()
+
+    # Pass in names YAML via stdin
+    names_str = yaml.dump(
+        list(user.as_invenio_record() for user in users), sort_keys=False
+    )
+    sp.run(
+        [
+            invenio_path,
+            "vocabularies",
+            "import",
+            "--vocabulary",
+            "names",
+            "--filepath",
+            str(_NAMES_VOCAB_PATH),
+        ],
+        input=names_str.encode(),
+        check=True,
+    )

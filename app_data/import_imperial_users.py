@@ -1,7 +1,6 @@
 """A script to import Imperial users into the Invenio names vocabulary."""
 
 import os
-import subprocess as sp
 import sys
 
 from ic_data_repo.import_imperial_users import (
@@ -18,13 +17,6 @@ if __name__ == "__main__":
             "ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT secret env vars must be set"
         )
     client = get_client(tenant_id, client_id, client_secret)
-
-    # Make sure services are running
-    sp.run(
-        ["invenio-cli", "services", "start"],
-        check=True,
-        stdout=sp.DEVNULL,
-    )
 
     # Let user specify max number of users to retrieve so they can things without
     # loading the lot

@@ -251,8 +251,12 @@ def import_imperial_contributors_to_invenio(
     logger.info(f"Loaded {len(users)} possible contributors.")
 
     logger.info("Adding names to Invenio")
-    _add_names_to_invenio(users, logger)
-    logger.info("Added names.")
+    already_existing = _add_names_to_invenio(users, logger)
+    if already_existing > 0:
+        logger.warning(
+            f"WARNING: {already_existing}/{len(users)} users already exist in database."
+        )
+    logger.info("Finished importing Imperial users.")
 
 
 def _get_invenio_path() -> str:
@@ -263,7 +267,7 @@ def _get_invenio_path() -> str:
     return path
 
 
-def _add_names_to_invenio(users: list[ImperialUser], logger: Logger):
+def _add_names_to_invenio(users: list[ImperialUser], logger: Logger) -> int:
     """Add the specified Imperial users to the names vocab."""
     # Path to invenio program
     invenio_path = _get_invenio_path()
@@ -290,8 +294,14 @@ def _add_names_to_invenio(users: list[ImperialUser], logger: Logger):
 
     # Print contents of stdout and stderr with logger
     stdout = process.communicate(names_str)[0]
+    already_existing = 0
     for line in stdout.splitlines():
-        logger.info(f"invenio: {line}")
+        if line.startswith('NamesServiceWriter: ["Vocabulary entry already exists:'):
+            already_existing += 1
+        else:
+            logger.info(f"invenio: {line}")
 
     if process.returncode != 0:
         raise RuntimeError(f"invenio process exited with code {process.returncode}")
+
+    return already_existing

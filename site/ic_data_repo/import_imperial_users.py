@@ -48,8 +48,10 @@ There are also many users with no job family specified.
 """
 
 import asyncio
+import logging
 import subprocess as sp
 from dataclasses import dataclass
+from logging import Logger
 from pathlib import Path
 from shutil import which
 from typing import Any, AsyncIterable, Iterable, Optional
@@ -101,6 +103,16 @@ _ICL_ROR_ID = "041kmwe10"
 """The ROR identifier for Imperial."""
 
 _QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
+
+
+def _get_default_logger() -> Logger:
+    """Get a default logger for this module which just prints to stdout."""
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
+    return logger
 
 
 @dataclass
@@ -229,16 +241,18 @@ def _get_request_config_for_roles(
 
 
 def import_imperial_contributors_to_invenio(
-    client: GraphServiceClient, max_count: Optional[int] = None
+    client: GraphServiceClient,
+    logger: Logger = _get_default_logger(),
+    max_count: Optional[int] = None,
 ) -> None:
     """Import Imperial users which are possible contributors into the names vocab."""
-    print("Importing Imperial users...")
+    logger.info("Importing Imperial users...")
     users = asyncio.run(get_possible_imperial_contributors(client, max_count))
-    print(f"Loaded {len(users)} possible contributors.")
+    logger.info(f"Loaded {len(users)} possible contributors.")
 
-    print("Adding names to Invenio")
+    logger.info("Adding names to Invenio")
     _add_names_to_invenio(users)
-    print("Added names.")
+    logger.info("Added names.")
 
 
 def _get_invenio_path() -> str:

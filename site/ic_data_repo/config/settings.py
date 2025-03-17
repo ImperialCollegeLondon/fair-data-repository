@@ -76,7 +76,7 @@ APP_DEFAULT_SECURE_HEADERS = {
 # See https://invenio-theme.readthedocs.io/en/latest/configuration.html
 
 # Frontpage title
-THEME_FRONTPAGE_TITLE = "Imperial Fair Data Repository"
+THEME_FRONTPAGE_TITLE = "Imperial FAIR Data Repository (Alpha Version)"
 # Header logo
 THEME_LOGO = "images/imperial_logo_blue.svg"
 INVERTED_THEME_LOGO = "images/imperial_white_blue.svg"

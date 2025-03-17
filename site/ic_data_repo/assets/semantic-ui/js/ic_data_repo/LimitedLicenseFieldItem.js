@@ -10,22 +10,16 @@
 import React from "react";
 import { Button, List } from "semantic-ui-react";
 import _truncate from "lodash/truncate";
-import { LimitedLicenseModal } from "./LimitedLicenseModal";
 import { i18next } from "@translations/invenio_rdm_records/i18next";
 import PropTypes from "prop-types";
 
 export const LimitedLicenseFieldItem = ({
   license,
-  moveLicense,
-  replaceLicense,
   removeLicense,
-  searchConfig,
-  serializeLicenses,
 }) => {
   return (
     <List.Item key={license.key} className="deposit-listitem">
       <List.Content floated="right">
-
         <Button
           size="mini"
           type="button"

@@ -25,8 +25,31 @@ def user_client(user, client):
 @pytest.fixture(scope="module")
 def app_config(app_config):
     """Update invenio app_config fixture."""
+    import json
+    import os
+
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
-    app_config["WEBPACKEXT_MANIFEST_PATH"] = None
+
+    instance_path = app_config.get("INSTANCE_PATH")
+    if not instance_path:
+        from flask import current_app
+
+        instance_path = getattr(
+            current_app,
+            "instance_path",
+            os.environ.get("INVENIO_INSTANCE_PATH", "/tmp"),
+        )
+
+    manifest_dir = os.path.join(instance_path, "static/dist")
+    manifest_path = os.path.join(manifest_dir, "manifest.json")
+
+    os.makedirs(manifest_dir, exist_ok=True)
+
+    with open(manifest_path, "w") as f:
+        json.dump({"entrypoints": {}, "chunks": {}}, f)
+
+    app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
+
     return app_config
 
 

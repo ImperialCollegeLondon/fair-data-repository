@@ -26,8 +26,10 @@ jobs:
           cache: "pipenv"
       - name: install pipenv and invenio-cli
         run: pip install pipenv invenio-cli
-      - name: setup project virtual environment
-        run: invenio-cli install
+      - name: setup project dependencies
+        run: invenio-cli run --python
+      - name: setup symplink
+        run: invenio-cli run --symlink
       - name: start services
         run: invenio-cli services start
       - name: run tests

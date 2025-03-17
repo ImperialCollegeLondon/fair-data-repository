@@ -52,7 +52,7 @@ import subprocess as sp
 from dataclasses import dataclass
 from pathlib import Path
 from shutil import which
-from typing import Any, AsyncIterable, Iterable, Optional
+from typing import Any, AsyncIterable, Callable, Iterable, Optional
 
 import yaml
 from azure.identity.aio import ClientSecretCredential
@@ -229,16 +229,18 @@ def _get_request_config_for_roles(
 
 
 def import_imperial_contributors_to_invenio(
-    client: GraphServiceClient, max_count: Optional[int] = None
+    client: GraphServiceClient,
+    log_func: Callable[[str], None] = print,
+    max_count: Optional[int] = None,
 ) -> None:
     """Import Imperial users which are possible contributors into the names vocab."""
-    print("Importing Imperial users...")
+    log_func("Importing Imperial users...")
     users = asyncio.run(get_possible_imperial_contributors(client, max_count))
-    print(f"Loaded {len(users)} possible contributors.")
+    log_func(f"Loaded {len(users)} possible contributors.")
 
-    print("Adding names to Invenio")
+    log_func("Adding names to Invenio")
     _add_names_to_invenio(users)
-    print("Added names.")
+    log_func("Added names.")
 
 
 def _get_invenio_path() -> str:

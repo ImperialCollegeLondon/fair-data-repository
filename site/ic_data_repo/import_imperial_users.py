@@ -239,7 +239,7 @@ def import_imperial_contributors_to_invenio(
     log_func(f"Loaded {len(users)} possible contributors.")
 
     log_func("Adding names to Invenio")
-    _add_names_to_invenio(users)
+    _add_names_to_invenio(users, log_func)
     log_func("Added names.")
 
 
@@ -251,7 +251,9 @@ def _get_invenio_path() -> str:
     return path
 
 
-def _add_names_to_invenio(users: list[ImperialUser]):
+def _add_names_to_invenio(
+    users: list[ImperialUser], log_func: Callable[[str], None] = print
+):
     """Add the specified Imperial users to the names vocab."""
     # Path to invenio program
     invenio_path = _get_invenio_path()
@@ -260,7 +262,7 @@ def _add_names_to_invenio(users: list[ImperialUser]):
     names_str = yaml.dump(
         list(user.as_invenio_record() for user in users), sort_keys=False
     )
-    sp.run(
+    process = sp.Popen(
         [
             invenio_path,
             "vocabularies",
@@ -270,6 +272,16 @@ def _add_names_to_invenio(users: list[ImperialUser]):
             "--filepath",
             str(_NAMES_VOCAB_PATH),
         ],
-        input=names_str.encode(),
-        check=True,
+        stdin=sp.PIPE,
+        stdout=sp.PIPE,
+        stderr=sp.STDOUT,
+        text=True,
     )
+
+    # Print contents of stdout and stderr with logger
+    stdout = process.communicate(names_str)[0]
+    for line in stdout.splitlines():
+        log_func(f"invenio: {line}")
+
+    if process.returncode != 0:
+        raise RuntimeError(f"invenio process exited with code {process.returncode}")

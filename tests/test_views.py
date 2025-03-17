@@ -21,6 +21,12 @@ def user_client(user, client):
     """A client logged in as the user fixture."""
     return user.login(client)
 
+@pytest.fixture(scope="module")
+def app_config(app_config):
+    """Update invenio app_config fixture."""
+    app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
+    app_config["WEBPACKEXT_MANIFEST_PATH"] = None
+    return app_config
 
 def test_index_view(client):
     """Simple check that index view does not give an error when rendered."""

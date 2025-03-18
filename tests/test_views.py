@@ -30,15 +30,10 @@ def app_config(app_config):
 
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
 
-    instance_path = app_config.get("INSTANCE_PATH")
-    if not instance_path:
-        from flask import current_app
-
-        instance_path = getattr(
-            current_app,
-            "instance_path",
-            os.environ.get("INVENIO_INSTANCE_PATH", "/tmp"),
-        )
+    # Avoid using current_app by just using environment variable or default
+    instance_path = app_config.get(
+        "INSTANCE_PATH", os.environ.get("INVENIO_INSTANCE_PATH", "/tmp")
+    )
 
     manifest_dir = os.path.join(instance_path, "static/dist")
     manifest_path = os.path.join(manifest_dir, "manifest.json")

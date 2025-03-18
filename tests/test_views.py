@@ -35,7 +35,6 @@ def test_index_view(client):
 
 def test_index_auth(user_client, app):
     """Check the index view with a logged in user."""
-
     if os.environ.get("CI"):
         pytest.skip("Skipping in CI environment due to missing webpack assets")
 

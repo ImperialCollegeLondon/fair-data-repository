@@ -30,7 +30,6 @@ def app_config(app_config):
 
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
 
-    # Avoid using current_app by just using environment variable or default
     instance_path = app_config.get(
         "INSTANCE_PATH", os.environ.get("INVENIO_INSTANCE_PATH", "/tmp")
     )

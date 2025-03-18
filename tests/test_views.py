@@ -40,7 +40,15 @@ def app_config(app_config):
     os.makedirs(manifest_dir, exist_ok=True)
 
     with open(manifest_path, "w") as f:
-        json.dump({"entrypoints": {}, "chunks": {}}, f)
+        json.dump(
+            {
+                "status": "done",
+                "assets": {},
+                "chunks": {},
+                "publicPath": "/static/dist",
+            },
+            f,
+        )
 
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
 

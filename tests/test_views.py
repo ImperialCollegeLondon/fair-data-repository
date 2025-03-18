@@ -1,6 +1,5 @@
 """Placeholder module for tests of view functions."""
 
-import os
 import re
 
 import pytest
@@ -23,11 +22,39 @@ def user_client(user, client):
     return user.login(client)
 
 
+@pytest.fixture(scope="module")
+def app_config(app_config):
+    """Update invenio app_config fixture."""
+    import json
+    import os
+
+    app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
+
+    instance_path = app_config.get("INSTANCE_PATH")
+    if not instance_path:
+        from flask import current_app
+
+        instance_path = getattr(
+            current_app,
+            "instance_path",
+            os.environ.get("INVENIO_INSTANCE_PATH", "/tmp"),
+        )
+
+    manifest_dir = os.path.join(instance_path, "static/dist")
+    manifest_path = os.path.join(manifest_dir, "manifest.json")
+
+    os.makedirs(manifest_dir, exist_ok=True)
+
+    with open(manifest_path, "w") as f:
+        json.dump({"entrypoints": {}, "chunks": {}}, f)
+
+    app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
+
+    return app_config
+
+
 def test_index_view(client):
     """Simple check that index view does not give an error when rendered."""
-    if os.environ.get("CI"):
-        pytest.skip("Skipping in CI environment due to missing webpack assets")
-
     res = client.get("/")
     assert res.status_code == 200
     assert b"Imperial College London" in res.data
@@ -35,9 +62,6 @@ def test_index_view(client):
 
 def test_index_auth(user_client, app):
     """Check the index view with a logged in user."""
-    if os.environ.get("CI"):
-        pytest.skip("Skipping in CI environment due to missing webpack assets")
-
     res = user_client.get("/")
 
     assert res.status_code == 200

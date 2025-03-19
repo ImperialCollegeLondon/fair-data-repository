@@ -1,5 +1,7 @@
 """Placeholder module for tests of view functions."""
 
+import json
+import os
 import re
 
 import pytest
@@ -19,9 +21,6 @@ def user(UserFixture, app, db):
 @pytest.fixture(scope="module")
 def app_config(app_config):
     """Update invenio app_config fixture."""
-    import json
-    import os
-
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
     instance_path = app_config.get(
         "INSTANCE_PATH", os.environ.get("INVENIO_INSTANCE_PATH", "/tmp")
@@ -34,12 +33,16 @@ def app_config(app_config):
         json.dump(
             {
                 "status": "done",
-                "assets": {},
+                "assets": {"theme.css": "/static/dist/theme.css"},
                 "chunks": {},
                 "publicPath": "/static/dist",
             },
             f,
         )
+
+    theme_css_path = os.path.join(manifest_dir, "theme.css")
+    with open(theme_css_path, "w") as f:
+        f.write("/* Empty theme file */")
 
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
     return app_config

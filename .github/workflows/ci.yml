@@ -22,7 +22,8 @@ jobs:
               - '!docker/**'
               - '!.github/**'
               - '**'
-  
+
+
   qa:
     needs: paths-filter
     if: ${{ needs.paths-filter.outputs.should_run == 'true' }}

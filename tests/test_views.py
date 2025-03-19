@@ -21,6 +21,7 @@ def app_config(app_config):
     """Update invenio app_config fixture."""
     import json
     import os
+
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
     instance_path = app_config.get(
         "INSTANCE_PATH", os.environ.get("INVENIO_INSTANCE_PATH", "/tmp")
@@ -41,8 +42,8 @@ def app_config(app_config):
         )
 
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
+    return app_config
 
-return app_config
 
 def test_index_view(client):
     """Simple check that index view does not give an error when rendered."""

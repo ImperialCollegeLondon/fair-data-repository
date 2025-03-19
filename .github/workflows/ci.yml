@@ -1,5 +1,4 @@
 name: CI
-
 on:
   pull_request:
     branches:
@@ -7,25 +6,7 @@ on:
       - develop
 
 jobs:
-  paths-filter:
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.filter.outputs.code }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            code:
-              - '!docs/**'
-              - '!docker/**'
-              - '!.github/**'
-              - '**'
-
   qa:
-    needs: paths-filter
-    if: ${{ needs.paths-filter.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,10 +14,8 @@ jobs:
         with:
           python-version: "3.9"
       - uses: pre-commit/action@v2.0.3
-
   test:
-    needs: [qa, paths-filter]  # Add dependency on paths-filter job
-    if: ${{ needs.paths-filter.outputs.should_run == 'true' }}  # Add condition
+    needs: qa
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

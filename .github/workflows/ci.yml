@@ -23,7 +23,6 @@ jobs:
               - '!.github/**'
               - '**'
 
-
   qa:
     needs: paths-filter
     if: ${{ needs.paths-filter.outputs.should_run == 'true' }}
@@ -34,8 +33,10 @@ jobs:
         with:
           python-version: "3.9"
       - uses: pre-commit/action@v2.0.3
+
   test:
-    needs: qa
+    needs: [qa, paths-filter]  # Add dependency on paths-filter job
+    if: ${{ needs.paths-filter.outputs.should_run == 'true' }}  # Add condition
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

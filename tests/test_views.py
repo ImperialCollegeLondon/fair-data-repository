@@ -1,10 +1,11 @@
-"""Placeholder module for tests of view functions."""
+"""Tests for the views."""
 
 import json
 import os
 import re
 
 import pytest
+from flask.testing import FlaskClient
 
 
 @pytest.fixture
@@ -16,6 +17,14 @@ def user(UserFixture, app, db):
     )
     u.create(app, db)
     return u
+
+
+@pytest.fixture
+def user_client(client: FlaskClient, user) -> FlaskClient:
+    """A Flask test client logged in as the given user."""
+    with client.session_transaction() as sess:
+        sess["id"] = user.id
+    return client
 
 
 @pytest.fixture(scope="module")

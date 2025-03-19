@@ -3,6 +3,7 @@
 import json
 import os
 import re
+from unittest.mock import patch
 
 import pytest
 from flask.testing import FlaskClient
@@ -55,6 +56,14 @@ def app_config(app_config):
 
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
     return app_config
+
+
+@pytest.fixture(autouse=True)
+def mock_manifest():
+    """Mock manifest to always return a value for theme.css."""
+    with patch("flask_webpackext.manifest.JinjaManifest.__getitem__") as mock:
+        mock.return_value = '<link rel="stylesheet" href="/static/dist/theme.css">'
+        yield mock
 
 
 def test_index_view(client):

@@ -1,6 +1,5 @@
 """Placeholder module for tests of view functions."""
 
-import os
 import re
 
 import pytest
@@ -20,28 +19,30 @@ def user(UserFixture, app, db):
 @pytest.fixture(scope="module")
 def app_config(app_config):
     """Update invenio app_config fixture."""
+    import json
+    import os
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
-    return app_config
-
-
-@pytest.fixture(autouse=True)
-def mock_webpack(monkeypatch):
-    """Completely mock out webpack for testing."""
-
-    class FakeManifest(dict):
-        def __getitem__(self, key):
-            return f"/static/dist/{key}"
-
-    from flask_webpackext.manifest import JinjaManifest
-
-    monkeypatch.setattr(JinjaManifest, "load", lambda self, filepath: FakeManifest())
-
-    # Disable checking for physical manifest file
-    monkeypatch.setattr(
-        "os.path.exists",
-        lambda path: True if "manifest.json" in path else os.path.exists(path),
+    instance_path = app_config.get(
+        "INSTANCE_PATH", os.environ.get("INVENIO_INSTANCE_PATH", "/tmp")
     )
+    manifest_dir = os.path.join(instance_path, "static/dist")
+    manifest_path = os.path.join(manifest_dir, "manifest.json")
+    os.makedirs(manifest_dir, exist_ok=True)
 
+    with open(manifest_path, "w") as f:
+        json.dump(
+            {
+                "status": "done",
+                "assets": {},
+                "chunks": {},
+                "publicPath": "/static/dist",
+            },
+            f,
+        )
+
+    app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
+
+return app_config
 
 def test_index_view(client):
     """Simple check that index view does not give an error when rendered."""

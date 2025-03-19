@@ -6,8 +6,8 @@ on:
       - main
       - develop
     paths-ignore:
-      - "docs/**"
-      - "docker/**"
+      - docs/**
+      - docker/**
 
 jobs:
   qa:

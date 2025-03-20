@@ -4,10 +4,12 @@ on:
     branches:
       - main
       - develop
+  push:  
     paths:
       - "**"
       - "!docs/**"
       - "!tests/**"
+      - "!.github/**"
 
 jobs:
   qa:

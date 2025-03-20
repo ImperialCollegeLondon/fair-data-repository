@@ -24,13 +24,14 @@ jobs:
           filters: |
             doc:
               - "docs/**"
-        if: steps.paths.outputs.doc == 'false'
+              - ".github/**"
       - uses: actions/checkout@v3
         if: steps.paths.outputs.doc == 'false'
       - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
           cache: "pipenv"
+        if: steps.paths.outputs.doc == 'false'
       - name: install pipenv and invenio-cli
         if: steps.paths.outputs.doc == 'false'
         run: pip install pipenv invenio-cli

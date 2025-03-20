@@ -4,13 +4,6 @@ on:
     branches:
       - main
       - develop
-  push:  
-    paths:
-      - "**"
-      - "!docs/**"
-      - "!tests/**"
-      - "!.github/**"
-
 jobs:
   qa:
     runs-on: ubuntu-latest
@@ -24,18 +17,30 @@ jobs:
     needs: qa
     runs-on: ubuntu-latest
     steps:
+      - name: decider
+        uses: dorny/paths-filter@v3
+        id: paths
+        with:
+          filters: |
+            doc:
+              - "docs/**"
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
           cache: "pipenv"
       - name: install pipenv and invenio-cli
+        if: steps.paths.outputs.doc == 'false'
         run: pip install pipenv invenio-cli
       - name: setup project dependencies
+        if: steps.paths.outputs.doc == 'false'  
         run: invenio-cli install python
       - name: setup symlink
+        if: steps.paths.outputs.doc == 'false'
         run: invenio-cli install symlink
       - name: start services
+        if: steps.paths.outputs.doc == 'false'
         run: invenio-cli services start
       - name: run tests
+        if: steps.paths.outputs.doc == 'false'
         run: pipenv run pytest

@@ -33,7 +33,7 @@ jobs:
         if: steps.paths.outputs.doc == 'false'
         run: pip install pipenv invenio-cli
       - name: setup project dependencies
-        if: steps.paths.outputs.doc == 'false'  
+        if: steps.paths.outputs.doc == 'false'
         run: invenio-cli install python
       - name: setup symlink
         if: steps.paths.outputs.doc == 'false'

@@ -38,3 +38,15 @@ def test_index_auth(user_client, app):
     # find any instances of the new upload url that don't include the community
     # parameter, regex negative lookahead magic
     assert not re.search(r"/uploads/new(?!\?community=icl)", res.data.decode("utf-8"))
+
+
+def test_api_unauthenticated(client):
+    """Check the API view without an anonymous user."""
+    res = client.get("/api/users")
+    assert res.status_code == 403
+
+
+def test_api_authenticated(user_client):
+    """Check the API view with a logged in user."""
+    res = user_client.get("/api/users")
+    assert res.status_code == 200

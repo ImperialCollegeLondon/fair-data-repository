@@ -28,7 +28,5 @@ jobs:
         run: pip install pipenv invenio-cli
       - name: setup project virtual environment
         run: invenio-cli install
-      - name: start services
-        run: invenio-cli services start
       - name: run tests
         run: pipenv run pytest

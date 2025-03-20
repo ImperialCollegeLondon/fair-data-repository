@@ -228,7 +228,7 @@ issues the below information may help with troubleshooting:
 
 This project extends the [configuration approach] used by Invenio RDM.
 
-Inspired by Django the following changes have been made:
+Inspired by Django the following changes have been implemented:
 
 - Configuration is stored in the module `ic_data_repo.config`.
 - The module to use as settings can be specified at runtime via the environment variable

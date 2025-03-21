@@ -3,7 +3,6 @@
 import json
 import os
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from invenio_app.factory import create_app as app_factory

@@ -1,7 +1,5 @@
 """Tests for the views."""
 
-import json
-import os
 import re
 from unittest.mock import patch
 
@@ -23,36 +21,6 @@ def user(UserFixture, app, db):
 def user_client(user, client):
     """A client logged in as the user fixture."""
     return user.login(client)
-
-
-@pytest.fixture(scope="module")
-def app_config(app_config):
-    """Update invenio app_config fixture."""
-    app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
-    instance_path = app_config.get(
-        "INSTANCE_PATH", os.environ.get("INVENIO_INSTANCE_PATH", "/tmp")
-    )
-    manifest_dir = os.path.join(instance_path, "static/dist")
-    manifest_path = os.path.join(manifest_dir, "manifest.json")
-    os.makedirs(manifest_dir, exist_ok=True)
-
-    with open(manifest_path, "w") as f:
-        json.dump(
-            {
-                "status": "done",
-                "assets": {"theme.css": "/static/dist/theme.css"},
-                "chunks": {},
-                "publicPath": "/static/dist",
-            },
-            f,
-        )
-
-    theme_css_path = os.path.join(manifest_dir, "theme.css")
-    with open(theme_css_path, "w") as f:
-        f.write("/* Empty theme file */")
-
-    app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
-    return app_config
 
 
 @pytest.fixture(autouse=True)

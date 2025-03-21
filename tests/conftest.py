@@ -95,7 +95,6 @@ def app_config(opensearch_container, redis_container, app_config):
     return settings.__dict__ | app_config
 
 
-
 @pytest.fixture(scope="module")
 def create_app():
     """Provide the Flask app object used by tests."""

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f5d59acfe7fb9be0a104c2550389a86108f9ec0e8cd15ed4f64d0413fcb3bf7b"
+            "sha256": "7d110303f9728a8a386ced0d2658e5fb107a2445f46c8e857bb1d51945de976b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -673,6 +673,14 @@
             ],
             "markers": "python_version >= '3.9'",
             "version": "==2.7.0"
+        },
+        "docker": {
+            "hashes": [
+                "sha256:ad8c70e6e3f8926cb8a92619b832b4ea5299e2831c14284663184e200546fa6c",
+                "sha256:c96b93b7f0a746f9e77d325bcfb87422a3d8bd4f03136ae8a85b37f1898d5fc0"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==7.1.0"
         },
         "docutils": {
             "hashes": [
@@ -3002,6 +3010,14 @@
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
             "version": "==2.9.0.post0"
         },
+        "python-dotenv": {
+            "hashes": [
+                "sha256:e324ee90a023d808f1959c46bcbc04446a10ced277783dc6ee09987c37ec10ca",
+                "sha256:f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==1.0.1"
+        },
         "python-geoip": {
             "hashes": [
                 "sha256:b7b11dab42bffba56943b3199e3441f41cea145244d215844ecb6de3d5fb2df5",
@@ -3785,6 +3801,15 @@
             ],
             "markers": "python_version >= '3.8' and python_version < '4.0'",
             "version": "==2.0.3"
+        },
+        "testcontainers": {
+            "hashes": [
+                "sha256:348c72d369d0bd52b57ab4f07a965ae9562837098c28f0522b969b064b779f10",
+                "sha256:36bd2b58d91f2fc7ac4f4a73c6ec00e5e60c259c10f208dbfe3161029889be92"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.9' and python_version < '4.0'",
+            "version": "==4.9.2"
         },
         "text-unidecode": {
             "hashes": [

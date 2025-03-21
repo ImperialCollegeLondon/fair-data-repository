@@ -107,11 +107,8 @@ _QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
 
 def _get_default_logger() -> Logger:
     """Get a default logger for this module which just prints to stdout."""
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    logger.addHandler(ch)
     return logger
 
 

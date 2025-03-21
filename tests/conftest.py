@@ -96,13 +96,6 @@ def app_config(opensearch_container, redis_container, app_config):
     return settings.__dict__ | app_config
 
 
-@pytest.fixture(autouse=True)
-def mock_manifest():
-    """Mock manifest to always return a value for theme.css."""
-    with patch("flask_webpackext.manifest.JinjaManifest.__getitem__") as mock:
-        mock.return_value = '<link rel="stylesheet" href="/static/dist/theme.css">'
-        yield mock
-
 
 @pytest.fixture(scope="module")
 def create_app():

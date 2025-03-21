@@ -40,9 +40,6 @@ jobs:
       - name: setup symlink
         if: steps.paths.outputs.doc == 'false'
         run: invenio-cli install symlink
-      - name: start services
-        if: steps.paths.outputs.doc == 'false'
-        run: invenio-cli services start
       - name: run tests
         if: steps.paths.outputs.doc == 'false'
         run: pipenv run pytest

@@ -27,6 +27,7 @@ module = [
        "invenio_rdm_records.*",
        "marshmallow.*",
        "marshmallow_utils.*",
+       "testcontainers.*",
        ]
 ignore_missing_imports = true
 

@@ -46,9 +46,9 @@ class ResourceValue(Nested):
         ] = None,
         **kwargs: typing.Any
     ) -> typing.Any:
-        resource_type = LocalProxy(
-            lambda: current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"]["resource_type"]
-        )
+        resource_type = current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"][
+            "resource_type"
+        ]
         return {"id": str(resource_type)}
 
 
@@ -56,9 +56,7 @@ class PublisherValue(String):
     """Publisher set to default from config."""
 
     def _deserialize(self, value, attr, data, **kwargs) -> typing.Any:
-        return LocalProxy(
-            lambda: current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"]["publisher"]
-        )
+        return current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"]["publisher"]
 
 
 class PublicationDateValue(String):
@@ -82,5 +80,9 @@ class ImperialMetadataSchema(MetadataSchema):
         validate=validate.Length(min=1, error=_("Missing data for required field.")),
     )
     publisher = PublisherValue()
-    publication_date = PublicationDateValue(required=True)
+    publication_date = PublicationDateValue(
+        load_default=lambda: current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"][
+            "publication_date"
+        ]()
+    )
     references = ReferenceValue(Nested(ReferenceSchema))

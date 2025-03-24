@@ -19,6 +19,11 @@ from ic_data_repo.import_imperial_users import (
 @shared_task
 def update_imperial_users() -> None:
     """Update the list of possible contributors from Imperial."""
+    if not ICL_OAUTH_CLIENT_ID or not ICL_OAUTH_CLIENT_SECRET:
+        raise RuntimeError(
+            "ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT secret env vars must be set"
+        )
+
     client = get_client(
         ICL_MICROSOFT_TENANT_ID, ICL_OAUTH_CLIENT_ID, ICL_OAUTH_CLIENT_SECRET
     )

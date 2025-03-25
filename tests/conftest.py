@@ -66,11 +66,29 @@ def app_config(opensearch_container, redis_container, app_config):
     app_config["RATELIMIT_STORAGE_URL"] = f"{redis_url}/3"
     app_config["COMMUNITIES_IDENTITIES_CACHE_REDIS_URL"] = f"{redis_url}/4"
 
-    # ---- Webpack manifest configuration ----
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
-    instance_path = app_config.get(
-        "INSTANCE_PATH", os.environ.get("INVENIO_INSTANCE_PATH", "/tmp")
-    )
+    
+    return settings.__dict__ | app_config
+
+@pytest.fixture(scope="module")
+def create_app():
+    """Provide the Flask app object used by tests."""
+    return app_factory
+
+@pytest.fixture(scope="module")
+def instance_path(instance_path, app_config):
+    """Extend the instance_path fixture to project templates and webpack manifest.
+
+    This fixture makes our overriden templates at the project level available within the
+    temporary instance directory used by the tests via symlink, and sets up the webpack
+    manifest configuration.
+    """
+    # Set up templates symlink
+    src_dir = Path(__file__).resolve().parent.parent / "templates"
+    dest_dir = Path(instance_path) / "templates"
+    os.symlink(src_dir, dest_dir)
+    
+    # ---- Webpack manifest configuration ----
     manifest_dir = os.path.join(instance_path, "static/dist")
     manifest_path = os.path.join(manifest_dir, "manifest.json")
     os.makedirs(manifest_dir, exist_ok=True)
@@ -90,25 +108,7 @@ def app_config(opensearch_container, redis_container, app_config):
     with open(theme_css_path, "w") as f:
         f.write("/* Empty theme file */")
 
+    # Add manifest path to app_config
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
-
-    return settings.__dict__ | app_config
-
-
-@pytest.fixture(scope="module")
-def create_app():
-    """Provide the Flask app object used by tests."""
-    return app_factory
-
-
-@pytest.fixture(scope="module")
-def instance_path(instance_path):
-    """Extend the instance_path fixture to project templates.
-
-    This PR makes our overriden templates at the project level available within the
-    temporary instance directory used by the tests via symlink.
-    """
-    src_dir = Path(__file__).resolve().parent.parent / "templates"
-    dest_dir = Path(instance_path) / "templates"
-    os.symlink(src_dir, dest_dir)
+    
     yield instance_path

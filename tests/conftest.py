@@ -67,13 +67,15 @@ def app_config(opensearch_container, redis_container, app_config):
     app_config["COMMUNITIES_IDENTITIES_CACHE_REDIS_URL"] = f"{redis_url}/4"
 
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
-    
+
     return settings.__dict__ | app_config
+
 
 @pytest.fixture(scope="module")
 def create_app():
     """Provide the Flask app object used by tests."""
     return app_factory
+
 
 @pytest.fixture(scope="module")
 def instance_path(instance_path, app_config):
@@ -87,7 +89,7 @@ def instance_path(instance_path, app_config):
     src_dir = Path(__file__).resolve().parent.parent / "templates"
     dest_dir = Path(instance_path) / "templates"
     os.symlink(src_dir, dest_dir)
-    
+
     # ---- Webpack manifest configuration ----
     manifest_dir = os.path.join(instance_path, "static/dist")
     manifest_path = os.path.join(manifest_dir, "manifest.json")
@@ -110,5 +112,5 @@ def instance_path(instance_path, app_config):
 
     # Add manifest path to app_config
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
-    
+
     yield instance_path

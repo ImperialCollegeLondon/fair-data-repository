@@ -8,3 +8,5 @@ names:
         origin: "/dev/stdin"
   writers:
     - type: names-service
+      args:
+        update: true

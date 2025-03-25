@@ -21,4 +21,4 @@ if __name__ == "__main__":
     # Let user specify max number of users to retrieve so they can things without
     # loading the lot
     max_count = int(sys.argv[1]) if len(sys.argv) > 1 else None
-    import_imperial_contributors_to_invenio(client, max_count)
+    import_imperial_contributors_to_invenio(client, max_count=max_count)

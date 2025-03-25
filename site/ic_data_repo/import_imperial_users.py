@@ -48,8 +48,10 @@ There are also many users with no job family specified.
 """
 
 import asyncio
+import logging
 import subprocess as sp
 from dataclasses import dataclass
+from logging import Logger
 from pathlib import Path
 from shutil import which
 from typing import Any, AsyncIterable, Iterable, Optional
@@ -101,6 +103,16 @@ _ICL_ROR_ID = "041kmwe10"
 """The ROR identifier for Imperial."""
 
 _QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
+
+
+def _get_default_logger() -> Logger:
+    """Get a default logger for this module which just prints to stdout."""
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
+    return logger
 
 
 @dataclass
@@ -229,16 +241,18 @@ def _get_request_config_for_roles(
 
 
 def import_imperial_contributors_to_invenio(
-    client: GraphServiceClient, max_count: Optional[int] = None
+    client: GraphServiceClient,
+    logger: Logger = _get_default_logger(),
+    max_count: Optional[int] = None,
 ) -> None:
     """Import Imperial users which are possible contributors into the names vocab."""
-    print("Importing Imperial users...")
+    logger.info("Importing Imperial users...")
     users = asyncio.run(get_possible_imperial_contributors(client, max_count))
-    print(f"Loaded {len(users)} possible contributors.")
+    logger.info(f"Loaded {len(users)} possible contributors.")
 
-    print("Adding names to Invenio")
-    _add_names_to_invenio(users)
-    print("Added names.")
+    logger.info("Adding names to Invenio")
+    _add_names_to_invenio(users, logger)
+    logger.info("Added names.")
 
 
 def _get_invenio_path() -> str:
@@ -249,7 +263,7 @@ def _get_invenio_path() -> str:
     return path
 
 
-def _add_names_to_invenio(users: list[ImperialUser]):
+def _add_names_to_invenio(users: list[ImperialUser], logger: Logger):
     """Add the specified Imperial users to the names vocab."""
     # Path to invenio program
     invenio_path = _get_invenio_path()
@@ -258,7 +272,7 @@ def _add_names_to_invenio(users: list[ImperialUser]):
     names_str = yaml.dump(
         list(user.as_invenio_record() for user in users), sort_keys=False
     )
-    sp.run(
+    process = sp.Popen(
         [
             invenio_path,
             "vocabularies",
@@ -268,6 +282,16 @@ def _add_names_to_invenio(users: list[ImperialUser]):
             "--filepath",
             str(_NAMES_VOCAB_PATH),
         ],
-        input=names_str.encode(),
-        check=True,
+        stdin=sp.PIPE,
+        stdout=sp.PIPE,
+        stderr=sp.STDOUT,
+        text=True,
     )
+
+    # Print contents of stdout and stderr with logger
+    stdout = process.communicate(names_str)[0]
+    for line in stdout.splitlines():
+        logger.info(f"invenio: {line}")
+
+    if process.returncode != 0:
+        raise RuntimeError(f"invenio process exited with code {process.returncode}")

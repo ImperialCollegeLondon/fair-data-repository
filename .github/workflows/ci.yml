@@ -44,4 +44,4 @@ jobs:
         run: invenio-cli install symlink
       - name: run tests
         if: steps.paths.outputs.doc == 'false'
-        run: pipenv run pytest
+        run: pipenv run pytest -p no:warnings

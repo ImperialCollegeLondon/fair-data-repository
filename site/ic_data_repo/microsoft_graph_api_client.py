@@ -1,45 +1,92 @@
-"""Client interface for the Microsoft Graph API."""
+"""Functions for obtaining Imperial users.
 
-from http import HTTPStatus
-from typing import Any, Optional
+This is mostly so that we can obtain a list of potential collaborators, which we do by
+filtering users by their role type and job family.
 
-import requests
-from flask import current_app
+The current list of possible role types is:
+
+- Employee
+- Research Postgraduate
+- Alumni (Taught Postgraduate)
+- Undergraduate
+- Honorary
+- Casual & Bursary
+- Alumni (Research Postgraduate)
+- Taught Postgraduate
+- Alumni (Undergraduate)
+- Casual
+- Visiting Researcher
+- Academic Visitor (CWK)
+- Contingent Worker
+- Ex-Employee
+- MRC Employees
+- Emeritus
+- System
+- Contractor
+- Role
+- Sponsored Researcher
+- MRC Employees (CWK)
+- External
+- Staff
+
+The current list of possible job families is:
+
+- Honorary Academics
+- Professional Services
+- Academic & Research
+- Visiting Researcher
+- Learning & Teaching
+- Technical Services
+- Operational Services
+- Clinical Academic
+- Non Staff
+- Clinical Research
+- NHS Nurses
+- Academic Visitors
+
+There are also many users with no job family specified.
+"""
+
+from typing import AsyncIterable, Optional
+
+from azure.identity.aio import ClientSecretCredential
+from kiota_abstractions.base_request_configuration import RequestConfiguration
+from msgraph import GraphServiceClient
+from msgraph.generated.models.user import User
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
+
+_QueryParameters = UsersRequestBuilder.UsersRequestBuilderGetQueryParameters
 
 
-def _get_app_access_token() -> str:
-    """Get an access token for the application to use the Microsoft Graph API.
+def get_client(
+    tenant_id: str, client_id: str, client_secret: str
+) -> GraphServiceClient:
+    """Get a client for interacting with the Microsoft Graph API."""
+    credential = ClientSecretCredential(tenant_id, client_id, client_secret)
+    return GraphServiceClient(credentials=credential)
 
-    Fetches an access token that is enabled for app-only access i.e. not on behalf of a
-    logged in user.
+
+async def get_imperial_users(
+    client: GraphServiceClient,
+    config: Optional[RequestConfiguration[_QueryParameters]] = None,
+) -> AsyncIterable[User]:
+    """Get Imperial users.
+
+    By default, this function will return all Imperial users, but you can modify this
+    with the config argument.
     """
-    tenant_id = current_app.config["ICL_MICROSOFT_TENANT_ID"]
-    response = requests.post(
-        f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token",
-        data={
-            "grant_type": "client_credentials",
-            "client_id": current_app.config["ICL_OAUTH_CLIENT_ID"],
-            "client_secret": current_app.config["ICL_OAUTH_CLIENT_SECRET"],
-            "scope": "https://graph.microsoft.com/.default",
-        },
-    )
-    if not response.status_code == HTTPStatus.OK:
-        raise RuntimeError(
-            "Unable to retrieve access token for Microsoft Graph API: "
-            f"{response.status_code} - {response.reason}"
-        )
+    users_request = client.users
+    while True:
+        # Retrieve some more users from the API (maximum 100)
+        users = await users_request.get(config)
+        if not users or not users.value:
+            return
 
-    return response.json()["access_token"]
+        for user in users.value:
+            yield user
 
-
-def get_user_info(username: str, access_token: Optional[str] = None) -> dict[str, Any]:
-    """Get user profile information from the Microsoft Graph API."""
-    if access_token is None:
-        access_token = _get_app_access_token()
-
-    response = requests.get(
-        f"https://graph.microsoft.com/v1.0/users/{username}@ic.ac.uk",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-    response.raise_for_status()
-    return response.json()
+        # If there are more users left to retrieve, the API gives a link to get the next
+        # 100
+        if not users.odata_next_link:
+            return
+        users_request = client.users.with_url(users.odata_next_link)

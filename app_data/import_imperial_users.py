@@ -3,10 +3,8 @@
 import os
 import sys
 
-from ic_data_repo.import_imperial_users import (
-    get_client,
-    import_imperial_contributors_to_invenio,
-)
+from ic_data_repo.microsoft_graph_api_client import get_client
+from ic_data_repo.vocabs import import_imperial_contributors_to_invenio
 
 if __name__ == "__main__":
     client_id = os.getenv("ICL_OAUTH_CLIENT_ID")

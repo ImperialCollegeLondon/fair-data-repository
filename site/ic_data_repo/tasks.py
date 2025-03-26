@@ -21,7 +21,7 @@ def update_imperial_users() -> None:
     """Update the list of possible contributors from Imperial."""
     if not ICL_OAUTH_CLIENT_ID or not ICL_OAUTH_CLIENT_SECRET:
         raise RuntimeError(
-            "ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT secret env vars must be set"
+            "ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET env vars must be set"
         )
 
     client = get_client(

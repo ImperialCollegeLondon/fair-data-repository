@@ -17,9 +17,11 @@ exclude = "test_data/.*\\.py"
 
 [[tool.mypy.overrides]]
 module = [
+       "celery.*",
        "flask_login.*",
        "flask_oauthlib.*",
        "invenio_app.*",
+       "invenio_app_rdm.config.*",
        "invenio_assets.*",
        "invenio_i18n.*",
        "invenio_notifications.*",
@@ -30,7 +32,7 @@ module = [
        "marshmallow.*",
        "marshmallow_utils.*",
        "testcontainers.*",
-       ]
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

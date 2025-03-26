@@ -7,9 +7,10 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import invenio_rdm_records
+from invenio_app_rdm.config import CELERY_BEAT_SCHEDULE
 from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
@@ -233,4 +234,11 @@ RDM_ALLOW_METADATA_ONLY_RECORDS = False
 
 NOTIFICATION_BACKENDS = {
     EmailNotificationBackend.id: EmailNotificationBackend,
+}
+
+# Periodic tasks
+# --------------
+CELERY_BEAT_SCHEDULE["update_imperial_users"] = {
+    "task": "ic_data_repo.tasks.update_imperial_users",
+    "schedule": timedelta(weeks=1),
 }

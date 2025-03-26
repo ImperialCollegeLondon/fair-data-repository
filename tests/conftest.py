@@ -1,5 +1,6 @@
 """Global test fixtures."""
 
+import json
 import os
 from pathlib import Path
 
@@ -40,7 +41,7 @@ def redis_container():
 
 @pytest.fixture(scope="module")
 def app_config(opensearch_container, redis_container, app_config):
-    """Update invenio app_config fixture."""
+    """Update invenio app_config fixture for Redis/OpenSearch and webpack configs."""
     from ic_data_repo.config import settings
 
     # blank out sqlalchemy options as the defaults (inherited from
@@ -64,6 +65,32 @@ def app_config(opensearch_container, redis_container, app_config):
     app_config["CELERY_RESULT_BACKEND"] = f"{redis_url}/2"
     app_config["RATELIMIT_STORAGE_URL"] = f"{redis_url}/3"
     app_config["COMMUNITIES_IDENTITIES_CACHE_REDIS_URL"] = f"{redis_url}/4"
+
+    # ---- Webpack manifest configuration ----
+    app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
+    instance_path = app_config.get(
+        "INSTANCE_PATH", os.environ.get("INVENIO_INSTANCE_PATH", "/tmp")
+    )
+    manifest_dir = os.path.join(instance_path, "static/dist")
+    manifest_path = os.path.join(manifest_dir, "manifest.json")
+    os.makedirs(manifest_dir, exist_ok=True)
+
+    with open(manifest_path, "w") as f:
+        json.dump(
+            {
+                "status": "done",
+                "assets": {"theme.css": "/static/dist/theme.css"},
+                "chunks": {},
+                "publicPath": "/static/dist",
+            },
+            f,
+        )
+
+    theme_css_path = os.path.join(manifest_dir, "theme.css")
+    with open(theme_css_path, "w") as f:
+        f.write("/* Empty theme file */")
+
+    app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
 
     return settings.__dict__ | app_config
 

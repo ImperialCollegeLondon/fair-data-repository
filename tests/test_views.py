@@ -1,6 +1,7 @@
-"""Placeholder module for tests of view functions."""
+"""Tests for the views."""
 
 import re
+from unittest.mock import patch
 
 import pytest
 
@@ -20,6 +21,14 @@ def user(UserFixture, app, db):
 def user_client(user, client):
     """A client logged in as the user fixture."""
     return user.login(client)
+
+
+@pytest.fixture(autouse=True)
+def mock_manifest():
+    """Mock manifest to always return a value for theme.css."""
+    with patch("flask_webpackext.manifest.JinjaManifest.__getitem__") as mock:
+        mock.return_value = '<link rel="stylesheet" href="/static/dist/theme.css">'
+        yield mock
 
 
 def test_index_view(client):

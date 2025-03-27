@@ -38,29 +38,29 @@ jobs:
           resource-group: ${{ vars.RESOURCE_GROUP }}
           cluster-name: ${{ vars.CLUSTER_NAME }}
         id: login
-
-      - name: Configure deployment
-        uses: azure/k8s-bake@v3
-        with:
-          renderEngine: "helm"
-          helmChart: ${{ vars.CHART_PATH }}
-          overrideFiles: ${{ vars.CHART_OVERRIDE_PATH }}
-          helm-version: "latest"
-          releaseName: "develop"
-          namespace: invenio
-          overrides: |
-            invenio.secret_key: ${{ secrets.INVENIO_SECRET_KEY }}
-            invenio.security_login_salt: ${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}
-            invenio.csrf_secret_salt: ${{ secrets.INVENIO_CSRF_SECRET_SALT }}
-            invenio.extraConfig.ICL_OAUTH_CLIENT_ID: ${{ vars.ICL_OAUTH_CLIENT_ID }}
-            invenio.extraConfig.ICL_OAUTH_CLIENT_SECRET: ${{ secrets.ICL_OAUTH_CLIENT_SECRET }}
-            invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL: ${{ vars.ICL_OAUTH_WELL_KNOWN_URL }}
-            rabbitmq.auth.password: ${{ secrets.RABBITMQ_AUTH_PASSWORD }}
-            postgresql.auth.password: ${{ secrets.POSTGRESQL_AUTH_PASSWORD }}
-            invenio.web.image: ${{ vars.IMAGE_NAME }}
-        id: bake
-      - name: Deploys application
-        uses: Azure/k8s-deploy@v5
-        with:
-          manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          namespace: invenio
+      - name: Run helm
+        run: |
+          helm dependency build ${{ vars.CHART_PATH }}
+          helm upgrade ${{ vars.RELEASE_NAME }} ${{ vars.CHART_PATH }} \
+          -f ${{ vars.CHART_OVERRIDE_PATH }} \
+          -n invenio --install \
+          --set invenio.secret_key="${{ secrets.INVENIO_SECRET_KEY }}" \
+          --set invenio.security_login_salt="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
+          --set invenio.csrf_secret_salt="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \
+          --set invenio.extraConfig.ICL_OAUTH_CLIENT_ID=${{ vars.ICL_OAUTH_CLIENT_ID }} \
+          --set invenio.extraConfig.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
+          --set invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL=${{ vars.ICL_OAUTH_WELL_KNOWN_URL }} \
+          --set rabbitmq.auth.password="${{ secrets.RABBITMQ_AUTH_PASSWORD }}" \
+          --set postgresql.auth.password="${{ secrets.POSTGRESQL_AUTH_PASSWORD }}" \
+          --set invenio.hostname=${{ vars.HOSTNAME }} \
+          --set web.image=${{ vars.IMAGE_NAME }} \
+          --set worker.image=${{ vars.IMAGE_NAME }} \
+          --set invenio.datacite.password="${{ secrets.DATACITE_PASSWORD }}" \
+          --set invenio.datacite.username=${{ vars.DATACITE_USERNAME }} \
+          --set invenio.extraConfig.INVENIO_DATACITE_PREFIX=10.25562 \
+          --set-string invenio.extraConfig.INVENIO_DATACITE_TEST_MODE=True \
+          --set invenio.extraConfig.INVENIO_MAIL_USERNAME=rcsazbot@ic.ac.uk \
+          --set invenio.extraConfig.INVENIO_MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+          --set persistence.size=50G \
+          --set-string invenio.extraConfig.INVENIO_MAIL_USE_TLS=True \
+          --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=rcsazbot@ic.ac.uk

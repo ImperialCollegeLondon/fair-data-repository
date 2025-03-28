@@ -21,15 +21,6 @@ jobs:
     needs: qa
     runs-on: ubuntu-latest
     steps:
-      - name: decider
-        uses: dorny/paths-filter@v3
-        id: paths
-        with:
-          filters: |
-            doc:
-              - "docs/**"
-              - "app_data/**"
-              - "docker/**"
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v5
         with:
@@ -42,4 +33,4 @@ jobs:
       - name: setup symlink
         run: invenio-cli install symlink
       - name: run tests
-        run: pipenv run pytest -p no:warnings
+        run: pipenv run pytest

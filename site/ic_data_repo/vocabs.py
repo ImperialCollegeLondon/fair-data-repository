@@ -331,7 +331,7 @@ def _process_icis_csv(filepath: Path):
     date_filtered_awards = [
         val
         for val in uniq_awards.values()
-        if _convert_award_datetime(row["AwardEndDate"]) > _AWARD_ENDDATE_CUTOFF
+        if _convert_award_datetime(val["AwardEndDate"]) > _AWARD_ENDDATE_CUTOFF
     ]
 
     awards = []

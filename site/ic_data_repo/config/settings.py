@@ -7,10 +7,16 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import invenio_rdm_records
+from invenio_app_rdm.config import CELERY_BEAT_SCHEDULE
+from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
+from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
+from marshmallow_utils.fields import NestedAttribute
 
+from ..imperial_schema import ImperialMetadataSchema
 from .custom_fields import *  # noqa: F401,F403
 from .utils import get_user_form_default
 
@@ -74,7 +80,7 @@ APP_DEFAULT_SECURE_HEADERS = {
 # See https://invenio-theme.readthedocs.io/en/latest/configuration.html
 
 # Frontpage title
-THEME_FRONTPAGE_TITLE = "Imperial Fair Data Repository"
+THEME_FRONTPAGE_TITLE = "Imperial FAIR Data Repository (Alpha Version)"
 # Header logo
 THEME_LOGO = "images/imperial_logo_blue.svg"
 INVERTED_THEME_LOGO = "images/imperial_white_blue.svg"
@@ -117,6 +123,14 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "creators": lambda: get_user_form_default(),
 }
 
+# This is a hacky way to overwrite the record metadata schema
+record_metadata_schema = (
+    invenio_rdm_records.services.config.RDMRecordServiceConfig.schema
+)
+record_metadata_schema._declared_fields.update(
+    {"metadata": NestedAttribute(ImperialMetadataSchema)}
+)
+
 # See:
 # https://github.com/inveniosoftware/invenio-app-rdm/blob/master/invenio_app_rdm/config.py
 APP_RDM_DEPOSIT_FORM_AUTOCOMPLETE_NAMES = "search"  # "search_only" or "off"
@@ -130,6 +144,9 @@ DATACITE_PASSWORD = ""
 DATACITE_PREFIX = ""
 DATACITE_TEST_MODE = True
 DATACITE_DATACENTER_SYMBOL = ""
+
+# Remove "external" as a DOI provider
+RDM_PERSISTENT_IDENTIFIERS["doi"]["providers"].remove("external")
 
 # Authentication - Invenio-Accounts and Invenio-OAuthclient
 # =========================================================
@@ -158,9 +175,10 @@ OAUTHCLIENT_REMOTE_APPS = dict()
 
 ICL_OAUTH_CLIENT_ID = os.getenv("ICL_OAUTH_CLIENT_ID")
 ICL_OAUTH_CLIENT_SECRET = os.getenv("ICL_OAUTH_CLIENT_SECRET")
-ICL_OAUTH_WELL_KNOWN_URL = os.getenv("ICL_OAUTH_WELL_KNOWN_URL")
+ICL_OAUTH_WELL_KNOWN_URL = "https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/v2.0/.well-known/openid-configuration"  # noqa: E501
+ICL_MICROSOFT_TENANT_ID = "2b897507-ee8c-4575-830b-4f8267c3d307"
 
-if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET and ICL_OAUTH_WELL_KNOWN_URL:
+if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET:
     OAUTHCLIENT_REMOTE_APPS["icl"] = dict(
         title="Imperial College Single Sign On",
         description="Authentication via membership of Imperial College",
@@ -209,3 +227,18 @@ OAISERVER_ID_PREFIX = "invenio.rcs.ic.ac.uk"
 SEARCH_INDEX_PREFIX = "ic-data-repo-"
 
 THEME_SHOW_FRONTPAGE_INTRO_SECTION = False
+
+RDM_COMMUNITY_REQUIRED_TO_PUBLISH = True
+
+RDM_ALLOW_METADATA_ONLY_RECORDS = False
+
+NOTIFICATION_BACKENDS = {
+    EmailNotificationBackend.id: EmailNotificationBackend,
+}
+
+# Periodic tasks
+# --------------
+CELERY_BEAT_SCHEDULE["update_imperial_users"] = {
+    "task": "ic_data_repo.tasks.update_imperial_users",
+    "schedule": timedelta(weeks=1),
+}

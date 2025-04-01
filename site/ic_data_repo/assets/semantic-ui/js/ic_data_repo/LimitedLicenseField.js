@@ -10,8 +10,6 @@ import _find from "lodash/find";
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { getIn, FieldArray } from "formik";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { DndProvider } from "react-dnd";
 import { FieldLabel } from "react-invenio-forms";
 import { Button, Form, Icon, List } from "semantic-ui-react";
 
@@ -21,7 +19,6 @@ import { i18next } from "@translations/invenio_rdm_records/i18next";
 
 /**
  * The user-facing license.
- *
  */
 class VisibleLicense {
   /**
@@ -33,15 +30,9 @@ class VisibleLicense {
    */
   constructor(uiRights, right, index) {
     this.index = index;
-    this.type = right.id ? "standard" : "custom";
     this.key = right.id || right.title;
-    this.initial = this.type === "custom" ? right : null;
 
-    let uiRight =
-      _find(
-        uiRights,
-        right.id ? (o) => o.id === right.id : (o) => o.title === right.title
-      ) || {};
+    let uiRight = _find(uiRights, (o) => o.id === right.id) || {};
 
     this.description = uiRight.description_l10n || right.description || "";
     this.title = uiRight.title_l10n || right.title || "";
@@ -62,10 +53,8 @@ class LicenseFieldForm extends Component {
       fieldPath,
       uiFieldPath,
       form: { values },
-      move: formikArrayMove,
       push: formikArrayPush,
       remove: formikArrayRemove,
-      replace: formikArrayReplace,
       required,
       searchConfig,
       serializeLicenses,
@@ -80,26 +69,22 @@ class LicenseFieldForm extends Component {
     const uiRights = getIn(values, uiFieldPath, []);
 
     return (
-      <DndProvider backend={HTML5Backend}>
-        <Form.Field required={required}>
-          <FieldLabel htmlFor={fieldPath} icon={labelIcon} label={label} />
-          <List>
-            {getIn(values, fieldPath, []).map((value, index) => {
-              const license = new VisibleLicense(uiRights, value, index);
-              return (
-                <LimitedLicenseFieldItem
-                  key={license.key}
-                  license={license}
-                  moveLicense={formikArrayMove}
-                  replaceLicense={formikArrayReplace}
-                  removeLicense={formikArrayRemove}
-                  searchConfig={searchConfig}
-                  serializeLicenses={serializeLicenses}
-                />
-              );
-            })}
-          </List>
-          {values.metadata.rights.length === 0 && (<LimitedLicenseModal
+      <Form.Field required={required}>
+        <FieldLabel htmlFor={fieldPath} icon={labelIcon} label={label} />
+        <List>
+          {getIn(values, fieldPath, []).map((value, index) => {
+            const license = new VisibleLicense(uiRights, value, index);
+            return (
+              <LimitedLicenseFieldItem
+                key={license.key}
+                license={license}
+                removeLicense={formikArrayRemove}
+              />
+            );
+          })}
+        </List>
+        {values.metadata.rights.length === 0 && (
+          <LimitedLicenseModal
             searchConfig={searchConfig}
             trigger={
               <Button type="button" key="standard" icon labelPosition="left">
@@ -112,10 +97,9 @@ class LicenseFieldForm extends Component {
             }}
             action="add"
             serializeLicenses={serializeLicenses}
-          />)
-          }
-        </Form.Field>
-      </DndProvider>
+          />
+        )}
+      </Form.Field>
     );
   }
 }
@@ -126,10 +110,8 @@ LicenseFieldForm.propTypes = {
   fieldPath: PropTypes.string.isRequired,
   uiFieldPath: PropTypes.string,
   form: PropTypes.object.isRequired,
-  move: PropTypes.func.isRequired,
   push: PropTypes.func.isRequired,
   remove: PropTypes.func.isRequired,
-  replace: PropTypes.func.isRequired,
   required: PropTypes.bool.isRequired,
   searchConfig: PropTypes.object.isRequired,
   serializeLicenses: PropTypes.func,

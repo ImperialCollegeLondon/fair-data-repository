@@ -1,0 +1,12 @@
+# Config file for importing Imperial users into the names vocabulary. This file is
+# consumed by the `invenio vocabularies import` command.
+names:
+  readers:
+    - type: yaml
+      args:
+        # Data are provided dynamically via stdin
+        origin: "/dev/stdin"
+  writers:
+    - type: names-service
+      args:
+        update: true

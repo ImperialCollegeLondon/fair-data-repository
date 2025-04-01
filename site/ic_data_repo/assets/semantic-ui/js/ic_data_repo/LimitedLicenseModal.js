@@ -10,7 +10,6 @@ import { i18next } from "@translations/invenio_rdm_records/i18next";
 import { Formik } from "formik";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
-import { TextAreaField, TextField } from "react-invenio-forms";
 import { OverridableContext } from "react-overridable";
 import {
   EmptyResults,
@@ -18,14 +17,11 @@ import {
   InvenioSearchApi,
   ReactSearchKit,
   ResultsLoader,
-  Toggle,
 } from "react-searchkit";
-import { Button, Form, Grid, Menu, Modal } from "semantic-ui-react";
-import * as Yup from "yup";
+import { Button, Grid, Modal } from "semantic-ui-react";
 import { LicenseModal } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseModal";
 import { LicenseFilter } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseFilter";
 import { LicenseResults } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseResults";
-import { LicenseSearchBar } from "@js/invenio_rdm_records/src/deposit/fields/License/LicenseSearchBar";
 
 const overriddenComponents = {
   "SearchFilters.Toggle": LicenseFilter,
@@ -33,42 +29,29 @@ const overriddenComponents = {
 
 const ModalActions = {
   ADD: "add",
-  EDIT: "edit",
 };
-
-const LicenseSchema = Yup.object().shape({
-  selectedLicense: Yup.object().shape({
-    title: Yup.string().required(i18next.t("Title is a required field.")),
-    link: Yup.string().url(i18next.t("Link must be a valid URL")),
-  }),
-});
 
 export class LimitedLicenseModal extends LicenseModal {
   render() {
     const {
       trigger,
-      action,
       searchConfig,
       serializeLicenses,
-      initialLicense: initialLicenseProp,
     } = this.props;
     const { open } = this.state;
-
-    const initialLicense = initialLicenseProp || {
-      title: "",
-      description: "",
-      id: null,
-      link: "",
-    };
 
     const searchApi = new InvenioSearchApi(searchConfig.searchApi);
     return (
       <Formik
         initialValues={{
-          selectedLicense: initialLicense,
+          selectedLicense: {
+            title: "",
+            description: "",
+            id: null,
+            link: "",
+          },
         }}
         onSubmit={this.onSubmit}
-        validationSchema={LicenseSchema}
         validateOnChange={false}
         validateOnBlur={false}
       >
@@ -85,9 +68,7 @@ export class LimitedLicenseModal extends LicenseModal {
             closeOnDimmerClick={false}
           >
             <Modal.Header as="h2" className="pt-10 pb-10">
-              {action === ModalActions.ADD
-                ? i18next.t(`Add license`)
-                : i18next.t(`Change license`)}
+              {i18next.t(`Add license`)}
             </Modal.Header>
             <Modal.Content scrolling>
                 <OverridableContext.Provider value={overriddenComponents}>
@@ -133,11 +114,7 @@ export class LimitedLicenseModal extends LicenseModal {
                 primary
                 icon="checkmark"
                 labelPosition="left"
-                content={
-                  action === ModalActions.ADD
-                    ? i18next.t("Add license")
-                    : i18next.t("Change license")
-                }
+                content={i18next.t("Add license")}
               />
             </Modal.Actions>
           </Modal>
@@ -148,12 +125,7 @@ export class LimitedLicenseModal extends LicenseModal {
 }
 
 LimitedLicenseModal.propTypes = {
-  action: PropTypes.oneOf(["add", "edit"]).isRequired,
-  initialLicense: PropTypes.shape({
-    id: PropTypes.string,
-    title: PropTypes.string,
-    description: PropTypes.string,
-  }),
+  action: PropTypes.oneOf(["add"]).isRequired,
   trigger: PropTypes.object.isRequired,
   onLicenseChange: PropTypes.func.isRequired,
   searchConfig: PropTypes.shape({
@@ -170,6 +142,5 @@ LimitedLicenseModal.propTypes = {
 };
 
 LimitedLicenseModal.defaultProps = {
-  initialLicense: undefined,
   serializeLicenses: undefined,
 };

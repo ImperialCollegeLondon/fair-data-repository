@@ -1,3 +1,6 @@
+# VS Code configuration files
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -60,6 +63,7 @@ test.db
 
 # Environments
 .venv/
+.envrc
 
 # Logs
 logs/
@@ -73,6 +77,7 @@ data/.minio.sys
 
 # Celery
 celerybeat-schedule
+celerybeat-schedule.db
 
 # test datasets
 test_data/10.14469_hpc_*

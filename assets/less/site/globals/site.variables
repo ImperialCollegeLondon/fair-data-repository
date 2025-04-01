@@ -74,7 +74,8 @@
 @frontpageSearchBarBackgroundColor: @navyBlue;
 @versionActiveColor: @lavender;
 
-@inputColor: @white;
+@inputColor: @black;
+@inputBackgroundColor: @white;
 @inputBorderColor: @whiteSmoke;
 
 @mutedAccordionHeaderColor: @whiteSmoke;

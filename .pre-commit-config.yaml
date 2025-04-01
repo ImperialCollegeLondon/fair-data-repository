@@ -27,4 +27,5 @@ repos:
       - id: mdformat
         additional_dependencies:
           - mdformat-gfm
+          - mdformat-mkdocs
         exclude: ".github/*"

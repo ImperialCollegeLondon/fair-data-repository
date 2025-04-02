@@ -43,7 +43,7 @@ jobs:
           helm dependency build ${{ vars.CHART_PATH }}
           helm upgrade ${{ vars.RELEASE_NAME }} ${{ vars.CHART_PATH }} \
           -f ${{ vars.CHART_OVERRIDE_PATH }} \
-          -n invenio --install \
+          -n invenio --install --create-namespace \
           --set invenio.secret_key="${{ secrets.INVENIO_SECRET_KEY }}" \
           --set invenio.security_login_salt="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
           --set invenio.csrf_secret_salt="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \

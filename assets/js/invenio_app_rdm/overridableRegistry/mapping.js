@@ -11,6 +11,7 @@ import { LimitedLicenseField } from "../../ic_data_repo/LimitedLicenseField";
 import { MandatoryPIDField } from "../../ic_data_repo/MandatoryPIDField";
 import { parametrize } from "react-overridable";
 import { TextAreaField } from "react-invenio-forms";
+import { CardDepositStatusBox } from "../../ic_data_repo/CardDepositStatusBox";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText: "The main individuals or institutions involved in creating the data set.",
@@ -42,4 +43,5 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.AccordionFieldReferences.container": HiddenField,
   "InvenioAppRdm.Deposit.CommunityHeader.container": NullElement,
   "InvenioAppRdm.DashboardUploads.EmptyResults.element": NullElement,
+  "InvenioAppRdm.Deposit.CardDepositStatusBox.container": CardDepositStatusBox,
 };

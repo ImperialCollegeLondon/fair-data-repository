@@ -9,6 +9,8 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    outputs:
+      image_tag_with_sha: ${{ steps.export-data.outputs.image_tag_with_sha }}
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
@@ -23,6 +25,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -40,3 +43,14 @@ jobs:
           context: ./docker/nginx
           push: true
           tags: ${{steps.frontend-meta.outputs.tags }}
+      - name: Export data for deployment
+        id: export-data
+        run: |
+          echo "image_tag_with_sha=${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
+  deploy:
+    needs: build-and-publish
+    uses: ./.github/workflows/deploy.yml
+    with:
+      image_tag_with_sha: ${{needs.build-and-publish.outputs.image_tag_with_sha}}
+      environment_name: develop
+    secrets: inherit

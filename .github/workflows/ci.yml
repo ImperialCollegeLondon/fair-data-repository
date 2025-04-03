@@ -33,4 +33,4 @@ jobs:
       - name: setup symlink
         run: invenio-cli install symlink
       - name: run tests
-        run: pipenv run pytest
+        run: pipenv run pytest -p no:warnings

@@ -28,9 +28,9 @@ This has been implemented by the following changes:
 - Updating links to create a new deposit to have the "icl" community pre-selected.
 - Hiding the communities header on the new deposit page.
 
-### Deposit Form
+### Deposit Page
 
-Some changes to the deposit form have made use of the support in InvenioRDM for
+Some changes to the deposit page have made use of the support in InvenioRDM for
 overriding React components. See [InvenioRDM Docs: How to override UI React components]
 for more details. Overriden components are stored in
 `assets/js/invenio_app_rdm/overridableRegistry/mapping.js`. In summary:
@@ -57,6 +57,9 @@ for more details. Overriden components are stored in
     the `OptionalRoleCreatibutorsField` this required extensive copy-pasting of the
     original [LicensesField] component so the same checks and changes should be applied
     on update of `invenio-rdm-records`.
+- A checkbox for the data deposit agreement has been added to the modal created by the
+    `Submit For Review` button. This checkbox is required to be checked before the user
+    can submit their data for review.
 
 Other customisations have used the [APP_RDM_DEPOSIT_FORM_DEFAULTS] setting (set in
 `site/ic_data_repo/config/settings.py`). In summary:

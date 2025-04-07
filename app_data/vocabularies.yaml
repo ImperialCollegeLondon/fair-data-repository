@@ -23,3 +23,6 @@ affiliations:
     - id: ROR
       name: Research Organization Registry
       uri: "https://ror.org/"
+funders:
+  pid-type: fun
+  data-file: vocabularies/funders.yaml

@@ -10,3 +10,12 @@ names:
     - type: names-service
       args:
         update: true
+awards:
+  readers:
+    - type: yaml
+      args:
+        origin: "/dev/stdin"
+  writers:
+    - type: awards-service
+      args:
+        update: true

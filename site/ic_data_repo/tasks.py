@@ -10,10 +10,8 @@ from ic_data_repo.config import (
     ICL_OAUTH_CLIENT_ID,
     ICL_OAUTH_CLIENT_SECRET,
 )
-from ic_data_repo.import_imperial_users import (
-    get_client,
-    import_imperial_contributors_to_invenio,
-)
+from ic_data_repo.microsoft_graph_api_client import get_client
+from ic_data_repo.vocabs import import_imperial_contributors_to_invenio
 
 
 @shared_task

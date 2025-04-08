@@ -52,5 +52,5 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       image_tag_with_sha: ${{needs.build-and-publish.outputs.image_tag_with_sha}}
-      environment_name: develop
+      environment_name: ${{ github.ref_name }}
     secrets: inherit

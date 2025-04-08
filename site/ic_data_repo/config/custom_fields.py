@@ -43,6 +43,11 @@ RDM_CUSTOM_FIELDS_UI = [
                     clearable=True,
                 ),
             ),
+        ],
+    },
+    {
+        "section": "DART",
+        "fields": [
             dict(
                 field="imperial:dart_id",
                 ui_widget="Input",
@@ -59,5 +64,5 @@ RDM_CUSTOM_FIELDS_UI = [
                 ),
             ),
         ],
-    }
+    },
 ]

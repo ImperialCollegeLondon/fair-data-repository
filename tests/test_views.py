@@ -1,6 +1,7 @@
 """Tests for the views."""
 
 import re
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
@@ -47,3 +48,37 @@ def test_index_auth(user_client, app):
     # find any instances of the new upload url that don't include the community
     # parameter, regex negative lookahead magic
     assert not re.search(r"/uploads/new(?!\?community=icl)", res.data.decode("utf-8"))
+
+
+def test_create_record_via_service(app, db, location, vocabularies):
+    """Test the record metadata schema."""
+    from invenio_access.permissions import system_identity
+    from invenio_rdm_records.proxies import current_rdm_records_service
+
+    raw_data = {
+        "metadata": {
+            "title": "Test Record",
+            "resource_type": "fake_resource_type",
+            "creators": [
+                {
+                    "person_or_org": {
+                        "type": "personal",
+                        "name": "Neo",
+                    },
+                    "role": "the one",
+                },
+            ],
+            "publisher": "Fake Publisher",
+            "publication_date": "1970-01-01",
+        },
+    }
+
+    result = current_rdm_records_service.create(system_identity, raw_data)
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    assert result.data["metadata"]["title"] == "Test Record"
+    assert result.data["metadata"]["resource_type"]["id"] == "dataset"
+    assert result.data["metadata"]["creators"][0]["person_or_org"]["name"] == "Neo"
+    assert "role" not in result.data["metadata"]["creators"][0]
+    assert result.data["metadata"]["publisher"] == "Imperial College London"
+    assert result.data["metadata"]["publication_date"] == today

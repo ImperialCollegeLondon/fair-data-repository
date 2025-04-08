@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 
 import pytest
+from invenio_access.permissions import system_identity
 from invenio_app.factory import create_app as app_factory
+from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 
 
 @pytest.fixture(scope="session")
@@ -112,3 +114,14 @@ def instance_path(instance_path):
     dest_dir = Path(instance_path) / "templates"
     os.symlink(src_dir, dest_dir)
     yield instance_path
+
+
+@pytest.fixture
+def vocabularies():
+    """Load vocabularies."""
+    vocabularies = VocabulariesFixture(
+        system_identity,
+        Path(__file__).parent / "data/vocabularies.yaml",
+        delay=False,
+    )
+    vocabularies.load()

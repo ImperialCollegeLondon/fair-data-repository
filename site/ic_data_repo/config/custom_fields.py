@@ -20,9 +20,9 @@ RDM_CUSTOM_FIELDS = [
     ),
     TextCF(
         name="imperial:dart_id",
-        field_cls = str,
-        ),
-]   
+        field_cls=str,
+    ),
+]
 
 RDM_CUSTOM_FIELDS_UI = [
     {

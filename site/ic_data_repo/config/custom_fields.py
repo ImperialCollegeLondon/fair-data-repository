@@ -18,7 +18,11 @@ RDM_CUSTOM_FIELDS = [
         },
         multiple=False,
     ),
-]
+    TextCF(
+        name="imperial:dart_id",
+        field_cls = str,
+        ),
+]   
 
 RDM_CUSTOM_FIELDS_UI = [
     {
@@ -38,7 +42,22 @@ RDM_CUSTOM_FIELDS_UI = [
                     multiple=False,  # True for selecting multiple values
                     clearable=True,
                 ),
-            )
+            ),
+            dict(
+                field="imperial:dart_id",
+                ui_widget="Input",
+                template="dart_id.html",
+                props=dict(
+                    label="DART ID",
+                    placeholder="DART ID",
+                    icon="address card outline",
+                    description="Please provide your DART ID.",
+                    # True for autocomplete dropdowns with search functionality
+                    search=False,
+                    multiple=False,  # True for selecting multiple values
+                    clearable=True,
+                ),
+            ),
         ],
     }
 ]

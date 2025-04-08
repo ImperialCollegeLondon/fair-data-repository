@@ -69,10 +69,10 @@ jobs:
           --set worker.image=${{ inputs.image_tag_with_sha }} \
           --set invenio.datacite.password="${{ secrets.DATACITE_PASSWORD }}" \
           --set invenio.datacite.username=${{ vars.DATACITE_USERNAME }} \
-          --set invenio.extraConfig.INVENIO_DATACITE_PREFIX=10.25562 \
+          --set invenio.extraConfig.INVENIO_DATACITE_PREFIX=${{ vars.DATACITE_PREFIX }} \
           --set-string invenio.extraConfig.INVENIO_DATACITE_TEST_MODE=True \
-          --set invenio.extraConfig.INVENIO_MAIL_USERNAME=rcsazbot@ic.ac.uk \
+          --set invenio.extraConfig.INVENIO_MAIL_USERNAME=${{ vars.EMAIL_USERNAME }} \
           --set invenio.extraConfig.INVENIO_MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
-          --set persistence.size=50G \
+          --set persistence.size=${{ vars.FILES_STORAGE_SIZE }} \
           --set-string invenio.extraConfig.INVENIO_MAIL_USE_TLS=True \
-          --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=rcsazbot@ic.ac.uk
+          --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=${{ vars.EMAIL_USERNAME }}

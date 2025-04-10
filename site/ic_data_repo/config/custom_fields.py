@@ -45,7 +45,7 @@ RDM_CUSTOM_FIELDS = [
         },
         multiple=False,
     ),
-    DartIDCF(name="imperial:dart_id"),
+    DartIDCF(name="imperial:dart_id", multiple=False),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [

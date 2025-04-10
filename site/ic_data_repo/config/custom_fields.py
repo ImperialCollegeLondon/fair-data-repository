@@ -8,6 +8,36 @@ RDM_NAMESPACES = {
     "imperial": "https://www.imperial.ac.uk",
 }
 
+
+class DartID(TextCF):
+    """Custom field for DART ID."""
+
+    def __init__(self, name, **kwargs):
+        """Initialize the custom field."""
+        super().__init__(
+            name,
+            field_cls=str,
+            field_args={
+                "validate": validate.Length(min=1, max=100),
+            },
+            **kwargs,
+        )
+
+    @property
+    def mapping(self):
+        """Return the mapping for the custom field."""
+        return {
+            "properties": {
+                "ID": {
+                    "type": "text",
+                },
+                "description": {
+                    "type": "text",
+                },
+            }
+        }
+
+
 RDM_CUSTOM_FIELDS = [
     TextCF(
         name="imperial:contact_information",
@@ -50,17 +80,16 @@ RDM_CUSTOM_FIELDS_UI = [
         "fields": [
             dict(
                 field="imperial:dart_id",
-                ui_widget="Input",
+                ui_widget="DART",
                 template="dart_id.html",
                 props=dict(
                     label="DART ID",
                     placeholder="DART ID",
                     icon="address card outline",
-                    description="Please provide your DART ID.",
-                    # True for autocomplete dropdowns with search functionality
                     search=False,
-                    multiple=False,  # True for selecting multiple values
+                    multiple=False,
                     clearable=True,
+                    description="Please provide a DART ID. ",
                 ),
             ),
         ],

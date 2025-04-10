@@ -9,7 +9,7 @@ RDM_NAMESPACES = {
 }
 
 
-class DartID(TextCF):
+class DartIDCF(TextCF):
     """Custom field for DART ID."""
 
     def __init__(self, name, **kwargs):
@@ -31,9 +31,6 @@ class DartID(TextCF):
                 "ID": {
                     "type": "text",
                 },
-                "description": {
-                    "type": "text",
-                },
             }
         }
 
@@ -48,10 +45,7 @@ RDM_CUSTOM_FIELDS = [
         },
         multiple=False,
     ),
-    TextCF(
-        name="imperial:dart_id",
-        field_cls=str,
-    ),
+    DartIDCF(name="imperial:dart_id"),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [
@@ -76,22 +70,21 @@ RDM_CUSTOM_FIELDS_UI = [
         ],
     },
     {
-        "section": "DART",
+        "section": "DART ID",
         "fields": [
-            dict(
-                field="imperial:dart_id",
-                ui_widget="DART",
-                template="dart_id.html",
-                props=dict(
-                    label="DART ID",
-                    placeholder="DART ID",
-                    icon="address card outline",
-                    search=False,
-                    multiple=False,
-                    clearable=True,
-                    description="Please provide a DART ID. ",
-                ),
-            ),
+            {
+                "field": "imperial:dart_ids",
+                "ui_widget": "DART",
+                "template": "dart_id.html",
+                "props": {
+                    "label": ("imperial:dart_id"),
+                    "ID": {
+                        "label": ("DART ID"),
+                        "placeholder": ("Add the title..."),
+                        "description": ("Add the title of the experiment e.g ATLAS"),
+                    },
+                },
+            }
         ],
     },
 ]

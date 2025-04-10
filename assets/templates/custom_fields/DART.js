@@ -3,11 +3,7 @@ import React, { Component } from "react";
 import { Input, Array } from "react-invenio-forms";
 import { Grid, Form, Button, Icon } from "semantic-ui-react";
 
-const newDataset = {
-  DartId: "",
-};
-
-export class Datasets extends Component {
+export class DART extends Component {
   render() {
     const {
       fieldPath, // injected by the custom field loader via the field config property

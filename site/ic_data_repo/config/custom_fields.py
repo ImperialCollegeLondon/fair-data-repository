@@ -73,7 +73,7 @@ RDM_CUSTOM_FIELDS_UI = [
         "section": "DART ID",
         "fields": [
             {
-                "field": "imperial:dart_ids",
+                "field": "imperial:dart_id",
                 "ui_widget": "DART",
                 "template": "dart_id.html",
                 "props": {

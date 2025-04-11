@@ -17,7 +17,7 @@ export class DART extends Component {
         <Grid.Row>
           <Grid.Column width="16">
             <Input
-              fieldPath={`${fieldPath}.DartId`}
+              fieldPath={`${fieldPath}.ID`}
               label="DartId"
               placeholder="Enter DartId"
             />

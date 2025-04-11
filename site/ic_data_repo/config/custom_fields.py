@@ -16,7 +16,7 @@ class DartIDCF(TextCF):
         """Initialize the custom field."""
         super().__init__(
             name,
-            field_cls=str,
+            field_cls=ISOLangString,
             field_args={
                 "validate": validate.Length(min=1, max=100),
             },

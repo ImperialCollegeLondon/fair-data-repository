@@ -1,43 +1,38 @@
 import React, { Component } from "react";
-
+import PropTypes from "prop-types";
 import { Input } from "react-invenio-forms";
-import { Grid } from "semantic-ui-react";
+import { Form } from "semantic-ui-react";
 
 export class DART extends Component {
   render() {
     const {
-      fieldPath, // injected by the custom field loader via the field config property
+      fieldPath,
       icon,
       description,
       label,
+      ID,
     } = this.props;
 
     return (
-      <Grid style={{ border: "white 3px solid", padding: "1.5rem", backgroundColor: "#eee", margin: "1rem" }}>
-        <Grid.Row>
-          <Grid.Column width="16">
-            <Input
-              fieldPath={`${fieldPath}.ID`}
-              label="DartId"
-              placeholder="Enter DartId"
-            />
-          </Grid.Column>
-        </Grid.Row>
-        <Grid.Row>
-          <Grid.Column width="16">
-            <p>
-              Please enter your DART id. For info about DART{" "}
-              <a
-                href="https://www.imperial.ac.uk/admin-services/secretariat/policies-and-guidance/data-assessments/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                read more
-              </a>
-            </p>
-          </Grid.Column>
-        </Grid.Row>
-      </Grid>
+      <Form.Field style={{ margin: "1rem 0" }}>
+        <Input
+          fieldPath={`${fieldPath}.ID`}
+          label={ID?.label || "DartId"}
+          placeholder={ID?.placeholder || "Enter DartId"}
+        />
+        <div style={{ margin: "0.5rem 0", color: "#666" }}>
+          <p>
+            Please enter your DART ID. For info about DART{" "}
+            <a
+              href="https://www.imperial.ac.uk/admin-services/secretariat/policies-and-guidance/data-assessments/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              read here
+            </a>
+          </p>
+        </div>
+      </Form.Field>
     );
   }
 }

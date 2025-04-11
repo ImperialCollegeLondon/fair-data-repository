@@ -79,9 +79,8 @@ RDM_CUSTOM_FIELDS_UI = [
                 "props": {
                     "label": ("imperial:dart_id"),
                     "ID": {
-                        "label": ("DART ID"),
-                        "placeholder": ("Add the title..."),
-                        "description": ("Add the title of the experiment e.g ATLAS"),
+                        "label": ("DART"),
+                        "placeholder": ("Enter DART ID"),
                     },
                 },
             }

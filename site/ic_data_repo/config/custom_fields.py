@@ -78,7 +78,7 @@ RDM_CUSTOM_FIELDS_UI = [
                 "template": "dart_id.html",
                 "props": {
                     "label": ("imperial:dart_id"),
-                    "ID": {
+                    "dart_id": {
                         "label": ("DART"),
                         "placeholder": ("Enter DART ID"),
                     },

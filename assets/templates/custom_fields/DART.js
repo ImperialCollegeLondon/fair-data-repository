@@ -16,7 +16,7 @@ export class DART extends Component {
     return (
       <Form.Field style={{ margin: "1rem 0" }}>
         <Input
-          fieldPath={`${fieldPath}.ID`}
+          fieldPath={`${fieldPath}.dart_id`}
           label={ID?.label || "DartId"}
           placeholder={ID?.placeholder || "Enter DartId"}
         />

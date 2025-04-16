@@ -14,11 +14,12 @@ export class DART extends Component {
     } = this.props;
 
     return (
-      <Form.Field style={{ margin: "1rem 0" }}>
+      <Form.Field style={{ margin: "1rem 0" }} required>
         <Input
           fieldPath={`${fieldPath}.dart_id`}
           label={ID?.label || "DartId"}
           placeholder={ID?.placeholder || "Enter DartId"}
+          required={ID?.required || true}
         />
         <div style={{ margin: "0.5rem 0", color: "#666" }}>
           <p>

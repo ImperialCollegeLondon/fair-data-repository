@@ -22,7 +22,7 @@ feature. Under this model there is a single community to which all deposits are 
 and the application UI is updated to remove links and references to communities in key
 places.
 
-This has been implemented by the following changes:
+This has been implemented through the following changes:
 
 - Hiding UI links to pages for creating or listing communities [PR #97].
 - Updating links to create a new deposit to have the "icl" community pre-selected.

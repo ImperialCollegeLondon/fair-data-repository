@@ -19,6 +19,11 @@ class DartIDCF(TextCF):
             field_cls=ISOLangString,
             field_args={
                 "validate": validate.Length(min=1, max=100),
+                "required": True,
+                "error_messages": {
+                    "required": "DART ID is required.",
+                    "invalid": "Invalid DART ID.",
+                },
             },
             **kwargs,
         )
@@ -81,6 +86,7 @@ RDM_CUSTOM_FIELDS_UI = [
                     "dart_id": {
                         "label": ("DART"),
                         "placeholder": ("Enter DART ID"),
+                        "required": True,
                     },
                 },
             }

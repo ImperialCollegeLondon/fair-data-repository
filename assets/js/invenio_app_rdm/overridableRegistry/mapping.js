@@ -12,6 +12,7 @@ import { MandatoryPIDField } from "../../ic_data_repo/MandatoryPIDField";
 import { parametrize } from "react-overridable";
 import { TextAreaField } from "react-invenio-forms";
 import { CardDepositStatusBox } from "../../ic_data_repo/CardDepositStatusBox";
+import { FundingField } from "../../ic_data_repo/Funding/FundingField";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText: "The main individuals or institutions involved in creating the data set.",
@@ -44,4 +45,5 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.CommunityHeader.container": NullElement,
   "InvenioAppRdm.DashboardUploads.EmptyResults.element": NullElement,
   "InvenioAppRdm.Deposit.CardDepositStatusBox.container": CardDepositStatusBox,
+  "InvenioAppRdm.Deposit.FundingField.container": FundingField,
 };

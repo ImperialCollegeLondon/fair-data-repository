@@ -161,7 +161,9 @@ function FundingModal({
                       <FunderDropdown />
                     </Grid.Column>
                   </Grid.Row>
-
+                  <Grid.Column width={16} textAlign="left" className="pt-0 pb-0">
+                        <p>{i18next.t("You can search using award title, the Imperial award number or the funder award number. For best results use quotation marks.")}</p>
+                  </Grid.Column>
                   <Grid.Column width={16} className="pb-0">
                     <ResultsLoader>
                       <EmptyResults />

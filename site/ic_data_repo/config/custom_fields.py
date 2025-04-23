@@ -9,37 +9,6 @@ RDM_NAMESPACES = {
 }
 
 
-class DartIDCF(TextCF):
-    """Custom field for DART ID."""
-
-    def __init__(self, name, **kwargs):
-        """Initialize the custom field."""
-        super().__init__(
-            name,
-            field_cls=ISOLangString,
-            field_args={
-                "validate": validate.Length(min=1, max=100),
-                "required": True,
-                "error_messages": {
-                    "required": "DART ID is required.",
-                    "invalid": "Invalid DART ID.",
-                },
-            },
-            **kwargs,
-        )
-
-    @property
-    def mapping(self):
-        """Return the mapping for the custom field."""
-        return {
-            "properties": {
-                "ID": {
-                    "type": "text",
-                },
-            }
-        }
-
-
 RDM_CUSTOM_FIELDS = [
     TextCF(
         name="imperial:contact_information",
@@ -50,7 +19,18 @@ RDM_CUSTOM_FIELDS = [
         },
         multiple=False,
     ),
-    DartIDCF(name="imperial:dart_id", multiple=False),
+    TextCF(
+        name="imperial:dart_id",
+        field_args={
+            "validate": validate.Length(min=1, max=100),
+            "required": True,
+            "error_messages": {
+                "required": "DART ID is required.",
+                "invalid": "Invalid DART ID.",
+            },
+        },
+        multiple=False,
+    ),
 ]
 
 RDM_CUSTOM_FIELDS_UI = [

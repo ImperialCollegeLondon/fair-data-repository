@@ -17,7 +17,7 @@ export class DART extends Component {
       <Form.Field style={{ margin: "1rem 0" }} required>
         <Input
           fieldPath={`${fieldPath}`}
-          label={ID?.label || "DART Id"}
+          label={ID?.label || "DART ID"}
           placeholder={ID?.placeholder || "Enter DART ID"}
           required={ID?.required || true}
         />

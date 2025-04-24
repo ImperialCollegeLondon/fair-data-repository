@@ -17,19 +17,19 @@ export class DART extends Component {
       <Form.Field style={{ margin: "1rem 0" }} required>
         <Input
           fieldPath={`${fieldPath}`}
-          label={ID?.label || "DartId"}
-          placeholder={ID?.placeholder || "Enter DartId"}
+          label={ID?.label || "DART Id"}
+          placeholder={ID?.placeholder || "Enter DART ID"}
           required={ID?.required || true}
         />
         <div style={{ margin: "0.5rem 0", color: "#666" }}>
           <p>
-            Please enter your DART ID. For info about DART{" "}
+            Please enter your DART ID. For information about DART{" "}
             <a
               href="https://www.imperial.ac.uk/admin-services/secretariat/policies-and-guidance/data-assessments/"
               target="_blank"
               rel="noopener noreferrer"
             >
-              read here
+              read here.
             </a>
           </p>
         </div>

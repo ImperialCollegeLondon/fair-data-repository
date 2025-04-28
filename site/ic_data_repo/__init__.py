@@ -1,1 +1,1 @@
-"""Custom modules for the Imperial Fair Data Repository."""
+"""Custom modules for the Helix."""

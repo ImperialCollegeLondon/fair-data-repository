@@ -1,6 +1,6 @@
-# Imperial Fair Data Repository
+# Helix
 
-This repository contains the source code for the Imperial Fair Data Repository. It is an
+This repository contains the source code for the Helix. It is an
 instance of [InvenioRDM] customised and configured for use by Imperial.
 
 See the documentation at

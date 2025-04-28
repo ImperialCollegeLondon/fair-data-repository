@@ -1,4 +1,4 @@
-"""Script to upload realistic test datasets for the Imperial FAIR Data repository.
+"""Script to upload realistic test datasets for the Helix.
 
 usage: pipenv run python create_test_data_records.py COMMUNITY_ID
 

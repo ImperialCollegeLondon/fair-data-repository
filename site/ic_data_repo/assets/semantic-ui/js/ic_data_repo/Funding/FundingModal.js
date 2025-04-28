@@ -20,10 +20,11 @@ import {
 } from "react-searchkit";
 import { Grid, Modal, Container, Button } from "semantic-ui-react";
 import * as Yup from "yup";
-import { AwardResults } from "./AwardResults";
-import CustomAwardForm from "./CustomAwardForm";
-import { FunderDropdown } from "./FunderDropdown";
-import { NoAwardResults } from "./NoAwardResults";
+import { AwardResults } from "@js/invenio_vocabularies/src/contrib/forms/Funding/AwardResults";
+import  CustomAwardForm  from "@js/invenio_vocabularies/src/contrib/forms/Funding/CustomAwardForm";
+import { FunderDropdown } from "@js/invenio_vocabularies/src/contrib/forms/Funding/FunderDropdown";
+import { NoAwardResults } from "@js/invenio_vocabularies/src/contrib/forms/Funding/NoAwardResults";
+
 
 const ModalTypes = {
   STANDARD: "standard",

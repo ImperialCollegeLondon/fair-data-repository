@@ -13,7 +13,7 @@ import { DndProvider } from "react-dnd";
 import { Button, Form, Icon, List } from "semantic-ui-react";
 import { FieldLabel, FeedbackLabel } from "react-invenio-forms";
 
-import { FundingFieldItem } from "./FundingFieldItem";
+import { FundingFieldItem } from "@js/invenio_vocabularies/src/contrib/forms/Funding/FundingFieldItem";
 import FundingModal from "./FundingModal";
 
 import { i18next } from "@translations/invenio_rdm_records/i18next";

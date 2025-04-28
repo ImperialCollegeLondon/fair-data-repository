@@ -1,0 +1,4 @@
+.ui.label.access-status.embargoed {
+    background-color: @warningColor;
+    color: @warningTextLabelColor;
+}

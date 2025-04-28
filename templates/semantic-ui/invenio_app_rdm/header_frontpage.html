@@ -21,9 +21,12 @@
     <div class="row">
       <div class="sixteen wide column center aligned">
         {%- block frontpage_title %}
-        <h1 class="ui center aligned header inverted">
+        <h1 class="ui huge center aligned header inverted">
           {{ _(config.THEME_FRONTPAGE_TITLE) }}
         </h1>
+        <h2 class="ui large center aligned header inverted">
+            {{ _(config.THEME_FRONTPAGE_SUBTITLE) }}
+        </h2>
       </div>
     </div>
       {%- endblock frontpage_title %}

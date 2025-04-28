@@ -47,12 +47,7 @@
 @accessRightEmbargoed: @yellow;
 @accessRightMetadataOnly: @teal;
 
-/*-OLD------------------
-@restricted-components-background-color_old: #feeaea;
-@restricted-components-border-color_old: #e0b4b4;
-@embargoed-components-background-color_old: #fbf8ee;
-@embargoed-components-border-color_old: #c9ba9b;
---------------------*/
+@warningColor: @orange;
 
 @footerDarkColor: @black;
 @subFooterColor: @footerDarkColor;
@@ -113,7 +108,7 @@
 /*--- 1rem ---*/
 @fontSizeBase: 16px;
 
-@fontSizeHeadline: 5rem;
+@fontSizeHeadline: 3rem;
 @fontSizeSubheadline: 2rem;
 @fontSizeItemHeadline: 1.25rem;
 @fontSizeBodyHeader: 1rem;

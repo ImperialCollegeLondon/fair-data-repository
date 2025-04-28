@@ -1,37 +1,12 @@
-/***********************************************
-         Invenio App RDM Header Overrides
-***********************************************/
+.ui.container.frontpage-header {
+    background-color: @frontpageSearchBarBackgroundColor !important;
+}
 
-  h1,
-  h1.ui.header,
-  .ui.huge.header {
-    font-size: fontSizeHeadline;
-  }
-
-  h2,
-  h2.ui.header,
-  .ui.large.header {
-    font-size: @fontSizeSubheadline;
-
-    &:not(:first-child) {
-      margin-top: 2.5rem;
+.ui.container.page-subheader {
+    padding-inline: @itemVerticalPadding @itemHorizontalPadding;
+    display: flex;
+    align-items: center;
+    &-outer {
+        background-color: @subheaderColor;
     }
-  }
-
-  h3,
-  h3.ui.header,
-  .ui.medium.header {
-    font-size: @fontSizeBodyHeader;
-  }
-
-  h4,
-  h4.ui.header,
-  .ui.small.header {
-    font-size: @fontSizeBase;
-  }
-
-aside.sidebar {
-  h3.hidden {
-    display: none;
-  }
 }

@@ -8,6 +8,7 @@ RDM_NAMESPACES = {
     "imperial": "https://www.imperial.ac.uk",
 }
 
+
 RDM_CUSTOM_FIELDS = [
     TextCF(
         name="imperial:contact_information",
@@ -15,6 +16,18 @@ RDM_CUSTOM_FIELDS = [
         field_args={
             # must be an implementation of Marshmallow.validate.Validator
             "validate": validate.Email(),
+        },
+        multiple=False,
+    ),
+    TextCF(
+        name="imperial:dart_id",
+        field_args={
+            "validate": validate.Length(min=1, max=100),
+            "required": True,
+            "error_messages": {
+                "required": "DART ID is required.",
+                "invalid": "Invalid DART ID.",
+            },
         },
         multiple=False,
     ),
@@ -38,7 +51,26 @@ RDM_CUSTOM_FIELDS_UI = [
                     multiple=False,  # True for selecting multiple values
                     clearable=True,
                 ),
-            )
+            ),
         ],
-    }
+    },
+    {
+        "section": "Data Asset Registration Tool - DART",
+        "fields": [
+            dict(
+                field="imperial:dart_id",
+                ui_widget="DART",
+                template="dart_id.html",
+                props=dict(
+                    label="DART ID",
+                    placeholder="Enter DART ID",
+                    icon="address card outline",
+                    # True for autocomplete dropdowns with search functionality
+                    search=False,
+                    multiple=False,  # True for selecting multiple values
+                    clearable=True,
+                ),
+            ),
+        ],
+    },
 ]

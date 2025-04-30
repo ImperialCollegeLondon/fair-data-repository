@@ -1,4 +1,4 @@
-"""Script to create_app Imperial Community."""
+"""Script to create Imperial Community."""
 
 from invenio_access.permissions import system_identity
 from invenio_app.factory import create_app

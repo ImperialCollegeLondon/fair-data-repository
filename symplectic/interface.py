@@ -4,21 +4,18 @@ import os
 import uuid
 from datetime import datetime
 from functools import partial
+from typing import Any, Dict
 
 import requests
+from dateutil.parser import parse as parse_date
 from lxml import etree
 
 API_SUBSCRIPTION_KEY = os.environ["API_SUBSCRIPTION_KEY"]
 
-headers = {
-    "Content-Type": "text/xml",
-    "Subscription-Key": API_SUBSCRIPTION_KEY,
-}
-id = uuid.uuid4()
-
 BASE_URL = "https://rma-001-apim.azure-api.net/symplectic/"
 
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/records/manual"
+
 etree.register_namespace("api", NAMESPACE_URI)
 api_qname = partial(etree.QName, NAMESPACE_URI)
 
@@ -200,25 +197,112 @@ def generate_record_xml(
     return import_record_element
 
 
-record_xml = generate_record_xml(
-    title="Very important dataset",
-    abstract="This is a very important dataset that contains a lot of information.",
-    authors=[
-        dict(
-            last_name="Cave-Ayland",
-            first_names="Christopher",
-            orcid="0000-0003-0942-8030",
-        )
-    ],
-    doi="10.1073/pnas.1708252114",
-    licence="https://creativecommons.org/licenses/by/4.0/legalcode",
-    version="1.0",
-    publication_date=datetime.now(),
-)
+class SymplecticClient:
+    """A client for interacting with the Symplectic Elements API."""
 
-proprietary_id = uuid.uuid4()
-response = requests.put(
-    BASE_URL + f"publication/records/manual/{str(proprietary_id).upper()}",
-    data=etree.tostring(record_xml, encoding="unicode"),
-    headers=headers,
-)
+    def __init__(self, base_url: str = BASE_URL, api_key: str = API_SUBSCRIPTION_KEY):
+        """Initialize the Symplectic client.
+
+        Args:
+            base_url: The base URL for the Symplectic API.
+            api_key: The API subscription key.
+        """
+        if not api_key:
+            raise ValueError("API_SUBSCRIPTION_KEY must be set.")
+        if not base_url:
+            raise ValueError("SYMPLECTIC_BASE_URL must be set.")
+
+        self.base_url = base_url.rstrip("/") + "/"
+        self.headers = {
+            "Content-Type": "text/xml",
+            "Subscription-Key": api_key,
+        }
+
+    def extract_metadata(self, invenio_record: Dict[str, Any]) -> Dict[str, Any]:
+        """Extracts and transforms metadata from an Invenio record format."""
+        metadata = invenio_record.get("metadata", {})
+        pids = invenio_record.get("pids", {})
+
+        doi = pids.get("doi", {}).get("identifier")
+        if not doi:
+            raise ValueError("Invenio record must have a DOI in pids.doi.identifier")
+
+        authors = []
+        for creator in metadata.get("creators", []):
+            person_org = creator.get("person_or_org", {})
+            if person_org.get("type") == "personal":
+                author_data = {
+                    "last_name": person_org.get("family_name"),
+                    "first_names": person_org.get("given_name"),
+                }
+                for identifier in person_org.get("identifiers", []):
+                    if identifier.get("scheme") == "orcid":
+                        author_data["orcid"] = identifier.get("identifier")
+                        break
+                authors.append(author_data)
+
+        licence_url = None
+        rights = metadata.get("rights", [])
+        if rights:
+            licence_url = rights[0].get("link")
+
+        pub_date_str = metadata.get("publication_date")
+        if not pub_date_str:
+            raise ValueError("Invenio record must have metadata.publication_date")
+        try:
+            publication_date = parse_date(pub_date_str)
+        except ValueError as e:
+            raise ValueError(f"Could not parse publication_date '{pub_date_str}': {e}")
+
+        return {
+            "title": metadata.get("title"),
+            "abstract": metadata.get("description"),
+            "authors": authors,
+            "licence": licence_url,
+            "doi": doi,
+            "version": metadata.get("version"),
+            "publication_date": publication_date,
+        }
+
+    def create_record(self, invenio_record: Dict[str, Any]) -> requests.Response:
+        """Creates a new record in Symplectic Elements based on Invenio metadata.
+
+        Args:
+            invenio_record: A dictionary representing the Invenio record,
+                            containing 'metadata' and 'pids' keys.
+
+        Returns:
+            The response object from the requests.put call.
+
+        Raises:
+            ValueError: If essential metadata (DOI, publication date) is missing
+                        or cannot be parsed.
+            requests.exceptions.RequestException: For issues during the API call.
+        """
+        if not isinstance(invenio_record, dict):
+            raise TypeError("invenio_record must be a dictionary.")
+
+        extracted_data = self.extract_metadata(invenio_record)
+
+        record_xml_element = generate_record_xml(**extracted_data)
+        record_xml_string = etree.tostring(record_xml_element, encoding="unicode")
+
+        proprietary_id = uuid.uuid4()
+        endpoint = f"publication/records/manual/{str(proprietary_id).upper()}"
+        url = self.base_url + endpoint
+
+        try:
+            response = requests.put(
+                url,
+                data=record_xml_string.encode("utf-8"),
+                headers=self.headers,
+            )
+            response.raise_for_status()
+            return response
+        except requests.exceptions.RequestException as e:
+
+            print(f"Error creating Symplectic record: {e}")
+            if hasattr(e, "response") and e.response is not None:
+                print(f"Response status: {e.response.status_code}")
+                print(f"Response body: {e.response.text}")
+            raise

@@ -96,3 +96,99 @@ def test_metadata_schema(user_client, location, vocabularies):
     assert "role" not in result.json["metadata"]["creators"][0]
     assert result.json["metadata"]["publisher"] == "Imperial College London"
     assert result.json["metadata"]["publication_date"] == date.today().isoformat()
+
+
+def test_new_record_version(user_client, location, vocabularies):
+    """Test creating a new version of a record."""
+    headers = {
+        "Content-Type": "application/json",
+        "X-CSRFToken": get_csrf_token(user_client),
+    }
+
+    data_1 = {
+        "metadata": {
+            "title": "Test Record",
+            "resource_type": "fake_resource_type",
+            "creators": [
+                {
+                    "person_or_org": {
+                        "type": "personal",
+                        "name": "Neo",
+                    },
+                    "role": "the one",
+                },
+            ],
+            "publisher": "Fake Publisher",
+            "publication_date": "1970-01-01",
+        },
+    }
+
+    result_1 = user_client.post(
+        "/api/records",
+        json=data_1,
+        headers=headers,
+    )
+
+    assert result_1.status_code == 201
+
+    id = result_1.json["id"]
+
+    data = {
+        "slug": "icl",
+        "metadata": {
+            "title": "Physics Research Group",
+        },
+        "access": {
+            "visibility": "public",
+        },
+    }
+
+    r = user_client.post(
+        "/api/communities",
+        json=data,
+        headers=headers,
+    )
+
+    print("\n\n\n")
+    print("DDDDDDDDDDDDDDDDD ", id)
+    print(r.status_code)
+    print(r.json)
+    print()
+    r = user_client.get(
+        "/api/communities",
+    )
+    print(r.status_code)
+    print(r.json)
+    print("\n\n\n")
+
+    data_2 = {
+        "receiver": {"community": "icl"},
+        "type": "community-submission",
+    }
+
+    result_2 = user_client.post(
+        f"/api/records/{id}/draft/requests",
+        json=data_2,
+        headers=headers,
+    )
+
+    assert result_2.status_code == 200
+
+    result_3 = user_client.post(
+        f"/api/records/{id}/draft/actions/publish",
+        headers=headers,
+    )
+
+    print("\n\n\n")
+    print("DDDDDDDDDDDDDDDDD ", id)
+    print(result_3.data)
+    print("\n\n\n")
+
+    assert result_3.status_code == 201
+
+    result_3 = user_client.post(
+        f"/api/records/{id}/versions",
+        headers=headers,
+    )
+
+    assert result_3.status_code == 202

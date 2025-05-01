@@ -11,7 +11,7 @@ on:
         description: The tag of the Docker image to deploy
         required: true
         type: string
-  workflow_dispatch: # support manually running the worflow
+  workflow_dispatch: # support manually running the workflow
     inputs:
       environment_name:
         description: The name of the environment to deploy to

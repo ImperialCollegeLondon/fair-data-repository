@@ -1,0 +1,86 @@
+name: Deploy to AKS
+
+on:
+  workflow_call: # support calling workflow from another
+    inputs:
+      environment_name:
+        description: The name of the environment to deploy to
+        required: true
+        type: string
+      image_tag_with_sha:
+        description: The tag of the Docker image to deploy
+        required: true
+        type: string
+  workflow_dispatch: # support manually running the workflow
+    inputs:
+      environment_name:
+        description: The name of the environment to deploy to
+        required: true
+        type: string
+      image_tag_with_sha:
+        description: The tag of the Docker image to deploy
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment_name }} # determines values of secrets and env vars
+    steps:
+      - name: checkout the Helm charts to deploy our published instance
+        uses: actions/checkout@v4
+        with:
+          repository: ImperialCollegeLondon/helm-invenio
+          path: helm-invenio
+          ref: ${{ vars.HELM_CHART_REF }}
+
+      - name: Login to Azure to deploy our chart
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Gets K8s context
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ vars.RESOURCE_GROUP }}
+          cluster-name: ${{ vars.CLUSTER_NAME }}
+        id: login
+      - name: Run helm
+        run: |
+          helm dependency build ${{ vars.CHART_PATH }}
+          helm upgrade ${{ vars.RELEASE_NAME }} ${{ vars.CHART_PATH }} \
+          -f ${{ vars.CHART_OVERRIDE_PATH }} \
+          -n invenio --install --create-namespace \
+          --set invenio.secret_key="${{ secrets.INVENIO_SECRET_KEY }}" \
+          --set invenio.security_login_salt="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
+          --set invenio.csrf_secret_salt="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \
+          --set invenio.extraConfig.ICL_OAUTH_CLIENT_ID=${{ vars.ICL_OAUTH_CLIENT_ID }} \
+          --set invenio.extraConfig.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
+          --set invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL=${{ vars.ICL_OAUTH_WELL_KNOWN_URL }} \
+          --set rabbitmq.auth.password="${{ secrets.RABBITMQ_AUTH_PASSWORD }}" \
+          --set postgresql.auth.password="${{ secrets.POSTGRESQL_AUTH_PASSWORD }}" \
+          --set invenio.hostname=${{ vars.HOSTNAME }} \
+          --set web.image=${{ inputs.image_tag_with_sha }} \
+          --set worker.image=${{ inputs.image_tag_with_sha }} \
+          --set invenio.datacite.password="${{ secrets.DATACITE_PASSWORD }}" \
+          --set invenio.datacite.username=${{ vars.DATACITE_USERNAME }} \
+          --set invenio.extraConfig.INVENIO_DATACITE_PREFIX=${{ vars.DATACITE_PREFIX }} \
+          --set-string invenio.extraConfig.INVENIO_DATACITE_TEST_MODE=True \
+          --set invenio.extraConfig.INVENIO_MAIL_USERNAME=${{ vars.EMAIL_USERNAME }} \
+          --set invenio.extraConfig.INVENIO_MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+          --set persistence.size=${{ vars.FILES_STORAGE_SIZE }} \
+          --set-string invenio.extraConfig.INVENIO_MAIL_USE_TLS=True \
+          --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=${{ vars.EMAIL_USERNAME }} \
+          --set worker.resources.requests.cpu=${{ vars.WORKER_REQUESTS_CPU }} \
+          --set worker.resources.requests.memory=${{ vars.WORKER_REQUESTS_MEMORY }} \
+          --set-string worker.resources.limits.cpu=${{ vars.WORKER_LIMITS_CPU }} \
+          --set worker.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }} \
+          --set workerBeat.resources.requests.cpu=${{ vars.WORKER_REQUESTS_CPU }} \
+          --set workerBeat.resources.requests.memory=${{ vars.WORKER_REQUESTS_MEMORY }} \
+          --set-string workerBeat.resources.limits.cpu=${{ vars.WORKER_LIMITS_CPU }} \
+          --set workerBeat.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }}

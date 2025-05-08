@@ -105,15 +105,18 @@ def test_new_record_version(user_client, location, vocabularies):
         "X-CSRFToken": get_csrf_token(user_client),
     }
 
-    data_1 = {
+    record_metadata = {
+        "files": {"enabled": False},
+        "access": {"record": "public", "files": "public"},
         "metadata": {
             "title": "Test Record",
-            "resource_type": "fake_resource_type",
+            "resource_type": {"id": "dataset"},
             "creators": [
                 {
                     "person_or_org": {
                         "type": "personal",
-                        "name": "Neo",
+                        "given_name": "Neo",
+                        "family_name": "Anderson",
                     },
                     "role": "the one",
                 },
@@ -121,19 +124,22 @@ def test_new_record_version(user_client, location, vocabularies):
             "publisher": "Fake Publisher",
             "publication_date": "1970-01-01",
         },
+        "custom_fields": {
+            "imperial:dart_id": "123456789",
+        },
     }
 
-    result_1 = user_client.post(
+    create_draft_request = user_client.post(
         "/api/records",
-        json=data_1,
+        json=record_metadata,
         headers=headers,
     )
 
-    assert result_1.status_code == 201
+    assert create_draft_request.status_code == 201
 
-    id = result_1.json["id"]
+    draft_id = create_draft_request.json["id"]
 
-    data = {
+    community_metadata = {
         "slug": "icl",
         "metadata": {
             "title": "Physics Research Group",
@@ -143,52 +149,43 @@ def test_new_record_version(user_client, location, vocabularies):
         },
     }
 
-    r = user_client.post(
+    create_community_response = user_client.post(
         "/api/communities",
-        json=data,
+        json=community_metadata,
         headers=headers,
     )
 
-    print("\n\n\n")
-    print("DDDDDDDDDDDDDDDDD ", id)
-    print(r.status_code)
-    print(r.json)
-    print()
-    r = user_client.get(
-        "/api/communities",
-    )
-    print(r.status_code)
-    print(r.json)
-    print("\n\n\n")
+    community_uuid = create_community_response.json["id"]
+    assert create_community_response.status_code == 201
 
-    data_2 = {
-        "receiver": {"community": "icl"},
+    community_submission_request_metadata = {
+        "receiver": {"community": community_uuid},
         "type": "community-submission",
     }
 
-    result_2 = user_client.post(
-        f"/api/records/{id}/draft/requests",
-        json=data_2,
+    create_request_response = user_client.put(
+        f"/api/records/{draft_id}/draft/review",
+        json=community_submission_request_metadata,
         headers=headers,
     )
 
-    assert result_2.status_code == 200
+    assert create_request_response.status_code == 200
+    assert create_request_response.json["id"] is not None
+    assert "submit" in create_request_response.json["links"]["actions"]
 
-    result_3 = user_client.post(
-        f"/api/records/{id}/draft/actions/publish",
+    request_id = create_request_response.json["id"]
+
+    submit_review_request = user_client.post(
+        f"/api/records/{draft_id}/draft/actions/submit-review",
         headers=headers,
     )
 
-    print("\n\n\n")
-    print("DDDDDDDDDDDDDDDDD ", id)
-    print(result_3.data)
-    print("\n\n\n")
+    assert submit_review_request.status_code == 202
+    assert "accept" in submit_review_request.json["links"]["actions"]
 
-    assert result_3.status_code == 201
-
-    result_3 = user_client.post(
-        f"/api/records/{id}/versions",
-        headers=headers,
+    accept_submission_request = user_client.post(
+        f"/api/requests/{request_id}/actions/accept", headers=headers
     )
 
-    assert result_3.status_code == 202
+    assert accept_submission_request.status_code == 200
+    assert accept_submission_request.json["status"] == "accepted"

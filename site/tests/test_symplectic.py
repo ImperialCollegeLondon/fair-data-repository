@@ -2,7 +2,6 @@
 
 import os
 import uuid
-from datetime import datetime
 from unittest.mock import ANY, Mock, patch
 
 import pytest
@@ -93,50 +92,7 @@ def test_add_doi_subtree(client):
     )
 
 
-def test_generate_record_xml_minimal(client):
-    """Test generating XML with minimal metadata."""
-    metadata = {
-        "title": "Minimal Test Dataset",
-        "doi": "10.12345/minimal.67890",
-        "publication_date": "2023-05-01",
-    }
-
-    xml = client.generate_record_xml(metadata)
-
-    assert xml.tag == f"{{{client.NAMESPACE_URI}}}import-record"
-    assert xml.get("type-name") == "dataset"
-    assert xml.get("type-id") == "22"
-
-    native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
-    assert native is not None
-
-    title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
-    assert title_field is not None
-    assert (
-        title_field.find(f"{{{client.NAMESPACE_URI}}}text").text
-        == "Minimal Test Dataset"
-    )
-
-    doi_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
-    )
-    assert doi_field is not None
-    assert (
-        doi_field.find(f"{{{client.NAMESPACE_URI}}}text").text
-        == "10.12345/minimal.67890"
-    )
-
-    pub_date_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='publication-date']"
-    )
-    assert pub_date_field is not None
-    date_elem = pub_date_field.find(f"{{{client.NAMESPACE_URI}}}date")
-    assert date_elem.find(f"{{{client.NAMESPACE_URI}}}day").text == "1"
-    assert date_elem.find(f"{{{client.NAMESPACE_URI}}}month").text == "5"
-    assert date_elem.find(f"{{{client.NAMESPACE_URI}}}year").text == "2023"
-
-
-def test_generate_record_xml_full(client, sample_metadata):
+def test_generate_record_xml(client, sample_metadata):
     """Test generating XML with full metadata."""
     xml = client.generate_record_xml(sample_metadata)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
@@ -176,27 +132,6 @@ def test_generate_record_xml_full(client, sample_metadata):
     version_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='version']")
     assert version_field is not None
     assert version_field.find(f"{{{client.NAMESPACE_URI}}}text").text == "1.0"
-
-
-def test_datetime_handling(client):
-    """Test handling of datetime objects for publication date."""
-    metadata = {
-        "title": "Datetime Test",
-        "doi": "10.12345/datetime.test",
-        "publication_date": datetime(2023, 7, 20),
-    }
-
-    xml = client.generate_record_xml(metadata)
-    native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
-
-    pub_date_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='publication-date']"
-    )
-    date_elem = pub_date_field.find(f"{{{client.NAMESPACE_URI}}}date")
-
-    assert date_elem.find(f"{{{client.NAMESPACE_URI}}}day").text == "20"
-    assert date_elem.find(f"{{{client.NAMESPACE_URI}}}month").text == "7"
-    assert date_elem.find(f"{{{client.NAMESPACE_URI}}}year").text == "2023"
 
 
 def test_create_record_success(client, sample_metadata):

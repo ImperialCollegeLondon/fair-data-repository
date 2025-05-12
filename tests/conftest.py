@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 from invenio_access.permissions import system_identity
 from invenio_app.factory import create_app as app_factory
-from invenio_rdm_records.cli import create_records_custom_field
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 
 
@@ -42,12 +41,22 @@ def redis_container():
         yield {"host": host, "port": port}
 
 
+@pytest.fixture(scope="session")
+def rabbitmq_container():
+    """Start a RabbitMQ container."""
+    from testcontainers.rabbitmq import RabbitMqContainer
+
+    with RabbitMqContainer() as container:
+        host = container.get_container_host_ip()
+        port = container.get_exposed_port(5672)
+
+        yield {"host": host, "port": port}
+
+
 @pytest.fixture(scope="module")
-def app_config(opensearch_container, redis_container, app_config):
+def app_config(opensearch_container, redis_container, rabbitmq_container, app_config):
     """Update invenio app_config fixture for Redis/OpenSearch and webpack configs."""
     from ic_data_repo.config import settings
-
-    use_test_containers = False
 
     # blank out sqlalchemy options as the defaults (inherited from
     # invenio_app_rdm.config) contain "pool_timeout" which is not valid for use with
@@ -55,30 +64,29 @@ def app_config(opensearch_container, redis_container, app_config):
     app_config["SQLALCHEMY_ENGINE_OPTIONS"] = ""
 
     # OpenSearch config.
-    if use_test_containers:
-        opensearch_host = opensearch_container["host"]
-        opensearch_port = opensearch_container["port"]
-        app_config["SEARCH_HOSTS"] = [
-            {"host": opensearch_host, "port": opensearch_port}
-        ]
+    opensearch_host = opensearch_container["host"]
+    opensearch_port = opensearch_container["port"]
+    app_config["SEARCH_HOSTS"] = [{"host": opensearch_host, "port": opensearch_port}]
 
-        # Redis config.
-        redis_host = redis_container["host"]
-        redis_port = redis_container["port"]
-        redis_url = f"redis://{redis_host}:{redis_port}"
-        app_config["CACHE_TYPE"] = "redis"
-        app_config["CACHE_REDIS_URL"] = f"{redis_url}/0"
-        app_config["IIIF_CACHE_REDIS_URL"] = f"{redis_url}/0"
-        app_config["ACCOUNTS_SESSION_REDIS_URL"] = f"{redis_url}/1"
-        app_config["CELERY_RESULT_BACKEND"] = f"{redis_url}/2"
-        app_config["RATELIMIT_STORAGE_URL"] = f"{redis_url}/3"
-        app_config["COMMUNITIES_IDENTITIES_CACHE_REDIS_URL"] = f"{redis_url}/4"
+    # Redis config.
+    redis_host = redis_container["host"]
+    redis_port = redis_container["port"]
+    redis_url = f"redis://{redis_host}:{redis_port}"
+    app_config["CACHE_TYPE"] = "redis"
+    app_config["CACHE_REDIS_URL"] = f"{redis_url}/0"
+    app_config["IIIF_CACHE_REDIS_URL"] = f"{redis_url}/0"
+    app_config["ACCOUNTS_SESSION_REDIS_URL"] = f"{redis_url}/1"
+    app_config["CELERY_RESULT_BACKEND"] = f"{redis_url}/2"
+    app_config["RATELIMIT_STORAGE_URL"] = f"{redis_url}/3"
+    app_config["COMMUNITIES_IDENTITIES_CACHE_REDIS_URL"] = f"{redis_url}/4"
 
-    else:
-        app_config["SEARCH_INDEX_PREFIX"] = "test"
-
-    # app_config['RDM_COMMUNITY_REQUIRED_TO_PUBLISH'] = False
-    app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
+    # RabbitMQ config.
+    rabbitmq_host = rabbitmq_container["host"]
+    rabbitmq_port = rabbitmq_container["port"]
+    app_config["BROKER_URL"] = f"amqp://guest:guest@{rabbitmq_host}:{rabbitmq_port}/"
+    app_config["CELERY_BROKER_URL"] = (
+        f"amqp://guest:guest@{rabbitmq_host}:{rabbitmq_port}/"
+    )
 
     # ---- Webpack manifest configuration ----
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
@@ -105,6 +113,9 @@ def app_config(opensearch_container, redis_container, app_config):
         f.write("/* Empty theme file */")
 
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
+
+    # Let us create records without files for testing purposes.
+    app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
 
     return settings.__dict__ | app_config
 
@@ -137,19 +148,3 @@ def vocabularies():
         delay=False,
     )
     vocabularies.load()
-
-
-@pytest.fixture(scope="module")
-def cli_runner(base_app):
-    """Create a CLI runner for testing a CLI command."""
-
-    def cli_invoke(command, *args, input=None):
-        return base_app.test_cli_runner().invoke(command, args, input=input)
-
-    return cli_invoke
-
-
-@pytest.fixture(scope="function")
-def initialise_custom_fields(app, location, db, search_clear, cli_runner):
-    """Fixture initialises custom fields."""
-    return cli_runner(create_records_custom_field)

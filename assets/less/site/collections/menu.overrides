@@ -45,7 +45,7 @@
     border-color: transparent;
 
     #invenio-nav {
-        background: @white;
+        background: transparent;
         border-top: 2px solid @brandColor;
         border-bottom: 2px solid @brandColor;
         margin: 1rem 0;

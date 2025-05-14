@@ -1,5 +1,47 @@
 .ui.container.frontpage-header {
-    background-color: @frontpageSearchBarBackgroundColor !important;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("@{imagesFolder}/background.jpg");
+    min-height: 48rem;
+    height: max-content;
+    object-fit: cover;
+    object-position: center center;
+    width: 100vw;
+    .tagline-container {
+        max-width: 50%;
+        margin-top: 12rem;
+        h1 {
+            font-size: 7rem;
+            line-height: 7rem;
+        }
+        h2 {
+            margin-top: 3rem;
+            font-size: 4rem;
+            line-height: 4rem;
+        }
+    }
+    .search-container {
+        background-color: @springGreen;
+        padding: 2rem 3rem;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        h2.search-label {
+            margin-bottom: 0;
+            flex-grow: 1;
+        }
+        form.frontpage-header--search {
+                flex-grow: 9;
+                background: transparent;
+                justify-content: space-around;
+                button.btn {
+                    background-color: @black;
+                    &:hover {
+                        background-color: @imperialBlue;
+                    }
+                }
+        }
+    }
 }
 
 .ui.container.page-subheader {

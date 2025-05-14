@@ -19,9 +19,10 @@ class CreatorsValue(List):
 
     def deserialize(self, value, attr=None, data=None, **kwargs):
         """Remove role from creator."""
-        for creator in value:
-            if "role" in creator:
-                del creator["role"]
+        if value:
+            for creator in value:
+                if "role" in creator:
+                    del creator["role"]
         return super().deserialize(value, attr, data, **kwargs)
 
 

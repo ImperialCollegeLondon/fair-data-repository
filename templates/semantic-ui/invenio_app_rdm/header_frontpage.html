@@ -7,8 +7,14 @@
     under the terms of the MIT License; see LICENSE file for more details.
 #}
 
+{%- extends config.THEME_HEADER_TEMPLATE %}
 
 {#- Remove search field from top bar on frontpage #}
+{%- block navbar_search %}{% endblock %}
+
+{%- block navbar %}
+{{ super() }}
+
 {%- block frontpage_search %}
 <div id="frontpage-search-bar" class="ui container fluid frontpage-header">
 {%- include config.THEME_HEADER_TEMPLATE %}

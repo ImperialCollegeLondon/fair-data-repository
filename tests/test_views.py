@@ -136,13 +136,12 @@ def test_new_record_version(user_client, location, vocabularies):
     )
 
     assert create_draft_request.status_code == 201
-
     draft_id = create_draft_request.json["id"]
 
     community_metadata = {
         "slug": "icl",
         "metadata": {
-            "title": "Physics Research Group",
+            "title": "Imperial College London",
         },
         "access": {
             "visibility": "public",
@@ -155,11 +154,11 @@ def test_new_record_version(user_client, location, vocabularies):
         headers=headers,
     )
 
-    community_uuid = create_community_response.json["id"]
     assert create_community_response.status_code == 201
+    community_id = create_community_response.json["id"]
 
     community_submission_request_metadata = {
-        "receiver": {"community": community_uuid},
+        "receiver": {"community": community_id},
         "type": "community-submission",
     }
 
@@ -172,7 +171,6 @@ def test_new_record_version(user_client, location, vocabularies):
     assert create_request_response.status_code == 200
     assert create_request_response.json["id"] is not None
     assert "submit" in create_request_response.json["links"]["actions"]
-
     request_id = create_request_response.json["id"]
 
     submit_review_request = user_client.post(
@@ -189,3 +187,20 @@ def test_new_record_version(user_client, location, vocabularies):
 
     assert accept_submission_request.status_code == 200
     assert accept_submission_request.json["status"] == "accepted"
+
+    # POST for new version draft.
+    create_new_draft_request = user_client.post(
+        f"/api/records/{draft_id}/versions",
+        headers=headers,
+    )
+
+    assert create_new_draft_request.status_code == 201
+    new_draft_id = create_new_draft_request.json["id"]
+
+    # Check old version publication date is used in new draft.
+    old_version = user_client.get(f"/api/records/{draft_id}", headers=headers)
+    new_version = user_client.get(f"/api/records/{new_draft_id}/draft", headers=headers)
+    old_metadata = old_version.json["metadata"]
+    new_metadata = new_version.json["metadata"]
+    assert "publication_date" in new_metadata  # TODO: currently failing
+    assert new_metadata["publication_date"] == old_metadata["publication_date"]

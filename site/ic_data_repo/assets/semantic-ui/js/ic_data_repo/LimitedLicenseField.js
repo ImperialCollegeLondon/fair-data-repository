@@ -60,12 +60,6 @@ class LicenseFieldForm extends Component {
       serializeLicenses,
     } = this.props;
 
-    // Limiting the search results
-    // see https://github.com/inveniosoftware/react-searchkit
-    searchConfig.initialQueryState.filters = [['tags', 'data']];
-    searchConfig.initialQueryState.size = 2;
-    searchConfig.initialQueryState.queryString = 'id: cc-by-4.0 OR cc0-1.0';
-
     const uiRights = getIn(values, uiFieldPath, []);
 
     return (

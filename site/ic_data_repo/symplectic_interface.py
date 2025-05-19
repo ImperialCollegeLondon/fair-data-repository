@@ -223,27 +223,14 @@ class SymplecticClient:
     def create_record(self, metadata):
         """Create a record in Symplectic Elements."""
         record_xml = self.generate_record_xml(metadata)
-        doi = None
-        meta = metadata.get("metadata", {}) if "metadata" in metadata else metadata
-        for identifier in meta.get("identifiers", []):
-            if identifier.get("scheme", "").lower() == "doi":
-                doi = identifier.get("identifier")
-                break
-        if not doi:
-            raise ValueError("DOI not found in metadata; cannot use as proprietary_id.")
-
-        proprietary_id = doi.replace("/", "-")
-        url = f"{self.api_url}/publication/records/manual/{proprietary_id.upper()}"
+        proprietary_id = metadata.get("id")
+        url = f"{self.api_url}/publication/records/manual/{str(proprietary_id).upper()}"
+        print("URL:", proprietary_id)
         response = requests.put(
             url,
             data=etree.tostring(record_xml, encoding="unicode"),
             headers=self.headers,
         )
-        if not response.ok:
-            # Raise an exception with the response content
-            raise Exception(response.text)
-
-        print(f"PID response is: {proprietary_id}")
         return {
             "success": response.ok,
         }

@@ -25,6 +25,7 @@ module = [
        "invenio_app.*",
        "invenio_app_rdm.config.*",
        "invenio_assets.*",
+       "invenio_communities.*",
        "invenio_i18n.*",
        "invenio_notifications.*",
        "invenio_oauthclient.*",

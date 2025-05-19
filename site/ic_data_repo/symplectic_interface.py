@@ -60,8 +60,10 @@ class SymplecticClient:
             },
         )
 
-    def generate_record_xml(self, metadata):
+    def generate_record_xml(self, record):
         """Generate the XML for the record to be created in Symplectic."""
+        metadata = record.get("metadata", {})
+
         import_record_element = etree.Element(
             self.api_qname("import-record"),
             attrib={
@@ -90,8 +92,8 @@ class SymplecticClient:
         )
         title_text_element.text = metadata.get("title")
 
-        abstract = metadata.get("abstract")
-        if abstract:
+        description = metadata.get("description")
+        if description:
             abstract_element = etree.SubElement(
                 native_element,
                 self.api_qname("field"),
@@ -105,7 +107,7 @@ class SymplecticClient:
                 abstract_element,
                 self.api_qname("text"),
             )
-            abstract_text_element.text = abstract
+            abstract_text_element.text = description
 
         authors_element = etree.SubElement(
             native_element,
@@ -117,29 +119,33 @@ class SymplecticClient:
             },
         )
         people_element = etree.SubElement(authors_element, self.api_qname("people"))
-        for author in metadata.get("authors", []):
+        for creator in metadata.get("creators", []):
+            po = creator.get("person_or_org", {})
             person_element = etree.SubElement(people_element, self.api_qname("person"))
             last_name_element = etree.SubElement(
                 person_element, self.api_qname("last-name")
             )
-            last_name_element.text = author.get("last_name")
+            last_name_element.text = po.get("family_name")
             first_names_element = etree.SubElement(
                 person_element, self.api_qname("first-names")
             )
-            first_names_element.text = author.get("first_names")
-            if author.get("orcid"):
-                identifiers_element = etree.SubElement(
-                    person_element, self.api_qname("identifiers")
-                )
-                orcid_element = etree.SubElement(
-                    identifiers_element,
-                    self.api_qname("identifier"),
-                    attrib=dict(scheme="orcid"),
-                )
-                orcid_element.text = author["orcid"]
+            first_names_element.text = po.get("given_name")
+            # Add ORCID if present
+            for identifier in po.get("identifiers", []):
+                if identifier.get("scheme") == "orcid":
+                    identifiers_element = etree.SubElement(
+                        person_element, self.api_qname("identifiers")
+                    )
+                    orcid_element = etree.SubElement(
+                        identifiers_element,
+                        self.api_qname("identifier"),
+                        attrib=dict(scheme="orcid"),
+                    )
+                    orcid_element.text = identifier.get("identifier")
 
-        licence = metadata.get("licence")
-        if licence:
+        # Licence/Rights
+        rights = metadata.get("rights", [])
+        if rights:
             licence_element = etree.SubElement(
                 native_element,
                 self.api_qname("field"),
@@ -152,13 +158,19 @@ class SymplecticClient:
             licence_text_element = etree.SubElement(
                 licence_element, self.api_qname("text")
             )
-            licence_text_element.text = licence
+            licence_text_element.text = rights[0].get("id")
 
-        self.add_doi_subtree(
-            native_element, "c-validated-doi", "DOI", metadata.get("doi")
-        )
+        doi = None
+        for identifier in metadata.get("identifiers", []):
+            if identifier.get("scheme", "").lower() == "doi":
+                doi = identifier.get("identifier")
+                break
+        if doi:
+            self.add_doi_subtree(native_element, "c-validated-doi", "DOI", doi)
 
         version = metadata.get("version")
+        if not version:
+            version = record.get("custom_fields", {}).get("imperial:dart_id")
         if version:
             version_element = etree.SubElement(
                 native_element,
@@ -172,35 +184,38 @@ class SymplecticClient:
             version_text_element = etree.SubElement(
                 version_element, self.api_qname("text")
             )
-            version_text_element.text = version
+            version_text_element.text = str(version)
 
         pub_date = metadata.get("publication_date")
-        if isinstance(pub_date, str):
-            pub_date = datetime.fromisoformat(pub_date)
-        publication_date_element = etree.SubElement(
-            native_element,
-            self.api_qname("field"),
-            attrib={
-                "name": "publication-date",
-                "type": "date",
-                "display-name": "Publication Date",
-            },
-        )
-        publication_date_date_element = etree.SubElement(
-            publication_date_element, self.api_qname("date")
-        )
-        publication_day_element = etree.SubElement(
-            publication_date_date_element, self.api_qname("day")
-        )
-        publication_day_element.text = str(pub_date.day)
-        publication_month_element = etree.SubElement(
-            publication_date_date_element, self.api_qname("month")
-        )
-        publication_month_element.text = str(pub_date.month)
-        publication_year_element = etree.SubElement(
-            publication_date_date_element, self.api_qname("year")
-        )
-        publication_year_element.text = str(pub_date.year)
+        if pub_date:
+            try:
+                pub_date_obj = datetime.fromisoformat(pub_date)
+            except Exception:
+                pub_date_obj = datetime.now()
+            publication_date_element = etree.SubElement(
+                native_element,
+                self.api_qname("field"),
+                attrib={
+                    "name": "publication-date",
+                    "type": "date",
+                    "display-name": "Publication Date",
+                },
+            )
+            publication_date_date_element = etree.SubElement(
+                publication_date_element, self.api_qname("date")
+            )
+            publication_day_element = etree.SubElement(
+                publication_date_date_element, self.api_qname("day")
+            )
+            publication_day_element.text = str(pub_date_obj.day)
+            publication_month_element = etree.SubElement(
+                publication_date_date_element, self.api_qname("month")
+            )
+            publication_month_element.text = str(pub_date_obj.month)
+            publication_year_element = etree.SubElement(
+                publication_date_date_element, self.api_qname("year")
+            )
+            publication_year_element.text = str(pub_date_obj.year)
 
         return import_record_element
 
@@ -214,6 +229,7 @@ class SymplecticClient:
             data=etree.tostring(record_xml, encoding="unicode"),
             headers=self.headers,
         )
+        print(f"PID response is: {proprietary_id})")
         return {
             "status_code": response.status_code,
             "headers": dict(response.headers),

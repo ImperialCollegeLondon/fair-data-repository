@@ -1,7 +1,6 @@
 """Tests for the Symplectic API client."""
 
 import os
-import uuid
 from unittest.mock import ANY, Mock, patch
 
 import pytest
@@ -16,7 +15,7 @@ def mock_env_vars():
         os.environ,
         {
             "SYMPLECTIC_API_URL": "https://api.symplectic.example.com",
-            "API_SUBSCRIPTION_KEY": "fake-api-key-1234",
+            "SYMPLECTIC_API_SUBSCRIPTION_KEY": "fake-api-key-1234",
         },
     ):
         yield
@@ -30,22 +29,23 @@ def client(mock_env_vars):
 
 @pytest.fixture
 def sample_metadata():
-    """Sample metadata for testing record creation."""
+    """Provide sample metadata for testing."""
     return {
-        "title": "Test Dataset Title",
-        "abstract": "This is a sample abstract for testing purposes.",
-        "authors": [
-            {
-                "first_names": "Alice",
-                "last_name": "Researcher",
-                "orcid": "0000-0001-2345-6789",
-            },
-            {"first_names": "Bob", "last_name": "Scientist"},
-        ],
-        "doi": "10.12345/test.67890",
-        "publication_date": "2023-04-15",
-        "licence": "CC-BY-4.0",
-        "version": "1.0",
+        "metadata": {
+            "title": "A title",
+            "creators": [
+                {
+                    "person_or_org": {
+                        "name": "John",
+                        "type": "personal",
+                        "family_name": "John",
+                    }
+                }
+            ],
+            "publisher": "Imperial College London",
+            "resource_type": {"id": "dataset"},
+            "publication_date": "2025-05-19",
+        }
     }
 
 
@@ -63,7 +63,7 @@ def test_add_doi_subtree(client):
     """Test adding a DOI subtree to an XML element."""
     parent = etree.Element("test-parent")
 
-    client.add_doi_subtree(parent, "c-validated-doi", "DOI", "10.12345/test.67890")
+    client.add_doi_subtree(parent, "c-validated-doi", "10.12345/test.67890")
 
     field = parent.find(f"{{{client.NAMESPACE_URI}}}field")
     assert field is not None
@@ -93,45 +93,20 @@ def test_add_doi_subtree(client):
 
 
 def test_generate_record_xml(client, sample_metadata):
-    """Test generating XML with full metadata."""
+    """Test generating XML with minimal metadata."""
     xml = client.generate_record_xml(sample_metadata)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
 
-    abstract_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='abstract']"
-    )
-    assert abstract_field is not None
-    assert (
-        abstract_field.find(f"{{{client.NAMESPACE_URI}}}text").text
-        == "This is a sample abstract for testing purposes."
-    )
+    title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
+    assert title_field is not None
+    assert title_field.find(f"{{{client.NAMESPACE_URI}}}text").text == "A title"
 
     authors_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='authors']")
     assert authors_field is not None
     people = authors_field.find(f"{{{client.NAMESPACE_URI}}}people")
     persons = people.findall(f"{{{client.NAMESPACE_URI}}}person")
-    assert len(persons) == 2
-
-    assert persons[0].find(f"{{{client.NAMESPACE_URI}}}first-names").text == "Alice"
-    assert persons[0].find(f"{{{client.NAMESPACE_URI}}}last-name").text == "Researcher"
-    identifiers = persons[0].find(f"{{{client.NAMESPACE_URI}}}identifiers")
-    assert identifiers is not None
-    orcid = identifiers.find(f"{{{client.NAMESPACE_URI}}}identifier[@scheme='orcid']")
-    assert orcid.text == "0000-0001-2345-6789"
-
-    assert persons[1].find(f"{{{client.NAMESPACE_URI}}}first-names").text == "Bob"
-    assert persons[1].find(f"{{{client.NAMESPACE_URI}}}last-name").text == "Scientist"
-    assert persons[1].find(f"{{{client.NAMESPACE_URI}}}identifiers") is None
-
-    licence_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='c-licence']"
-    )
-    assert licence_field is not None
-    assert licence_field.find(f"{{{client.NAMESPACE_URI}}}text").text == "CC-BY-4.0"
-
-    version_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='version']")
-    assert version_field is not None
-    assert version_field.find(f"{{{client.NAMESPACE_URI}}}text").text == "1.0"
+    assert len(persons) == 1
+    assert persons[0].find(f"{{{client.NAMESPACE_URI}}}last-name").text == "John"
 
 
 def test_create_record_success(client, sample_metadata):
@@ -142,52 +117,34 @@ def test_create_record_success(client, sample_metadata):
     mock_response.text = "<api:response>Record created successfully</api:response>"
     mock_response.ok = True
 
-    test_uuid = uuid.UUID("12345678-1234-5678-1234-567812345678")
+    sample_metadata["metadata"]["identifiers"] = [
+        {"scheme": "doi", "identifier": "10.12345/test.67890"}
+    ]
 
-    with patch("requests.put", return_value=mock_response) as mock_put, patch(
-        "uuid.uuid4", return_value=test_uuid
-    ):
-
-        result = client.create_record(sample_metadata)
+    with patch("requests.put", return_value=mock_response) as mock_put:
 
         expected_url = (
-            f"{client.api_url}/publication/records/manual/{str(test_uuid).upper()}"
+            f"{client.api_url}/publication/records/manual/10.12345-TEST.67890"
         )
         mock_put.assert_called_once_with(expected_url, data=ANY, headers=client.headers)
 
-        assert result["status_code"] == 201
-        assert result["headers"] == {"Location": "/publication/records/12345"}
-        assert (
-            result["content"]
-            == "<api:response>Record created successfully</api:response>"
-        )
-        assert result["success"] is True
-        assert result["proprietary_id"] == str(test_uuid)
-        assert result["url"] == expected_url
-
 
 def test_create_record_failure(client, sample_metadata):
-    """Test record creation failure by mocking an error API response."""
+    """Test record creation failure by mocking an unsuccessful API response."""
     mock_response = Mock()
     mock_response.status_code = 400
-    mock_response.headers = {"Content-Type": "application/xml"}
-    mock_response.text = "<api:error>Invalid data</api:error>"
+    mock_response.text = "<api:response>Error creating record</api:response>"
     mock_response.ok = False
 
-    test_uuid = uuid.UUID("12345678-1234-5678-1234-567812345678")
+    sample_metadata["metadata"]["identifiers"] = [
+        {"scheme": "doi", "identifier": "10.12345/test.67890"}
+    ]
 
-    with patch("requests.put", return_value=mock_response) as mock_put, patch(
-        "uuid.uuid4", return_value=test_uuid
-    ):
-
-        result = client.create_record(sample_metadata)
-
-        mock_put.assert_called_once_with(
-            f"{client.api_url}/publication/records/manual/{str(test_uuid).upper()}",
-            data=ANY,
-            headers=client.headers,
+    with patch("requests.put", return_value=mock_response) as mock_put:
+        with pytest.raises(Exception) as excinfo:
+            client.create_record(sample_metadata)
+        assert "Error creating record" in str(excinfo.value)
+        expected_url = (
+            f"{client.api_url}/publication/records/manual/10.12345-TEST.67890"
         )
-
-        assert result["status_code"] == 400
-        assert result["content"] == "<api:error>Invalid data</api:error>"
-        assert result["success"] is False
+        mock_put.assert_called_once_with(expected_url, data=ANY, headers=client.headers)

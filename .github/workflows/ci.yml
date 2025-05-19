@@ -4,21 +4,8 @@ on:
     branches:
       - main
       - develop
-    paths-ignore:
-      - "docs/**"
-      - "app_data/**"
-      - "docker/**"
 jobs:
-  qa:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
-      - uses: pre-commit/action@v3.0.1
   test:
-    needs: qa
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

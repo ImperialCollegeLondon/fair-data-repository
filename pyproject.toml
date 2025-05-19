@@ -20,6 +20,7 @@ module = [
        "celery.*",
        "flask_login.*",
        "flask_oauthlib.*",
+       "ic_data_repo.config.*",
        "invenio_access.*",
        "invenio_app.*",
        "invenio_app_rdm.config.*",

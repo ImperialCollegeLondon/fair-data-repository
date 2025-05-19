@@ -1,31 +1,32 @@
 """Symplectic API client for creating records in Symplectic Elements."""
 
 import os
-import uuid
 from datetime import datetime
 from functools import partial
 
 import requests
 from lxml import etree
 
+NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
+etree.register_namespace("api", NAMESPACE_URI)
+
 
 class SymplecticClient:
     """Client for interacting with the Symplectic API."""
 
-    NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
+    NAMESPACE_URI = NAMESPACE_URI
     api_qname = partial(etree.QName, NAMESPACE_URI)
 
-    def __init__(self):
+    def __init__(self, api_url=None, api_key=None):
         """Initialize the Symplectic client."""
-        self.api_url = os.getenv("SYMPLECTIC_API_URL")
-        self.api_key = os.getenv("API_SUBSCRIPTION_KEY")
+        self.api_url = api_url or os.getenv("SYMPLECTIC_API_URL")
+        self.api_key = api_key or os.getenv("SYMPLECTIC_API_SUBSCRIPTION_KEY")
         self.headers = {
             "Content-Type": "text/xml",
             "Subscription-Key": self.api_key,
         }
-        etree.register_namespace("api", self.NAMESPACE_URI)
 
-    def add_doi_subtree(self, parent_element, doi_type, display_name, doi):
+    def add_doi_subtree(self, parent_element, doi_type, doi):
         """Add a DOI subtree to the XML tree."""
         doi_element = etree.SubElement(
             parent_element,
@@ -166,7 +167,7 @@ class SymplecticClient:
                 doi = identifier.get("identifier")
                 break
         if doi:
-            self.add_doi_subtree(native_element, "c-validated-doi", "DOI", doi)
+            self.add_doi_subtree(native_element, "c-validated-doi", "DOI")
 
         version = metadata.get("version")
         if not version:
@@ -222,19 +223,27 @@ class SymplecticClient:
     def create_record(self, metadata):
         """Create a record in Symplectic Elements."""
         record_xml = self.generate_record_xml(metadata)
-        proprietary_id = uuid.uuid4()
-        url = f"{self.api_url}/publication/records/manual/{str(proprietary_id).upper()}"
+        doi = None
+        meta = metadata.get("metadata", {}) if "metadata" in metadata else metadata
+        for identifier in meta.get("identifiers", []):
+            if identifier.get("scheme", "").lower() == "doi":
+                doi = identifier.get("identifier")
+                break
+        if not doi:
+            raise ValueError("DOI not found in metadata; cannot use as proprietary_id.")
+
+        proprietary_id = doi.replace("/", "-")
+        url = f"{self.api_url}/publication/records/manual/{proprietary_id.upper()}"
         response = requests.put(
             url,
             data=etree.tostring(record_xml, encoding="unicode"),
             headers=self.headers,
         )
-        print(f"PID response is: {proprietary_id})")
+        if not response.ok:
+            # Raise an exception with the response content
+            raise Exception(response.text)
+
+        print(f"PID response is: {proprietary_id}")
         return {
-            "status_code": response.status_code,
-            "headers": dict(response.headers),
-            "content": response.text,
             "success": response.ok,
-            "proprietary_id": str(proprietary_id),
-            "url": url,
         }

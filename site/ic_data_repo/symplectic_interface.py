@@ -1,6 +1,5 @@
 """Symplectic API client for creating records in Symplectic Elements."""
 
-import os
 from datetime import datetime
 from functools import partial
 
@@ -19,8 +18,8 @@ class SymplecticClient:
 
     def __init__(self, api_url=None, api_key=None):
         """Initialize the Symplectic client."""
-        self.api_url = api_url or os.getenv("SYMPLECTIC_API_URL")
-        self.api_key = api_key or os.getenv("SYMPLECTIC_API_SUBSCRIPTION_KEY")
+        self.api_url = api_url
+        self.api_key = api_key
         self.headers = {
             "Content-Type": "text/xml",
             "Subscription-Key": self.api_key,

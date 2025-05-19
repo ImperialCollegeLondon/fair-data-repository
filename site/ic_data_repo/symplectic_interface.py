@@ -1,5 +1,6 @@
 """Symplectic API client for creating records in Symplectic Elements."""
 
+import os
 from datetime import datetime
 from functools import partial
 
@@ -18,8 +19,8 @@ class SymplecticClient:
 
     def __init__(self, api_url=None, api_key=None):
         """Initialize the Symplectic client."""
-        self.api_url = api_url
-        self.api_key = api_key
+        self.api_url = api_url or os.getenv("SYMPLECTIC_API_URL")
+        self.api_key = api_key or os.getenv("SYMPLECTIC_API_SUBSCRIPTION_KEY")
         self.headers = {
             "Content-Type": "text/xml",
             "Subscription-Key": self.api_key,
@@ -223,13 +224,15 @@ class SymplecticClient:
         """Create a record in Symplectic Elements."""
         record_xml = self.generate_record_xml(metadata)
         proprietary_id = metadata.get("id")
-        url = f"{self.api_url}/publication/records/manual/{str(proprietary_id).upper()}"
+        url = f"{self.api_url}/publication/records/manual/{proprietary_id}"
         print("URL:", proprietary_id)
         response = requests.put(
             url,
             data=etree.tostring(record_xml, encoding="unicode"),
             headers=self.headers,
         )
+        if not response.ok:
+            raise Exception(response.text)
         return {
             "success": response.ok,
         }

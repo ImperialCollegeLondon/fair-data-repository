@@ -1,7 +1,7 @@
 """Tests for the Symplectic API client."""
 
 import os
-from unittest.mock import ANY, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from ic_data_repo.symplectic_interface import SymplecticClient
@@ -31,6 +31,7 @@ def client(mock_env_vars):
 def sample_metadata():
     """Provide sample metadata for testing."""
     return {
+        "id": "test-12345",
         "metadata": {
             "title": "A title",
             "creators": [
@@ -45,7 +46,8 @@ def sample_metadata():
             "publisher": "Imperial College London",
             "resource_type": {"id": "dataset"},
             "publication_date": "2025-05-19",
-        }
+            "identifiers": [{"scheme": "doi", "identifier": "10.12345/test.67890"}],
+        },
     }
 
 
@@ -117,16 +119,18 @@ def test_create_record_success(client, sample_metadata):
     mock_response.text = "<api:response>Record created successfully</api:response>"
     mock_response.ok = True
 
-    sample_metadata["metadata"]["identifiers"] = [
-        {"scheme": "doi", "identifier": "10.12345/test.67890"}
-    ]
-
     with patch("requests.put", return_value=mock_response) as mock_put:
-
+        result = client.create_record(sample_metadata)
         expected_url = (
-            f"{client.api_url}/publication/records/manual/10.12345-TEST.67890"
+            f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
         )
-        mock_put.assert_called_once_with(expected_url, data=ANY, headers=client.headers)
+        # Check URL and headers, but not data (XML string)
+        mock_put.assert_called_once()
+        called_url = mock_put.call_args[0][0]
+        called_headers = mock_put.call_args[1]["headers"]
+        assert called_url == expected_url
+        assert called_headers == client.headers
+        assert result["success"] is True
 
 
 def test_create_record_failure(client, sample_metadata):
@@ -136,15 +140,15 @@ def test_create_record_failure(client, sample_metadata):
     mock_response.text = "<api:response>Error creating record</api:response>"
     mock_response.ok = False
 
-    sample_metadata["metadata"]["identifiers"] = [
-        {"scheme": "doi", "identifier": "10.12345/test.67890"}
-    ]
-
     with patch("requests.put", return_value=mock_response) as mock_put:
         with pytest.raises(Exception) as excinfo:
             client.create_record(sample_metadata)
         assert "Error creating record" in str(excinfo.value)
         expected_url = (
-            f"{client.api_url}/publication/records/manual/10.12345-TEST.67890"
+            f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
         )
-        mock_put.assert_called_once_with(expected_url, data=ANY, headers=client.headers)
+        mock_put.assert_called_once()
+        called_url = mock_put.call_args[0][0]
+        called_headers = mock_put.call_args[1]["headers"]
+        assert called_url == expected_url
+        assert called_headers == client.headers

@@ -4,6 +4,7 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
+import requests
 from ic_data_repo.symplectic_interface import SymplecticClient
 from lxml import etree
 
@@ -37,7 +38,6 @@ def sample_metadata():
             "creators": [
                 {
                     "person_or_org": {
-                        "name": "John",
                         "type": "personal",
                         "family_name": "John",
                     }
@@ -46,7 +46,6 @@ def sample_metadata():
             "publisher": "Imperial College London",
             "resource_type": {"id": "dataset"},
             "publication_date": "2025-05-19",
-            "identifiers": [{"scheme": "doi", "identifier": "10.12345/test.67890"}],
         },
     }
 
@@ -118,19 +117,19 @@ def test_create_record_success(client, sample_metadata):
     mock_response.headers = {"Location": "/publication/records/12345"}
     mock_response.text = "<api:response>Record created successfully</api:response>"
     mock_response.ok = True
+    mock_response.raise_for_status = Mock(return_value=None)
 
     with patch("requests.put", return_value=mock_response) as mock_put:
-        result = client.create_record(sample_metadata)
+        client.create_record(sample_metadata)
+
         expected_url = (
             f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
         )
-        # Check URL and headers, but not data (XML string)
         mock_put.assert_called_once()
         called_url = mock_put.call_args[0][0]
         called_headers = mock_put.call_args[1]["headers"]
         assert called_url == expected_url
         assert called_headers == client.headers
-        assert result["success"] is True
 
 
 def test_create_record_failure(client, sample_metadata):
@@ -140,10 +139,15 @@ def test_create_record_failure(client, sample_metadata):
     mock_response.text = "<api:response>Error creating record</api:response>"
     mock_response.ok = False
 
+    mock_response.raise_for_status = Mock(
+        side_effect=requests.exceptions.HTTPError(
+            "400 Client Error", response=mock_response
+        )
+    )
     with patch("requests.put", return_value=mock_response) as mock_put:
-        with pytest.raises(Exception) as excinfo:
+        with pytest.raises(requests.exceptions.HTTPError):
             client.create_record(sample_metadata)
-        assert "Error creating record" in str(excinfo.value)
+
         expected_url = (
             f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
         )

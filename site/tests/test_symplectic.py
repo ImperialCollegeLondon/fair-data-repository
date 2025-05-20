@@ -38,6 +38,7 @@ def sample_metadata():
             "creators": [
                 {
                     "person_or_org": {
+                        "first_name": "John",
                         "type": "personal",
                         "family_name": "John",
                     }
@@ -46,6 +47,27 @@ def sample_metadata():
             "publisher": "Imperial College London",
             "resource_type": {"id": "dataset"},
             "publication_date": "2025-05-19",
+        },
+    }
+
+
+@pytest.fixture
+def minimal_metadata():
+    """Provide minimal metadata for testing."""
+    return {
+        "id": "test-12345",
+        "metadata": {
+            "title": "A title",
+            "creators": [
+                {
+                    "person_or_org": {
+                        "type": "personal",
+                        "family_name": "John",
+                    }
+                }
+            ],
+            "publisher": "Imperial College London",
+            "resource_type": {"id": "dataset"},
         },
     }
 
@@ -150,6 +172,28 @@ def test_create_record_failure(client, sample_metadata):
 
         expected_url = (
             f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
+        )
+        mock_put.assert_called_once()
+        called_url = mock_put.call_args[0][0]
+        called_headers = mock_put.call_args[1]["headers"]
+        assert called_url == expected_url
+        assert called_headers == client.headers
+
+
+def test_create_record_minimal_metadata(client, minimal_metadata):
+    """Test successful record creation with minimal metadata."""
+    mock_response = Mock()
+    mock_response.status_code = 201
+    mock_response.headers = {"Location": "/publication/records/12345"}
+    mock_response.text = "<api:response>Record created successfully</api:response>"
+    mock_response.ok = True
+    mock_response.raise_for_status = Mock(return_value=None)
+
+    with patch("requests.put", return_value=mock_response) as mock_put:
+        client.create_record(minimal_metadata)
+
+        expected_url = (
+            f"{client.api_url}/publication/records/manual/{minimal_metadata['id']}"
         )
         mock_put.assert_called_once()
         called_url = mock_put.call_args[0][0]

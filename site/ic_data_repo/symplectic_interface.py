@@ -9,6 +9,7 @@ from lxml import etree
 
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
 etree.register_namespace("api", NAMESPACE_URI)
+SYMPLECTIC_DATASET_TYPE_ID = "22"
 
 
 class SymplecticClient:
@@ -69,7 +70,7 @@ class SymplecticClient:
             self.api_qname("import-record"),
             attrib={
                 "type-name": "dataset",
-                "type-id": "22",
+                "type-id": SYMPLECTIC_DATASET_TYPE_ID,
             },
             nsmap={"api": self.NAMESPACE_URI},
         )
@@ -93,8 +94,7 @@ class SymplecticClient:
         )
         title_text_element.text = metadata.get("title")
 
-        description = metadata.get("description")
-        if description:
+        if description := metadata.get("description"):
             abstract_element = etree.SubElement(
                 native_element,
                 self.api_qname("field"),
@@ -161,17 +161,10 @@ class SymplecticClient:
             )
             licence_text_element.text = rights[0].get("id")
 
-        doi = None
-        for identifier in metadata.get("identifiers", []):
-            if identifier.get("scheme", "").lower() == "doi":
-                doi = identifier.get("identifier")
-                break
-        if doi:
-            self.add_doi_subtree(native_element, "c-validated-doi", "DOI")
+        doi = record.get("id")
+        self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
         version = metadata.get("version")
-        if not version:
-            version = record.get("custom_fields", {}).get("imperial:dart_id")
         if version:
             version_element = etree.SubElement(
                 native_element,
@@ -220,7 +213,7 @@ class SymplecticClient:
 
         return import_record_element
 
-    def create_symplectic_record(self, record):
+    def create_record(self, metadata):
         """Create a record in Symplectic Elements."""
         record_xml = self.generate_record_xml(metadata)
         proprietary_id = metadata.get("id")
@@ -231,8 +224,4 @@ class SymplecticClient:
             data=etree.tostring(record_xml, encoding="unicode"),
             headers=self.headers,
         )
-        if not response.ok:
-            raise Exception(response.text)
-        return {
-            "success": response.ok,
-        }
+        response.raise_for_status()

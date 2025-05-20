@@ -220,7 +220,7 @@ class SymplecticClient:
 
         return import_record_element
 
-    def create_record(self, metadata):
+    def create_symplectic_record(self, record):
         """Create a record in Symplectic Elements."""
         record_xml = self.generate_record_xml(metadata)
         proprietary_id = metadata.get("id")

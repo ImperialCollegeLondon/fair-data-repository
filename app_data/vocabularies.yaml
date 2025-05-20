@@ -9,6 +9,9 @@ subjects:
 names:
   pid-type: names
   data-file: vocabularies/names_empty.yaml
+licenses:
+  pid-type: lic
+  data-file: vocabularies/licenses.csv
 #licenses:
 #  pid-type: lic
 #  data-file: vocabularies/cc_licences.csv

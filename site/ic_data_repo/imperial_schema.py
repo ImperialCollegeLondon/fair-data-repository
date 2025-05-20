@@ -11,6 +11,7 @@ from invenio_rdm_records.services.schemas.metadata import CreatorSchema, Referen
 from invenio_vocabularies.services.schema import VocabularyRelationSchema
 from marshmallow import validate
 from marshmallow.fields import List, Nested, String
+from marshmallow_utils.fields import SanitizedHTML
 from werkzeug.local import LocalProxy
 
 
@@ -74,6 +75,7 @@ class ImperialMetadataSchema(MetadataSchema):
         required=True,
         validate=validate.Length(min=1, error=_("Missing data for required field.")),
     )
+    description = SanitizedHTML(required=True, validate=validate.Length(min=3))
     publisher = PublisherValue()
     publication_date = PublicationDateValue(
         load_default=lambda: current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"][

@@ -182,10 +182,7 @@ class SymplecticClient:
 
         pub_date = metadata.get("publication_date")
         if pub_date:
-            try:
-                pub_date_obj = datetime.fromisoformat(pub_date)
-            except Exception:
-                pub_date_obj = datetime.now()
+            pub_date_obj = datetime.fromisoformat(pub_date)
             publication_date_element = etree.SubElement(
                 native_element,
                 self.api_qname("field"),

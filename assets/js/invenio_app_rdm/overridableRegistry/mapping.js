@@ -25,6 +25,8 @@ const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {
   includeRole: true,
 });
 
+const DescriptionField = parametrize(TextAreaField, { required: true });
+
 /* A simple empty element to remove non-field components via override */
 class NullElement extends Component {
   render() {
@@ -39,7 +41,7 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.ResourceTypeField.container": HiddenField,
   "InvenioAppRdm.Deposit.PublisherField.container": HiddenField,
   "InvenioAppRdm.Deposit.PublicationDateField.container": HiddenField,
-  "InvenioAppRdm.Deposit.DescriptionsField.container": TextAreaField,
+  "InvenioAppRdm.Deposit.DescriptionsField.container": DescriptionField,
   "InvenioAppRdm.Deposit.LicenseField.container": LimitedLicenseField,
   "InvenioAppRdm.Deposit.AccordionFieldReferences.container": HiddenField,
   "InvenioAppRdm.Deposit.CommunityHeader.container": NullElement,

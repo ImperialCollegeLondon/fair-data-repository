@@ -68,7 +68,7 @@ class PublicationDateValue(String):
 
 
 class ImperialMetadataSchema(MetadataSchema):
-    """Imperial Metadata Schema that overrides five fields."""
+    """Imperial Metadata Schema."""
 
     resource_type = ResourceValue(VocabularyRelationSchema, required=True)
     creators = CreatorsValue(

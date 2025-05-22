@@ -35,6 +35,6 @@ def test_user_is_allowed_employee(job_family, expected):
 
 
 def test_user_is_allowed_employee_error():
-    """Test user_is_alloweD_employee raises error for inconsistent data."""
+    """Test user_is_allowed_employee raises error for inconsistent data."""
     with pytest.raises(ValueError):
         user_is_allowed_employee(POSTGRADUATE_ROLE_TYPE, ALLOWED_JOB_FAMILIES[0])

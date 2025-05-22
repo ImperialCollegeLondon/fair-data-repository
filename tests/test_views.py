@@ -127,6 +127,6 @@ def test_deposit_view_permissions(user, user_client, db, vocabularies, app):
     # grant access to the user
     db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
 
-    # page now acessible
+    # page now accessible
     response = user_client.get("/uploads/new")
     assert response.status_code == 200

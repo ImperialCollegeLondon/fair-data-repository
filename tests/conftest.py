@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import pytest
+import redis
 from invenio_access.permissions import system_identity
 from invenio_app.factory import create_app as app_factory
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
@@ -125,3 +126,25 @@ def vocabularies():
         delay=False,
     )
     vocabularies.load()
+
+
+@pytest.fixture
+def flush_redis(redis_container):
+    """Remove all data from redis.
+
+    This fixture can be used to flush all data from the redis after a test is run.
+    Some invenio features, notably the permission system, persist data in the cache
+    which can cause contamination between tests.
+    """
+    yield
+    for i in range(5):
+        client = redis.Redis(
+            host=redis_container["host"], port=redis_container["port"], db=i
+        )
+        client.flushdb()
+
+
+@pytest.fixture
+def app(app, flush_redis):
+    """Override the existing app fixture to add flush_redis teardown."""
+    return app

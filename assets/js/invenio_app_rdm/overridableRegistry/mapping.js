@@ -48,4 +48,5 @@ export const overriddenComponents = {
   "InvenioAppRdm.DashboardUploads.EmptyResults.element": NullElement,
   "InvenioAppRdm.Deposit.CardDepositStatusBox.container": CardDepositStatusBox,
   "InvenioAppRdm.Deposit.FundingField.container": FundingField,
+  "ReactInvenioDeposit.MetadataAccess.layout": NullElement,
 };

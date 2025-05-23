@@ -1,6 +1,6 @@
 """Tests for the Symplectic API client."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -122,74 +122,53 @@ def test_generate_record_xml(client, sample_metadata):
     assert persons[0].find(f"{{{client.NAMESPACE_URI}}}last-name").text == "John"
 
 
-def test_create_record_success(client, sample_metadata):
+@patch("requests.put")
+def test_create_record_success(mock_put, client, sample_metadata):
     """Test successful record creation by mocking the API response."""
-    mock_response = Mock()
-    mock_response.status_code = 201
-    mock_response.headers = {"Location": "/publication/records/12345"}
-    mock_response.text = "<api:response>Record created successfully</api:response>"
-    mock_response.ok = True
-    mock_response.raise_for_status = Mock(return_value=None)
+    client.create_record(sample_metadata)
 
-    with patch("requests.put", return_value=mock_response) as mock_put:
-        client.create_record(sample_metadata)
-
-        expected_url = (
-            f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
-        )
-        mock_put.assert_called_once()
-        called_url = mock_put.call_args[0][0]
-        called_headers = mock_put.call_args[1]["headers"]
-        assert called_url == expected_url
-        assert called_headers == client.headers
-
-
-def test_create_record_failure(client, sample_metadata):
-    """Test record creation failure by mocking an unsuccessful API response."""
-    mock_response = Mock()
-    mock_response.status_code = 400
-    mock_response.text = "<api:response>Error creating record</api:response>"
-    mock_response.ok = False
-
-    mock_response.raise_for_status = Mock(
-        side_effect=requests.exceptions.HTTPError(
-            "400 Client Error", response=mock_response
-        )
+    expected_url = (
+        f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
     )
-    with patch("requests.put", return_value=mock_response) as mock_put:
-        with pytest.raises(requests.exceptions.HTTPError):
-            client.create_record(sample_metadata)
-
-        expected_url = (
-            f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
-        )
-        mock_put.assert_called_once()
-        called_url = mock_put.call_args[0][0]
-        called_headers = mock_put.call_args[1]["headers"]
-        assert called_url == expected_url
-        assert called_headers == client.headers
+    mock_put.assert_called_once()
+    called_url = mock_put.call_args[0][0]
+    called_headers = mock_put.call_args[1]["headers"]
+    assert called_url == expected_url
+    assert called_headers == client.headers
 
 
-def test_create_record_minimal_metadata(client, minimal_metadata):
+@patch("requests.put")
+def test_create_record_failure(mock_put, client, sample_metadata):
+    """Test record creation failure by mocking an unsuccessful API response."""
+    mock_put().raise_for_status.side_effect = requests.exceptions.HTTPError(
+        "400 Client Error", response=mock_put
+    )
+    mock_put.reset_mock()
+    with pytest.raises(requests.exceptions.HTTPError):
+        client.create_record(sample_metadata)
+    expected_url = (
+        f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
+    )
+    mock_put.assert_called_once()
+    called_url = mock_put.call_args[0][0]
+    called_headers = mock_put.call_args[1]["headers"]
+    assert called_url == expected_url
+    assert called_headers == client.headers
+
+
+@patch("requests.put")
+def test_create_record_minimal_metadata(mock_put, client, minimal_metadata):
     """Test successful record creation with minimal metadata."""
-    mock_response = Mock()
-    mock_response.status_code = 201
-    mock_response.headers = {"Location": "/publication/records/12345"}
-    mock_response.text = "<api:response>Record created successfully</api:response>"
-    mock_response.ok = True
-    mock_response.raise_for_status = Mock(return_value=None)
+    client.create_record(minimal_metadata)
 
-    with patch("requests.put", return_value=mock_response) as mock_put:
-        client.create_record(minimal_metadata)
-
-        expected_url = (
-            f"{client.api_url}/publication/records/manual/{minimal_metadata['id']}"
-        )
-        mock_put.assert_called_once()
-        called_url = mock_put.call_args[0][0]
-        called_headers = mock_put.call_args[1]["headers"]
-        assert called_url == expected_url
-        assert called_headers == client.headers
+    expected_url = (
+        f"{client.api_url}/publication/records/manual/{minimal_metadata['id']}"
+    )
+    mock_put.assert_called_once()
+    called_url = mock_put.call_args[0][0]
+    called_headers = mock_put.call_args[1]["headers"]
+    assert called_url == expected_url
+    assert called_headers == client.headers
 
 
 def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):

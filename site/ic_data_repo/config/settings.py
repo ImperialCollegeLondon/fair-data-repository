@@ -242,3 +242,8 @@ CELERY_BEAT_SCHEDULE["update_imperial_users"] = {
     "task": "ic_data_repo.tasks.update_imperial_users",
     "schedule": timedelta(weeks=1),
 }
+
+
+SYMPLECTIC_API_URL = os.getenv("SYMPLECTIC_API_URL")
+SYMPLECTIC_API_SUBSCRIPTION_KEY = os.getenv("SYMPLECTIC_API_SUBSCRIPTION_KEY")
+SYMPLECTIC_ENABLED = SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY

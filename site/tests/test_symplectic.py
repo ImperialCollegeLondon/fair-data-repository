@@ -1,6 +1,5 @@
 """Tests for the Symplectic API client."""
 
-import os
 from unittest.mock import Mock, patch
 
 import pytest
@@ -8,24 +7,14 @@ import requests
 from ic_data_repo.symplectic_interface import SymplecticClient
 from lxml import etree
 
-
-@pytest.fixture
-def mock_env_vars():
-    """Set up mock environment variables for the Symplectic client."""
-    with patch.dict(
-        os.environ,
-        {
-            "SYMPLECTIC_API_URL": "https://api.symplectic.example.com",
-            "SYMPLECTIC_API_SUBSCRIPTION_KEY": "fake-api-key-1234",
-        },
-    ):
-        yield
+DUMMY_URL = "https://api.symplectic.example.com"
+DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
 
 
 @pytest.fixture
-def client(mock_env_vars):
+def client():
     """Create a Symplectic client instance with mocked environment variables."""
-    return SymplecticClient()
+    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY)
 
 
 @pytest.fixture
@@ -75,11 +64,11 @@ def minimal_metadata():
 
 def test_client_initialization(client):
     """Test that the client initializes with values from env."""
-    assert client.api_url == "https://api.symplectic.example.com"
-    assert client.api_key == "fake-api-key-1234"
+    assert client.api_url == DUMMY_URL
+    assert client.api_key == DUMMY_SUBSCRIPTION_KEY
     assert client.headers == {
         "Content-Type": "text/xml",
-        "Subscription-Key": "fake-api-key-1234",
+        "Subscription-Key": DUMMY_SUBSCRIPTION_KEY,
     }
 
 

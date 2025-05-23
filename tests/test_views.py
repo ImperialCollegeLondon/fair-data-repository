@@ -58,8 +58,8 @@ def get_csrf_token(client):
     raise ValueError("CSRF token not found in cookies")
 
 
-def test_metadata_schema(user_client, location, vocabularies):
-    """Test the record metadata schema."""
+def test_imperial_schema(user_client, location, vocabularies):
+    """Test the custom schemas."""
     headers = {
         "Content-Type": "application/json",
         "X-CSRFToken": get_csrf_token(user_client),
@@ -81,6 +81,10 @@ def test_metadata_schema(user_client, location, vocabularies):
             "publisher": "Fake Publisher",
             "publication_date": "1970-01-01",
         },
+        "access": {
+            "record": "restricted",
+            "files": "restricted",
+        },
     }
 
     result = user_client.post(
@@ -90,9 +94,16 @@ def test_metadata_schema(user_client, location, vocabularies):
     )
 
     assert result.status_code == 201
+
+    # Test metadata policies are enforced.
     assert result.json["metadata"]["title"] == "Test Record"
     assert result.json["metadata"]["resource_type"]["id"] == "dataset"
     assert result.json["metadata"]["creators"][0]["person_or_org"]["name"] == "Neo"
     assert "role" not in result.json["metadata"]["creators"][0]
     assert result.json["metadata"]["publisher"] == "Imperial College London"
     assert result.json["metadata"]["publication_date"] == date.today().isoformat()
+
+    # Test access policies are enforced.
+    # 'record' should be reset to public, but 'files' should remain restricted.
+    assert result.json["access"]["record"] == "public"
+    assert result.json["access"]["files"] == "restricted"

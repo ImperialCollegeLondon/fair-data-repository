@@ -180,33 +180,32 @@ class SymplecticClient:
             )
             version_text_element.text = str(version)
 
-        pub_date = metadata.get("publication_date")
-        if pub_date:
-            pub_date_obj = datetime.fromisoformat(pub_date)
-            publication_date_element = etree.SubElement(
-                native_element,
-                self.api_qname("field"),
-                attrib={
-                    "name": "publication-date",
-                    "type": "date",
-                    "display-name": "Publication Date",
-                },
-            )
-            publication_date_date_element = etree.SubElement(
-                publication_date_element, self.api_qname("date")
-            )
-            publication_day_element = etree.SubElement(
-                publication_date_date_element, self.api_qname("day")
-            )
-            publication_day_element.text = str(pub_date_obj.day)
-            publication_month_element = etree.SubElement(
-                publication_date_date_element, self.api_qname("month")
-            )
-            publication_month_element.text = str(pub_date_obj.month)
-            publication_year_element = etree.SubElement(
-                publication_date_date_element, self.api_qname("year")
-            )
-            publication_year_element.text = str(pub_date_obj.year)
+        pub_date = metadata["publication_date"]  # Will raise KeyError if missing
+        pub_date_obj = datetime.fromisoformat(pub_date)
+        publication_date_element = etree.SubElement(
+            native_element,
+            self.api_qname("field"),
+            attrib={
+                "name": "publication-date",
+                "type": "date",
+                "display-name": "Publication Date",
+            },
+        )
+        publication_date_date_element = etree.SubElement(
+            publication_date_element, self.api_qname("date")
+        )
+        publication_day_element = etree.SubElement(
+            publication_date_date_element, self.api_qname("day")
+        )
+        publication_day_element.text = str(pub_date_obj.day)
+        publication_month_element = etree.SubElement(
+            publication_date_date_element, self.api_qname("month")
+        )
+        publication_month_element.text = str(pub_date_obj.month)
+        publication_year_element = etree.SubElement(
+            publication_date_date_element, self.api_qname("year")
+        )
+        publication_year_element.text = str(pub_date_obj.year)
 
         return import_record_element
 

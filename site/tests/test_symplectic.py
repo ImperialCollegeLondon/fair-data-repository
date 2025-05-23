@@ -68,6 +68,7 @@ def minimal_metadata():
             ],
             "publisher": "Imperial College London",
             "resource_type": {"id": "dataset"},
+            "publication_date": "2025-05-19",
         },
     }
 
@@ -200,3 +201,51 @@ def test_create_record_minimal_metadata(client, minimal_metadata):
         called_headers = mock_put.call_args[1]["headers"]
         assert called_url == expected_url
         assert called_headers == client.headers
+
+
+def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
+    """Test generating XML with truly minimal metadata."""
+    xml = client.generate_record_xml(minimal_metadata)
+    native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
+
+    title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
+    assert title_field is not None
+    assert title_field.find(f"{{{client.NAMESPACE_URI}}}text").text == "A title"
+
+    authors_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='authors']")
+    assert authors_field is not None
+    people = authors_field.find(f"{{{client.NAMESPACE_URI}}}people")
+    persons = people.findall(f"{{{client.NAMESPACE_URI}}}person")
+    assert len(persons) == 1
+    person = persons[0]
+    assert person.find(f"{{{client.NAMESPACE_URI}}}last-name").text == "John"
+
+    first_names_element = person.find(f"{{{client.NAMESPACE_URI}}}first-names")
+    if first_names_element is not None:
+        assert first_names_element.text is None or first_names_element.text == ""
+
+    pub_date_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='publication-date']"
+    )
+    assert pub_date_field is not None
+    date_element = pub_date_field.find(f"{{{client.NAMESPACE_URI}}}date")
+    assert date_element is not None
+    assert date_element.find(f"{{{client.NAMESPACE_URI}}}day").text == "19"
+    assert date_element.find(f"{{{client.NAMESPACE_URI}}}month").text == "5"
+    assert date_element.find(f"{{{client.NAMESPACE_URI}}}year").text == "2025"
+
+    doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
+    )
+    assert doi_field is not None
+    assert (
+        doi_field.find(f"{{{client.NAMESPACE_URI}}}text").text == minimal_metadata["id"]
+    )
+
+    abstract_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='abstract']"
+    )
+    assert abstract_field is None
+
+    version_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='version']")
+    assert version_field is None

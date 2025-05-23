@@ -214,7 +214,6 @@ class SymplecticClient:
         record_xml = self.generate_record_xml(metadata)
         proprietary_id = metadata.get("id")
         url = f"{self.api_url}/publication/records/manual/{proprietary_id}"
-        print("URL:", proprietary_id)
         response = requests.put(
             url,
             data=etree.tostring(record_xml, encoding="unicode"),

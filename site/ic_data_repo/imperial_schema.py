@@ -7,6 +7,7 @@ This schema aligns with the record submission form customisations.
 from flask import current_app
 from invenio_i18n import lazy_gettext as _
 from invenio_rdm_records.services.schemas import MetadataSchema
+from invenio_rdm_records.services.schemas.access import AccessSchema
 from invenio_rdm_records.services.schemas.metadata import CreatorSchema, ReferenceSchema
 from invenio_vocabularies.services.schema import VocabularyRelationSchema
 from marshmallow import validate
@@ -67,7 +68,7 @@ class PublicationDateValue(String):
 
 
 class ImperialMetadataSchema(MetadataSchema):
-    """Imperial Metadata Schema that overrides five fields."""
+    """Imperial Metadata Schema."""
 
     resource_type = ResourceValue(VocabularyRelationSchema, required=True)
     creators = CreatorsValue(
@@ -83,3 +84,17 @@ class ImperialMetadataSchema(MetadataSchema):
         ]()
     )
     references = ReferenceValue(Nested(ReferenceSchema))
+
+
+class PublicRecordProtectionValue(String):
+    """Record protection fixed to public."""
+
+    def deserialize(self, value, attr=None, data=None, **kwargs):
+        """Return record protection fixed to public."""
+        return "public"
+
+
+class ImperialAccessSchema(AccessSchema):
+    """Imperial Access Schema."""
+
+    record = PublicRecordProtectionValue(required=True)

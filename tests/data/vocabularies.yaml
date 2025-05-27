@@ -30,3 +30,6 @@ funders:
 awards:
   pid-type: awa
   data-file: vocabularies/awards.yaml
+datetypes:
+  pid-type: dat
+  data-file: vocabularies/datetypes.yaml

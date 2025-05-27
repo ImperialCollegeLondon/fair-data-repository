@@ -5,6 +5,8 @@ from datetime import date
 from unittest.mock import patch
 
 import pytest
+from ic_data_repo.permissions import deposit_action
+from invenio_access.permissions import ActionUsers
 
 
 @pytest.fixture
@@ -22,6 +24,13 @@ def user(UserFixture, app, db):
 def user_client(user, client):
     """A client logged in as the user fixture."""
     return user.login(client)
+
+
+@pytest.fixture
+def user_depositor(user, db):
+    """Give the user fixture permission to create deposits."""
+    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
+    return user
 
 
 @pytest.fixture(autouse=True)
@@ -58,7 +67,7 @@ def get_csrf_token(client):
     raise ValueError("CSRF token not found in cookies")
 
 
-def test_imperial_schema(user_client, location, vocabularies):
+def test_imperial_schema(user_client, location, vocabularies, user_depositor):
     """Test the custom schemas."""
     headers = {
         "Content-Type": "application/json",
@@ -107,3 +116,17 @@ def test_imperial_schema(user_client, location, vocabularies):
     # 'record' should be reset to public, but 'files' should remain restricted.
     assert result.json["access"]["record"] == "public"
     assert result.json["access"]["files"] == "restricted"
+
+
+def test_deposit_view_permissions(user, user_client, db, vocabularies, app):
+    """Check that only users with deposit permissions can access the deposit page."""
+    # permission denied initially
+    response = user_client.get("/uploads/new")
+    assert response.status_code == 403
+
+    # grant access to the user
+    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
+
+    # page now accessible
+    response = user_client.get("/uploads/new")
+    assert response.status_code == 200

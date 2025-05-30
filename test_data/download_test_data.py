@@ -1,4 +1,4 @@
-"""Script to download realistic test datasets for the Helix.
+"""Script to download realistic test datasets for Helix.
 
 Should be run from the `test_data` directory. Does the following:
 

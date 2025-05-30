@@ -56,6 +56,7 @@ jobs:
           helm upgrade ${{ vars.RELEASE_NAME }} ${{ vars.CHART_PATH }} \
           -f ${{ vars.CHART_OVERRIDE_PATH }} \
           -n invenio --install --create-namespace \
+          --timeout 15m \
           --set invenio.secret_key="${{ secrets.INVENIO_SECRET_KEY }}" \
           --set invenio.security_login_salt="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
           --set invenio.csrf_secret_salt="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \

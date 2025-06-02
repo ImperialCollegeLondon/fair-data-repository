@@ -67,22 +67,19 @@ def get_csrf_token(client):
     raise ValueError("CSRF token not found in cookies")
 
 
-def test_imperial_schema(user_client, location, vocabularies, user_depositor):
-    """Test the custom schemas."""
-    headers = {
-        "Content-Type": "application/json",
-        "X-CSRFToken": get_csrf_token(user_client),
-    }
-
-    raw_data = {
+@pytest.fixture
+def record_json():
+    """JSON data for creating records via the API."""
+    return {
         "metadata": {
             "title": "Test Record",
+            "description": "record description",
             "resource_type": "fake_resource_type",
             "creators": [
                 {
                     "person_or_org": {
                         "type": "personal",
-                        "name": "Neo",
+                        "family_name": "Neo",
                     },
                     "role": "the one",
                 },
@@ -94,12 +91,27 @@ def test_imperial_schema(user_client, location, vocabularies, user_depositor):
             "record": "restricted",
             "files": "restricted",
         },
+        "files": {"enabled": False},
     }
 
+
+@pytest.fixture
+def request_headers(user_client):
+    """Request headers required for post/putting with user client."""
+    return {
+        "Content-Type": "application/json",
+        "X-CSRFToken": get_csrf_token(user_client),
+    }
+
+
+def test_imperial_schema(
+    user_client, request_headers, location, vocabularies, user_depositor, record_json
+):
+    """Test the custom schemas."""
     result = user_client.post(
         "/api/records",
-        json=raw_data,
-        headers=headers,
+        json=record_json,
+        headers=request_headers,
     )
 
     assert result.status_code == 201
@@ -130,3 +142,53 @@ def test_deposit_view_permissions(user, user_client, db, vocabularies, app):
     # page now accessible
     response = user_client.get("/uploads/new")
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "dart_value,error",
+    (
+        ("", True),
+        ("etet", True),
+        ("123 - some text", True),
+        ("123 ", False),
+        ("123", False),
+    ),
+)
+def test_dart_id_validation(
+    dart_value,
+    error,
+    user_client,
+    request_headers,
+    location,
+    vocabularies,
+    user_depositor,
+    record_json,
+):
+    """Check that invalid dart id values are caught by record validation.
+
+    Although different validators are failing for different dart_value's the app always
+    reports the same error message. Expected messages are displayed in the UI.
+    """
+    record_json["custom_fields"] = {"imperial:dart_id": dart_value}
+    response = user_client.post(
+        "/api/records",
+        json=record_json,
+        headers=request_headers,
+    )
+    draft_id = response.json["id"]
+    publish_response = user_client.post(
+        f"/api/records/{draft_id}/draft/actions/publish", headers=request_headers
+    )
+    if error:
+        assert (
+            dict(
+                field="custom_fields.imperial:dart_id",
+                messages=["DART ID is required."],
+            )
+            in publish_response.json["errors"]
+        )
+    else:
+        assert (
+            publish_response.json["custom_fields"]["imperial:dart_id"]
+            == dart_value.strip()
+        )

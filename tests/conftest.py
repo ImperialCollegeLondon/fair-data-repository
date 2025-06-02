@@ -95,6 +95,9 @@ def app_config(opensearch_container, redis_container, app_config):
 
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
 
+    app_config["RDM_COMMUNITY_REQUIRED_TO_PUBLISH"] = False
+    app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
+
     return settings.__dict__ | app_config
 
 

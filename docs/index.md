@@ -224,6 +224,27 @@ issues the below information may help with troubleshooting:
     initialised Flask app. This can be useful for debugging issues with the application
     code or inspecting config.
 
+### Symplectic Integration
+
+Symplectic Elements is a research management system that constructs a graph connecting
+researchers, awards and research outputs (publications, including datasets). While it
+can import metadata from various sources, it lacks native support for InvenioRDM
+repositories.
+
+The system uses "relationships" to associate publications with researchers and their
+roles (author, contributor, etc.). These relationships are required for publications to
+appear in a researcher's Symplectic UI and can be declined if incorrect.
+
+Our integration consists of two main components:
+
+1. **API Client Interface** (`SymplecticClient`) - Converts InvenioRDM record metadata
+    into Symplectic's required XML format and handles API communication via PUT
+    requests.
+
+1. **Service Component Hook** - Automatically triggers the `export_record_to_symplectic`
+    task when records are published or updated, seamlessly integrating Symplectic
+    export into the publication workflow.
+
 ## Configuration
 
 This project extends the [configuration approach] used by Invenio RDM.

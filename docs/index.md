@@ -231,9 +231,9 @@ researchers, awards and research outputs (publications, including datasets). Whi
 can import metadata from various sources, it lacks native support for InvenioRDM
 repositories.
 
-The system uses "relationships" to associate publications with researchers and their
-roles (author, contributor, etc.). These relationships are required for publications to
-appear in a researcher's Symplectic UI and can be declined if incorrect.
+The system uses relationships to associate publications with researchers and their roles
+(author, contributor, etc.). These relationships are required for publications to appear
+in a researcher's Symplectic UI and can be declined if incorrect.
 
 Our integration consists of two main components:
 

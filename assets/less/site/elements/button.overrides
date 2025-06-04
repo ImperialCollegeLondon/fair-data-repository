@@ -2,14 +2,6 @@
 .ui.basic.buttons .button,
 .ui.basic.button {
     background-color: @defaultButtonBackgroundColor;
-    &:not(#skip-to-main) {
-        border-style: solid !important;
-        border-width: 1px !important;
-    }
-    &:not(.search) {
-        border: none;
-        border-style: unset;
-    }
     border-color: @defaultButtonBorderColor;
     color: @defaultButtonTextColor;
     &:hover {
@@ -96,8 +88,8 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	color: @black;
-	background: @whiteSmoke;
+	color: @white;
+	background: @black;
 	border: none;
 	font-weight: 400;
 	text-decoration: underline;
@@ -106,11 +98,13 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
 	transition: transform 0.25s ease-out;
 	z-index: 100;
 
-	&:focus {
+	&:focus,
+	&:hover {
 		position: absolute;
 		left: 0px;
 		transform: none;
-		background: @whiteSmoke;
+		background: @primaryColor;
+		color: @white;
 		outline: 0;
 	}
 }

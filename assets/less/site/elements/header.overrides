@@ -17,6 +17,13 @@
     .tagline-container {
         max-width: 50%;
         margin-top: 30vh;
+        h1 {
+            font-size: clamp(2rem, 3rem + 2vh, 5rem);
+        }
+        h2 {
+            font-size: clamp(1.5rem, 2.5rem + 2vh, 3rem);
+            line-height: 120%;
+        }
     }
 }
 
@@ -32,6 +39,7 @@
     h2.search-label {
         margin-bottom: 0;
         flex-grow: 1;
+        font-size: clamp(1rem, 1.5rem + 2vw, 2rem);
     }
     form.frontpage-header--search {
             display: flex;

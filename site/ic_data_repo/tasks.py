@@ -11,6 +11,7 @@ from flask import current_app
 from invenio_access.permissions import system_identity
 
 from .microsoft_graph_api_client import get_client
+from .symplectic_interface import SymplecticClient
 from .vocabs import import_imperial_contributors_to_invenio, import_to_vocabulary
 
 
@@ -55,3 +56,16 @@ def update_funders_vocabulary(archive_download_url: str) -> None:
         ],
     }
     import_to_vocabulary(datastream_config, allow_errors=False)
+
+
+@shared_task
+def export_record_to_symplectic(record) -> None:
+    """Syncronise record metadata to symplectic."""
+    if not current_app.config["SYMPLECTIC_ENABLED"]:
+        return
+
+    client = SymplecticClient(
+        current_app.config["SYMPLECTIC_API_URL"],
+        current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"],
+    )
+    client.create_record(record)

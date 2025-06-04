@@ -14,10 +14,12 @@ from invenio_app_rdm.config import CELERY_BEAT_SCHEDULE
 from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
+from invenio_rdm_records.services.components import DefaultRecordsComponents
 from marshmallow_utils.fields import NestedAttribute
 
 from ..imperial_schema import ImperialAccessSchema, ImperialMetadataSchema
 from ..permissions import ImperialRecordPermissionPolicy
+from ..service_components import SymplecticComponent
 from .custom_fields import *  # noqa: F401,F403
 from .utils import get_user_form_default
 
@@ -249,6 +251,8 @@ CELERY_BEAT_SCHEDULE["update_imperial_users"] = {
 
 SYMPLECTIC_API_URL = os.getenv("SYMPLECTIC_API_URL")
 SYMPLECTIC_API_SUBSCRIPTION_KEY = os.getenv("SYMPLECTIC_API_SUBSCRIPTION_KEY")
-SYMPLECTIC_ENABLED = SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
+SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY)
 
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
+
+RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [SymplecticComponent]

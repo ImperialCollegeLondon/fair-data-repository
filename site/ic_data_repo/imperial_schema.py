@@ -8,7 +8,11 @@ from flask import current_app
 from invenio_i18n import lazy_gettext as _
 from invenio_rdm_records.services.schemas import MetadataSchema
 from invenio_rdm_records.services.schemas.access import AccessSchema
-from invenio_rdm_records.services.schemas.metadata import CreatorSchema, ReferenceSchema
+from invenio_rdm_records.services.schemas.metadata import (
+    CreatorSchema,
+    ReferenceSchema,
+    RightsSchema,
+)
 from invenio_vocabularies.services.schema import VocabularyRelationSchema
 from marshmallow import validate
 from marshmallow.fields import List, Nested, String
@@ -84,6 +88,11 @@ class ImperialMetadataSchema(MetadataSchema):
         ]()
     )
     references = ReferenceValue(Nested(ReferenceSchema))
+    rights = List(
+        Nested(RightsSchema),
+        required=False,
+        validate=validate.Length(max=1, error=_("No more than one can be provided.")),
+    )
 
 
 class PublicRecordProtectionValue(String):

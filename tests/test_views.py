@@ -67,47 +67,65 @@ def get_csrf_token(client):
     raise ValueError("CSRF token not found in cookies")
 
 
-def test_imperial_schema(user_client, location, vocabularies, user_depositor):
-    """Test the custom schemas."""
-    headers = {
+@pytest.fixture
+def headers(user_client):
+    """Headers for requests, including CSRF token."""
+    return {
         "Content-Type": "application/json",
         "X-CSRFToken": get_csrf_token(user_client),
     }
 
-    raw_data = {
-        "metadata": {
-            "title": "Test Record",
-            "resource_type": "fake_resource_type",
-            "creators": [
-                {
-                    "person_or_org": {
-                        "type": "personal",
-                        "name": "Neo",
-                    },
-                    "role": "the one",
+
+@pytest.fixture
+def metadata():
+    """Simple record metadata."""
+    return {
+        "title": "Test Record",
+        "description": "This is a test record.",
+        "creators": [
+            {
+                "person_or_org": {
+                    "type": "personal",
+                    "given_name": "Neo",
+                    "family_name": "Anderson",
                 },
-            ],
-            "publisher": "Fake Publisher",
-            "publication_date": "1970-01-01",
-        },
-        "access": {
-            "record": "restricted",
-            "files": "restricted",
-        },
+                "role": "the one",
+            },
+        ],
     }
 
+
+@pytest.fixture
+def access():
+    """Simple access schema."""
+    return {
+        "record": "public",
+        "files": "public",
+    }
+
+
+def test_metadata_schema(
+    user_client, location, vocabularies, user_depositor, headers, metadata, access
+):
+    """Test that the metadata schema is enforced."""
+    metadata["resource_type"] = "fake_resource_type"
+    metadata["publisher"] = "Fake Publisher"
+    metadata["publication_date"] = "1970-01-01"
+    access["record"] = "restricted"
+    access["files"] = "restricted"
     result = user_client.post(
         "/api/records",
-        json=raw_data,
+        json={"metadata": metadata, "access": access},
         headers=headers,
     )
-
     assert result.status_code == 201
 
     # Test metadata policies are enforced.
     assert result.json["metadata"]["title"] == "Test Record"
     assert result.json["metadata"]["resource_type"]["id"] == "dataset"
-    assert result.json["metadata"]["creators"][0]["person_or_org"]["name"] == "Neo"
+    assert (
+        result.json["metadata"]["creators"][0]["person_or_org"]["given_name"] == "Neo"
+    )
     assert "role" not in result.json["metadata"]["creators"][0]
     assert result.json["metadata"]["publisher"] == "Imperial College London"
     assert result.json["metadata"]["publication_date"] == date.today().isoformat()
@@ -116,6 +134,41 @@ def test_imperial_schema(user_client, location, vocabularies, user_depositor):
     # 'record' should be reset to public, but 'files' should remain restricted.
     assert result.json["access"]["record"] == "public"
     assert result.json["access"]["files"] == "restricted"
+
+
+def test_metadata_schema_rights(
+    user_client, location, vocabularies, user_depositor, headers, metadata
+):
+    """Test that the rights schema is enforced."""
+    # Test that no license is accepted.
+    metadata["rights"] = []
+    result = user_client.post(
+        "/api/records",
+        json={"metadata": metadata},
+        headers=headers,
+    )
+    assert result.status_code == 201
+    assert "rights" not in result.json["metadata"]
+
+    # Test that a single license is accepted.
+    metadata["rights"] = [{"id": "cc0-1.0"}]
+    result = user_client.post(
+        "/api/records",
+        json={"metadata": metadata},
+        headers=headers,
+    )
+    assert result.status_code == 201
+    assert result.json["metadata"]["rights"][0]["id"] == "cc0-1.0"
+
+    # Test that multiple rights entries are not accepted.
+    metadata["rights"] = [{"id": "cc0-1.0"}, {"id": "cc-by-4.0"}]
+    result = user_client.post(
+        "/api/records",
+        json={"metadata": metadata},
+        headers=headers,
+    )
+    assert result.status_code == 201
+    assert result.json["errors"][0]["messages"][0].startswith("No more than")
 
 
 def test_deposit_view_permissions(user, user_client, db, vocabularies, app):

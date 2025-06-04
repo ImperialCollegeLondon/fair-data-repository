@@ -1,5 +1,5 @@
 .hero {
-    height: 20%;
+    height: 90vh;
     background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("@{imagesFolder}/background.jpg");
     background-size: cover;
     background-position: center;
@@ -16,7 +16,7 @@
     object-position: center center;
     .tagline-container {
         max-width: 50%;
-        margin-top: 12rem;
+        margin-top: 30vh;
     }
 }
 
@@ -43,6 +43,7 @@
             h2 {
                 flex: 0 0 auto;
                 line-height: 150%;
+                margin-bottom: 0;
             }
             input {
                 flex: 1 1 200px;

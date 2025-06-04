@@ -283,9 +283,10 @@ a.with-arrow {
 }
 
 ::placeholder {
-    color: @darkGray;
-    opacity: .5;
+    color: @black;
+    text-decoration: none;
 }
 ::-ms-input-placeholder { /* Edge 12 -18 */
-  color: @darkGray;
+  color: @black;
+  text-decoration: none;
 }

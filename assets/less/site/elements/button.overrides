@@ -2,10 +2,13 @@
 .ui.basic.buttons .button,
 .ui.basic.button {
     background-color: @defaultButtonBackgroundColor;
-    &:not(.search),
     &:not(#skip-to-main) {
         border-style: solid !important;
         border-width: 1px !important;
+    }
+    &:not(.search) {
+        border: none;
+        border-style: unset;
     }
     border-color: @defaultButtonBorderColor;
     color: @defaultButtonTextColor;

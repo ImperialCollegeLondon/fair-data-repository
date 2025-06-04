@@ -1,5 +1,5 @@
-@searchButtonColor: @whiteSmoke;
-@searchButtonColorHover: @black;
+@searchButtonColor: @black;
+@searchButtonColorHover: @imperialBlue;
 
 @fontWeight: @fontRegular;
 

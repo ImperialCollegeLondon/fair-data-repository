@@ -1,0 +1,12 @@
+i.icon.search:before { content: ""; }
+i.icon.search {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background: url("@{imagesFolder}/search.svg") no-repeat center center;
+  background-size: contain;
+}
+
+button:hover > i.icon.search {
+    background: url("@{imagesFolder}/search-white.svg") no-repeat center center;
+}

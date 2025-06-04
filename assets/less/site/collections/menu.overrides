@@ -40,6 +40,9 @@
 }
 
 .outer-navbar {
+    left: 0;
+    position: absolute;
+    right: 0;
     background-image: None;
     background-color: transparent;
     border-color: transparent;

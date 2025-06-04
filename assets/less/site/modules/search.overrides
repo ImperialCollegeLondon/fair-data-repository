@@ -10,12 +10,17 @@
                 height: 3rem;
             }
            button {
-                border-top-left-radius: 0px;
-                border-bottom-left-radius: 0px;
+                border-radius: 0px;
+                border-style: unset;
+                &:hover {
+                    background-color: black;
+                }
+
             }
            input {
                 color: @black;
                 line-height: 1.2rem;
+                text-decoration: none;
            }
         }
     }

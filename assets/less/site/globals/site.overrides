@@ -100,6 +100,10 @@
   src: url("../fonts/ImperialSansText-Extrabold.ttf") format("truetype");
 }
 
+.fluid-font(@min, @max) {
+  font-size: ~"calc((@{min} / 16 * 1rem) + ((@{max} - @{min}) * clamp(0, (100vw - 320px) / (1280 - 320), 1)))";
+}
+
 html {
     font-family: @ImperialSansText;
     font-weight: @fontRegular;
@@ -108,23 +112,23 @@ html {
 }
 
 h1 {
+    font-size: clamp(2rem, 1.5rem + 2vw, 4rem);
     font-family: @ImperialSansDisplay;
     font-weight: @fontSemibold;
-    font-size: @fontSizeHeadline;
     line-height: 1;
 }
 
 h2 {
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 2.5rem);
     font-family: @ImperialSansDisplay;
     font-weight: @fontSemibold;
-    font-size: @fontSizeSubheadline;
     line-height: 1;
 }
 
 h3 {
+    font-size: 1rem;
     font-family: @ImperialSansDisplay;
     font-weight: @fontSemibold;
-    font-size: @fontSizeBodyHeader;
     line-height: 1.2;
 }
 
@@ -156,6 +160,7 @@ html.cover-page {
 
 .theme.header {
   box-shadow: None;
+  z-index: 1000;
 }
 
 #rdm-footer-element {

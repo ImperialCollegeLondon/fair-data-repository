@@ -8,21 +8,7 @@
     under the terms of the MIT License; see LICENSE file for more details.
 #}
 
-<div>
   <header class="theme header">
-    {%- block user_impersonation %}
-      {%- if '_impersonator_id' in session %}
-        <div class="ui negative flashed top attached manage m-0 big message">
-          <div class="ui container">
-            <div class="header">
-              <i class="ui spy big icon"></i><strong>Impersonated session</strong>
-            </div>
-            You must logout after you finish with you inquiry!
-          </div>
-        </div>
-      {%- endif %}
-    {%- endblock user_impersonation %}
-
     <div class="outer-navbar">
       {%- block navbar %}
       <div class="ui container invenio-header-container">
@@ -111,16 +97,6 @@
 
             {%- block navbar_right %}
               <div class="right menu item">
-                {%- if config.ACCOUNTS and current_user.is_authenticated %}
-                  {% for item in current_menu.submenu('notifications').children|sort(attribute='order') if item.visible recursive %}
-                    <div class="{{'item active' if item.active else 'item' }} inbox">
-                      <a href="{{ item.url }}" aria-label="{{ _('Requests') }}">
-                        <i class="fitted inbox icon"></i>
-                        <span class="mobile tablet only inline">{{ _("Inbox") }}</span>
-                      </a>
-                    </div>
-                  {% endfor %}
-                {% endif %}
                 {%- include config.THEME_HEADER_LOGIN_TEMPLATE %}
               </div>
             {%- endblock navbar_right %}
@@ -142,4 +118,3 @@
 
   {%- block breadcrumbs %}
   {%- endblock breadcrumbs %}
-</div>

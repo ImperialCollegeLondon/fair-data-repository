@@ -3,7 +3,7 @@
 .ui.basic.button {
     background-color: @defaultButtonBackgroundColor;
     &:not(.search),
-    &:not(#skip-to-main){
+    &:not(#skip-to-main) {
         border-style: solid !important;
         border-width: 1px !important;
     }
@@ -99,7 +99,7 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
 	font-weight: 400;
 	text-decoration: underline;
 	text-decoration-thickness: 1px;
-	transform: translateY(-100%);
+	transform: translateY(-110%);
 	transition: transform 0.25s ease-out;
 	z-index: 100;
 

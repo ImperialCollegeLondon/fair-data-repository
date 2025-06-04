@@ -4,7 +4,6 @@ In particular, this includes tasks to be run periodically in the background.
 """
 
 from io import BytesIO
-from zipfile import ZipFile
 
 import requests
 from celery import shared_task
@@ -30,19 +29,21 @@ def update_imperial_users() -> None:
 
 
 @shared_task
-def update_funders_vocabulary(archive_download_url: str, filename: str) -> None:
+def update_funders_vocabulary(archive_download_url: str) -> None:
     """Update the funder vocabulary from the ROR data dump."""
     # download the data zip archive
     response = requests.get(archive_download_url)
     response.raise_for_status()
 
-    # work with the downloaded data in memory
-    zf = ZipFile(BytesIO(response.content))
-
     datastream_config = {
         "readers": [
-            # use a filelike reader so we can read straight from the in-memory object
-            {"type": "filelike", "args": {"origin": zf.open(filename)}},
+            {
+                "type": "zip",
+                "args": {
+                    "origin": BytesIO(response.content),
+                    "regex": r"-ror-data\.json",
+                },
+            },
             {"type": "json"},
         ],
         "transformers": [{"type": "ror-funder"}],

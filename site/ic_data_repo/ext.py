@@ -31,12 +31,32 @@ class IfUserCanTag(Extension):
         {% end_if_user_can %}
         """
         lineno = next(parser.stream).lineno
+
+        # parse the permissions and check the user.
         args = [parser.parse_expression()]
         while parser.stream.skip_if("comma"):
             args.append(parser.parse_expression())
-        body = parser.parse_statements(("name:end_if_user_can",), drop_needle=True)
         check_call = self.call_method("_check_permissions", args)
-        return nodes.If(check_call, body, [], []).set_lineno(lineno)
+
+        # if body.
+        body_if = parser.parse_statements(
+            ("name:else", "name:end_if_user_can"),
+            drop_needle=False,
+        )
+
+        # elif body is not used.
+        body_elif = []
+
+        # else body, if present.
+        body_else = []
+        if parser.stream.current.test("name:else"):
+            next(parser.stream)  # skip 'else'
+            body_else = parser.parse_statements(
+                ("name:end_if_user_can",),
+                drop_needle=True,
+            )
+
+        return nodes.If(check_call, body_if, body_elif, body_else).set_lineno(lineno)
 
     def _check_permissions(self, *permissions):
         """Check if the user has all the specified permissions."""

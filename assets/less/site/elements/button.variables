@@ -1,4 +1,4 @@
-@searchButtonColor: @black;
+@searchButtonColor: @white;
 @searchButtonColorHover: @imperialBlue;
 
 @fontWeight: @fontRegular;
@@ -7,7 +7,6 @@
 default button
 --------------------------------*/
 
-@defaultButtonBackgroundColor: @white;
 @defaultButtonBorderColor: @black;
 @defaultButtonTextColor: @black;
 @defaultButtonBackgroundColorHovered: @black;

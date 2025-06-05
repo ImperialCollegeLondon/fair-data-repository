@@ -50,11 +50,14 @@ class IfUserCanTag(Extension):
         # else body, if present.
         body_else = []
         if parser.stream.current.test("name:else"):
-            next(parser.stream)  # skip 'else'
+            next(parser.stream)  # consume 'else'
             body_else = parser.parse_statements(
                 ("name:end_if_user_can",),
                 drop_needle=True,
             )
+        else:
+            # Still need to consume the end tag if no else is present.
+            parser.stream.expect("name:end_if_user_can")
 
         return nodes.If(check_call, body_if, body_elif, body_else).set_lineno(lineno)
 

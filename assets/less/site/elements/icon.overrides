@@ -9,4 +9,5 @@ i.icon.search {
 
 button:hover > i.icon.search {
     background: url("@{imagesFolder}/search-white.svg") no-repeat center center;
+    background-size: contain;
 }

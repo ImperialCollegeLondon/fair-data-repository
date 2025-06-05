@@ -1,24 +1,29 @@
 input {
   &::placeholder {
     color: @black;
+    text-decoration: none;
   }
 
   &::-webkit-input-placeholder {
     color: @black;
+    text-decoration: none;
   }
 
   &:-ms-input-placeholder {
     color: @black;
+    text-decoration: none;
   }
 
   &::-moz-placeholder {
     color: @black;
     opacity: 1; // Required in Firefox
+    text-decoration: none;
   }
 
   &:-moz-placeholder {
     color: @black;
     opacity: 1;
+    text-decoration: none;
   }
 }
 #header-search-bar .ui.input, #header-search-bar .ui.input>input {

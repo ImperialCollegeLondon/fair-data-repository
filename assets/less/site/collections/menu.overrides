@@ -38,11 +38,20 @@
         }
     }
 }
+.frontpage-header {
+      z-index: 1000;
+    .header {
+        box-shadow: none;
+        .outer-navbar {
+            left: 0;
+            position: absolute;
+            right: 0;
+        }
+    }
+}
 
 .outer-navbar {
-    left: 0;
-    position: absolute;
-    right: 0;
+    z-index: 1000;
     background-image: None;
     background-color: transparent;
     border-color: transparent;

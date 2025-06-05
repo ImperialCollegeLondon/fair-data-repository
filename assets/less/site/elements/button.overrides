@@ -111,11 +111,6 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
 
 .ui.button.search {
     border: none;
-    &:hover {
-        i.icon.search {
-            color: @white;
-        }
-    }
 }
 
 .ui.basic.buttons {

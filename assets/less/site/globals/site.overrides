@@ -160,7 +160,6 @@ html.cover-page {
 
 .theme.header {
   box-shadow: None;
-  z-index: 1000;
 }
 
 #rdm-footer-element {
@@ -289,4 +288,9 @@ a.with-arrow {
 ::-ms-input-placeholder { /* Edge 12 -18 */
   color: @black;
   text-decoration: none;
+}
+
+#header-search-bar > div > div.ui.icon.input > input::placeholder {
+    color: @black;
+    text-decoration: none !important;
 }

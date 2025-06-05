@@ -11,7 +11,9 @@
 {%- extends "invenio_theme/frontpage.html" %}
 
 {%- block page_header %}
-    {%- include "invenio_app_rdm/header.html" %}
+    <div class="frontpage-header">
+        {%- include "invenio_app_rdm/header.html" %}
+    </div>
 {%- endblock page_header %}
 <main id="main">
 {%- block page_body %}

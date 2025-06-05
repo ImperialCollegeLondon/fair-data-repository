@@ -186,6 +186,7 @@ html.cover-page {
     background-color: @footerDarkColor;
     padding: 2rem;
     height: 100%;
+    margin-top: 2rem;
     .row {
         margin: 0 !important;
         padding: 0! important;

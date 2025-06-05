@@ -26,7 +26,25 @@ input {
     text-decoration: none;
   }
 }
-#header-search-bar .ui.input, #header-search-bar .ui.input>input {
-    height: unset !important;
-}
 
+.ui.input{
+  > * {
+      background-color: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      border: none;
+      border-radius: 0px;
+  }
+  button {
+          border-radius: 0px;
+          border-style: unset;
+          &:hover {
+              background-color: black;
+          }
+
+      }
+  input {
+          color: @black;
+          line-height: 1.2rem;
+          text-decoration: none;
+  }
+}

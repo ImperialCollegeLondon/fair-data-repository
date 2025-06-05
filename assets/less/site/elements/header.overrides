@@ -28,7 +28,7 @@
 }
 
 .search-container {
-    background-color: @springGreen;
+    background-color: @deepSkyBlue;
     padding: 2rem 3rem;
     display: flex !important;
     align-items: center;

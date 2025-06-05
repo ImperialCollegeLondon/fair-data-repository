@@ -28,6 +28,8 @@ class IfUserCanTag(Extension):
         Example usage in a template:
         {% if_user_can "permission_1", "permission_2", ... %}
           <p>Content for users with all required permissions.</p>
+        {% else %}
+          <p>Content for everyone else.</p>
         {% end_if_user_can %}
         """
         lineno = next(parser.stream).lineno

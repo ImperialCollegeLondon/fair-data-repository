@@ -28,7 +28,7 @@
     {%- block frontpage_form %}
         <div id="frontpage-search-bar" class="row ui container search-container">
             <form action="{{ url_for('invenio_search_ui.search') }}"
-                  class="ui form big action input frontpage-header--search" role="search">
+                  class="ui form big left action input frontpage-header--search" role="search">
                 <h2 class="search--label">Search records</h2>
                 <input type="text" name="q" class="form-control" aria-label="{{ _('Search') }}"
                        placeholder="{{ _('Search') }}">

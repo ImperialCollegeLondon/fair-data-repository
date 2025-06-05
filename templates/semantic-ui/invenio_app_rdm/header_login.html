@@ -26,6 +26,7 @@
   {%- else %}
 
     {# Desktop Quick-create ("plus") menu #}
+    {% if_user_can "create" %}
     {%- set plus_menu_items = current_menu.submenu('plus').children %}
     {%- if plus_menu_items %}
       <div
@@ -64,6 +65,7 @@
         </div>
       </div>
     {% endif %}
+    {% end_if_user_can %}
 
     {# Desktop Account dropdown menu #}
     {%- if config.USERPROFILES %}

@@ -45,6 +45,15 @@
         {%- endblock frontpage_form %}
   </div>
 </div>
+
+{# Display low privilege information #}
+{% if_user_can "create" %}
+{% else %}
+<div id="privilege-info" class="ui container invenio-page-body">
+  <p>TODO: contact information for getting record creation access</p>
+</div>
+{% end_if_user_can %}
+
 {%- endblock frontpage_search %}
 
 {% endblock %}

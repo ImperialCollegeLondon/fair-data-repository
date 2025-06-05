@@ -109,8 +109,18 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
 	}
 }
 
-.ui.button.search {
+.ui.search.button {
+    background-color: @white;
     border: none;
+}
+
+#frontpage-search-bar > form > button {
+        background-color: black;
+        display: flex;
+        align-items: flex-start;
+    &:hover {
+        background-color: @primaryColor;
+    }
 }
 
 .ui.basic.buttons {

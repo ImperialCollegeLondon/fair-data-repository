@@ -71,7 +71,9 @@
 
 @inputColor: @black;
 @inputBackgroundColor: @white;
-@inputBorderColor: @whiteSmoke;
+@inputBorder: 1px solid @black;
+@textAreaBorder: 1px solid @black;
+@inputBorderRadius: 0;
 
 @mutedAccordionHeaderColor: @whiteSmoke;
 @defaultBrandColor: @imperialBlue;

@@ -150,6 +150,10 @@
     background: @white;
 }
 
+button.ui.button {
+    border: 1px solid @black;
+}
+
 .ui.dropdown .menu.visible.transition {
     min-width: min-content;
     .item:not(.disabled) {

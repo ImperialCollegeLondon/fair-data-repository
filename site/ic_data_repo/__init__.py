@@ -1,1 +1,1 @@
-"""Custom modules for the Helix."""
+"""Custom modules for Helix."""

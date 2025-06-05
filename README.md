@@ -1,7 +1,7 @@
 # Helix
 
-This repository contains the source code for the Helix. It is an
-instance of [InvenioRDM] customised and configured for use by Imperial.
+This repository contains the source code for Helix. It is an
+instance of [InvenioRDM](https://inveniordm.docs.cern.ch/) customised and configured for use by Imperial.
 
 See the documentation at
 <https://imperialcollegelondon.github.io/fair-data-repository/>.

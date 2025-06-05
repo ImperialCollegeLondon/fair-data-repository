@@ -192,10 +192,7 @@ def test_ui_changes_for_depositors(user, user_client, db):
     assert res.status_code == 200
 
     # Check that non-depositor information is shown.
-    assert re.search(
-        r"<p>TODO: contact information for getting record creation access</p>",
-        res.data.decode("utf-8"),
-    )
+    assert re.search(r"You have read-only access.", res.data.decode("utf-8"))
 
     # Check that the deposit button is not visible.
     assert not re.search(r"quick-create-dropdown", res.data.decode("utf-8"))
@@ -206,10 +203,7 @@ def test_ui_changes_for_depositors(user, user_client, db):
     assert res.status_code == 200
 
     # Check that non-depositor information is not shown.
-    assert not re.search(
-        r"<p>TODO: contact information for getting record creation access</p>",
-        res.data.decode("utf-8"),
-    )
+    assert not re.search(r"You have read-only access.", res.data.decode("utf-8"))
 
     # Check that the deposit button is visible.
     assert re.search(r"quick-create-dropdown", res.data.decode("utf-8"))

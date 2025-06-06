@@ -256,3 +256,7 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
 RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [SymplecticComponent]
+
+# Email addresses
+# ---------------
+SUPPORT_CONTACT_EMAIL = os.getenv("SUPPORT_CONTACT_EMAIL")

@@ -9,6 +9,7 @@ default button
 
 @defaultButtonBorderColor: @black;
 @defaultButtonTextColor: @black;
+@defaultButtonBackgroundColor: @white;
 @defaultButtonBackgroundColorHovered: @black;
 @defaultButtonBorderColorHovered: @black;
 @defaultButtonTextColorHovered: @whiteSmoke;

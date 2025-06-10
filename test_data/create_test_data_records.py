@@ -12,13 +12,13 @@ structure.
 Does the following:
 
 - Checks the community specified exists.
-- Makes sure the user specified exists and assigns the user the `deposit-action` permission if the user
-  does not already have it.
+- Makes sure the user specified exists and assigns the user the `deposit-action`
+ permission if the user does not already have it.
 - Finds all files matching the glob `*/metadata.json`.
 - For each file:
   - Reads in the metadata in Datacite json format.
-  - Creates a draft record by converting the Datacite metadata to the repository schema and adds a
-    mock DART ID.
+  - Creates a draft record by converting the Datacite metadata to the repository schema
+   and adds a mock DART ID.
   - Uploads the files associated with the dataset to the draft record.
   - Publishes the record.
   - Creates a community inclusion request.
@@ -27,14 +27,15 @@ Does the following:
 
 import base64
 import json
+import random
 import re
 import string
 import sys
 from pathlib import Path
-import random
 
+from ic_data_repo.permissions import deposit_action
 from invenio_access import ActionUsers
-from invenio_access.permissions import system_identity, Permission
+from invenio_access.permissions import Permission, system_identity
 from invenio_accounts.proxies import current_datastore
 from invenio_app.factory import create_app
 from invenio_communities.proxies import current_communities
@@ -46,8 +47,6 @@ from invenio_rdm_records.proxies import (
     current_record_communities_service,
 )
 from invenio_requests.proxies import current_requests_service
-
-from ic_data_repo.permissions import deposit_action
 
 FILE_URI_REGEX = re.compile(
     "https://data.hpc.imperial.ac.uk/resolve/\\?doi=\\d+\\&file=\\d+"
@@ -99,7 +98,7 @@ def datacite_to_invenio_schema(datacite):
         and not ri.get("relatedMetadataScheme") == "ORE"
     ]
 
-    dart_id = ''.join(
+    dart_id = "".join(
         random.choice(string.ascii_letters + string.digits)
         for _ in range(random.randint(1, 100))
     )
@@ -228,9 +227,9 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 3:
         raise ValueError(
-            "You must provide the email of a registered user as a command line argument."
+            "You must provide the email of a registered user as a command"
+            " line argument."
         )
-
 
     paths = Path(".").glob("*/metadata.json")
     app = create_app()
@@ -279,9 +278,9 @@ if __name__ == "__main__":
                 system_identity, request_id, "accept"
             )
 
-            assert request.data['status'] == 'accepted', (
-                f"Request {request_id} was not accepted, status: {request.data['status']}"
-            )
+            status = request.data["status"]
+            assert (
+                status == "accepted"
+            ), f"Request {request_id} was not accepted, status: {status}"
 
-        print(f"Imported {counter} records")
-
+            print(f"Imported {counter} records")

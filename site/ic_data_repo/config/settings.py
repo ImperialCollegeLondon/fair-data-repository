@@ -10,15 +10,15 @@ import os
 from datetime import datetime, timedelta
 
 import invenio_rdm_records
-from invenio_app_rdm.config import CELERY_BEAT_SCHEDULE
+from invenio_app_rdm.config import (
+    CELERY_BEAT_SCHEDULE,
+    VOCABULARIES_DATASTREAM_READERS,
+    VOCABULARIES_DATASTREAM_WRITERS,
+)
 from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 from invenio_rdm_records.services.components import DefaultRecordsComponents
-from invenio_vocabularies.config import (
-    VOCABULARIES_DATASTREAM_READERS,
-    VOCABULARIES_DATASTREAM_WRITERS,
-)
 from marshmallow_utils.fields import NestedAttribute
 
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader

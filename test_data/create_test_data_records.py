@@ -12,10 +12,13 @@ structure.
 Does the following:
 
 - Checks the community specified exists.
+- Makes sure the user specified exists and assigns the user the `deposit-action` permission if the user
+  does not already have it.
 - Finds all files matching the glob `*/metadata.json`.
 - For each file:
   - Reads in the metadata in Datacite json format.
-  - Creates a draft record by converting the Datacite metadata to the repository schema.
+  - Creates a draft record by converting the Datacite metadata to the repository schema and adds a
+    mock DART ID.
   - Uploads the files associated with the dataset to the draft record.
   - Publishes the record.
   - Creates a community inclusion request.
@@ -230,7 +233,6 @@ if __name__ == "__main__":
 
 
     paths = Path(".").glob("*/metadata.json")
-    fake = Faker()
     app = create_app()
     with app.app_context():
         import_user = current_datastore.find_user(email=sys.argv[2])
@@ -253,7 +255,8 @@ if __name__ == "__main__":
         except PIDDoesNotExistError:
             raise ValueError(f"Could not find community with id - '{community_id}'")
 
-        for path in paths:
+        counter = 0
+        for counter, path in enumerate(paths, start=1):
             with path.open() as f:
                 datacite = json.load(f)
 
@@ -275,3 +278,10 @@ if __name__ == "__main__":
             request = current_requests_service.execute_action(
                 system_identity, request_id, "accept"
             )
+
+            assert request.data['status'] == 'accepted', (
+                f"Request {request_id} was not accepted, status: {request.data['status']}"
+            )
+
+        print(f"Imported {counter} records")
+

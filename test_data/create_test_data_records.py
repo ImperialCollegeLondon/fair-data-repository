@@ -25,8 +25,10 @@ Does the following:
 import base64
 import json
 import re
+import string
 import sys
 from pathlib import Path
+import random
 
 from faker import Faker
 from invenio_access.permissions import system_identity
@@ -88,6 +90,11 @@ def datacite_to_invenio_schema(datacite):
         if not FILE_URI_REGEX.match(ri.get("relatedIdentifier", ""))
         and not ri.get("relatedMetadataScheme") == "ORE"
     ]
+
+    dart_id = ''.join(
+        random.choice(string.ascii_letters + string.digits)
+        for _ in range(random.randint(1, 100))
+    )
 
     return {
         "access": {
@@ -172,6 +179,7 @@ def datacite_to_invenio_schema(datacite):
                 for rights_meta in data["rightsList"]
             ],
         },
+        "custom_fields": {"imperial:dart_id": dart_id},
     }
 
 

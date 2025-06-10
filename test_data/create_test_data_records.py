@@ -30,16 +30,21 @@ import sys
 from pathlib import Path
 import random
 
-from faker import Faker
-from invenio_access.permissions import system_identity
+from invenio_access import ActionUsers
+from invenio_access.permissions import system_identity, Permission
+from invenio_accounts.proxies import current_datastore
 from invenio_app.factory import create_app
 from invenio_communities.proxies import current_communities
+from invenio_db import db
 from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_rdm_records.fixtures.tasks import get_authenticated_identity
 from invenio_rdm_records.proxies import (
     current_rdm_records_service,
     current_record_communities_service,
 )
 from invenio_requests.proxies import current_requests_service
+
+from ic_data_repo.permissions import deposit_action
 
 FILE_URI_REGEX = re.compile(
     "https://data.hpc.imperial.ac.uk/resolve/\\?doi=\\d+\\&file=\\d+"
@@ -218,12 +223,33 @@ if __name__ == "__main__":
             "You must provide a community identifier as a command line argument."
         )
 
+    if len(sys.argv) < 3:
+        raise ValueError(
+            "You must provide the email of a registered user as a command line argument."
+        )
+
+
     paths = Path(".").glob("*/metadata.json")
     fake = Faker()
     app = create_app()
     with app.app_context():
+        import_user = current_datastore.find_user(email=sys.argv[2])
+
+        if not import_user:
+            raise ValueError(
+                f"User with email '{sys.argv[2]}' does not exist. "
+                "Please create a user with this email before running this script."
+            )
+
+        user_identity = get_authenticated_identity(import_user.id)
+
+        if not Permission(deposit_action).allows(user_identity):
+            allow_action = ActionUsers.allow(deposit_action, user_id=import_user.id)
+            db.session.add(allow_action)
+            db.session.commit()
+
         try:
-            current_communities.service.read(system_identity, id_=community_id).data
+            current_communities.service.read(user_identity, id_=community_id).data
         except PIDDoesNotExistError:
             raise ValueError(f"Could not find community with id - '{community_id}'")
 
@@ -231,20 +257,21 @@ if __name__ == "__main__":
             with path.open() as f:
                 datacite = json.load(f)
 
-            draft = create_draft_record(datacite, system_identity)
+            draft = create_draft_record(datacite, user_identity)
 
-            add_files_to_draft(draft, datacite, system_identity, path.parent)
+            add_files_to_draft(draft, datacite, user_identity, path.parent)
 
             # make public
             record = current_rdm_records_service.publish(
-                id_=draft.id, identity=system_identity
+                id_=draft.id, identity=user_identity
             )
             request_id = current_record_communities_service.add(
-                system_identity,
+                user_identity,
                 record.id,
                 dict(communities=[dict(id=community_id, require_review=False)]),
             )[0][0]["request_id"]
 
-            current_requests_service.execute_action(
+            # use system identity to accept the request
+            request = current_requests_service.execute_action(
                 system_identity, request_id, "accept"
             )

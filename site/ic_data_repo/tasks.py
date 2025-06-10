@@ -46,7 +46,9 @@ def update_funders_vocabulary(archive_download_url: str) -> None:
                     "regex": r"-ror-data\.json",
                 },
             },
-            {"type": "json"},
+            # exploiting that yaml is a json superset use our streaming reader
+            # helps avoid memory issues in deployment
+            {"type": "stream-yaml"},
         ],
         "transformers": [{"type": "ror-funder"}],
         "writers": [

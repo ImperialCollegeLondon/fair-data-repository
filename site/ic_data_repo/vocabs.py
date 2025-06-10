@@ -13,6 +13,8 @@ from shutil import which
 from typing import Any, Iterable, Optional
 
 import yaml
+from flask import current_app
+from invenio_vocabularies.datastreams.factories import DataStreamFactory
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph import GraphServiceClient
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
@@ -355,3 +357,27 @@ def import_imperial_awards_to_invenio(
     """Import Imperial awards data into the awards vocabulary."""
     awards = _process_icis_csv(award_data_file)
     _add_entries_to_vocab("awards", awards, logger)
+
+
+class VocabularyImportError(Exception):
+    """Exception for errors occuring during vocab import."""
+
+
+def import_to_vocabulary(datastream_config: dict[str, Any], allow_errors: bool = True):
+    """Add data to a vocabulary via datastream."""
+    ds = DataStreamFactory.create(
+        readers_config=datastream_config["readers"],
+        transformers_config=datastream_config.get("transformers"),
+        writers_config=datastream_config["writers"],
+    )
+    errors = False
+    for entry in ds.process():
+        if entry.errors:
+            current_app.logger.warning(str(entry.errors))
+            errors = True
+
+    if errors and not allow_errors:
+        raise VocabularyImportError(
+            "Unexpected errors encountered whilst importing vocabulary. "
+            "See log for details."
+        )

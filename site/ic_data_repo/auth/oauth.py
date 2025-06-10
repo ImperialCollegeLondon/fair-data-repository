@@ -40,6 +40,7 @@ def info_handler(
             profile=dict(
                 username=data["preferred_username"].removesuffix("@ic.ac.uk"),
                 full_name=data["name"],
+                affiliations="Imperial College London",
             ),
         ),
         external_id=data["oid"],

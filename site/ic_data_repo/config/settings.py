@@ -14,9 +14,12 @@ from invenio_app_rdm.config import CELERY_BEAT_SCHEDULE
 from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
+from invenio_rdm_records.services.components import DefaultRecordsComponents
 from marshmallow_utils.fields import NestedAttribute
 
-from ..imperial_schema import ImperialMetadataSchema
+from ..imperial_schema import ImperialAccessSchema, ImperialMetadataSchema
+from ..permissions import ImperialRecordPermissionPolicy
+from ..service_components import SymplecticComponent
 from .custom_fields import *  # noqa: F401,F403
 from .utils import get_user_form_default
 
@@ -123,12 +126,13 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "creators": lambda: get_user_form_default(),
 }
 
-# This is a hacky way to overwrite the record metadata schema
-record_metadata_schema = (
-    invenio_rdm_records.services.config.RDMRecordServiceConfig.schema
-)
-record_metadata_schema._declared_fields.update(
-    {"metadata": NestedAttribute(ImperialMetadataSchema)}
+# This is a hacky way to overwrite record schemas
+record_schema = invenio_rdm_records.services.config.RDMRecordServiceConfig.schema
+record_schema._declared_fields.update(
+    {
+        "access": NestedAttribute(ImperialAccessSchema),
+        "metadata": NestedAttribute(ImperialMetadataSchema),
+    }
 )
 
 # See:
@@ -178,7 +182,9 @@ ICL_OAUTH_CLIENT_SECRET = os.getenv("ICL_OAUTH_CLIENT_SECRET")
 ICL_OAUTH_WELL_KNOWN_URL = "https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/v2.0/.well-known/openid-configuration"  # noqa: E501
 ICL_MICROSOFT_TENANT_ID = "2b897507-ee8c-4575-830b-4f8267c3d307"
 
-if ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET:
+ICL_GRAPH_API_ENABLED = ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET
+
+if ICL_GRAPH_API_ENABLED:
     OAUTHCLIENT_REMOTE_APPS["icl"] = dict(
         title="Imperial College Single Sign On",
         description="Authentication via membership of Imperial College",
@@ -242,3 +248,11 @@ CELERY_BEAT_SCHEDULE["update_imperial_users"] = {
     "task": "ic_data_repo.tasks.update_imperial_users",
     "schedule": timedelta(weeks=1),
 }
+
+SYMPLECTIC_API_URL = os.getenv("SYMPLECTIC_API_URL")
+SYMPLECTIC_API_SUBSCRIPTION_KEY = os.getenv("SYMPLECTIC_API_SUBSCRIPTION_KEY")
+SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY)
+
+RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
+
+RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [SymplecticComponent]

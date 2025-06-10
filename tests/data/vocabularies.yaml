@@ -1,6 +1,9 @@
 languages:
   pid-type: lng
   data-file: vocabularies/languages.yaml
+licenses:
+  pid-type: lic
+  data-file: vocabularies/licenses.csv
 resourcetypes:
   pid-type: rsrct
   data-file: vocabularies/resource_types.yaml
@@ -30,3 +33,6 @@ funders:
 awards:
   pid-type: awa
   data-file: vocabularies/awards.yaml
+datetypes:
+  pid-type: dat
+  data-file: vocabularies/datetypes.yaml

@@ -1,0 +1,8 @@
+- id: accepted
+  props:
+    datacite: Accepted
+  title:
+    en: Accepted
+    sv: Accepterad
+    de: Angenommen
+    cs: Přijato

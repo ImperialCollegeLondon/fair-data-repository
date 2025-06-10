@@ -24,11 +24,11 @@ ic-data-repo = {editable=true, path="./site"}
 uwsgi = ">=2.0"
 uwsgitop = ">=0.11"
 uwsgi-tools = ">=1.1.1"
-# Avoid sqlalchemy-continuum==1.4.0 due to compatibility issue described here:
-# https://github.com/kvesteri/sqlalchemy-continuum/issues/351
 sqlalchemy-continuum = "!=1.4.0"
 invenio-app-rdm = {extras = ["opensearch2"], version = "~=12.0.0"}
 msgraph-sdk = "*"
+lxml = "*"
+types-lxml = "*"
 
 [requires]
 python_version = "3.9"

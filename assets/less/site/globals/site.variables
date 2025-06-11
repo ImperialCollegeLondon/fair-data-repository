@@ -120,6 +120,8 @@
 @font-size-small: @fontSizeCaption;
 @font-size-tiny: @fontSizeCaption;
 
+@codeColor: #96175F;
+
 @defaultBorderRadius: 0;
 
 @adminSideNavColor: @whiteSmoke;

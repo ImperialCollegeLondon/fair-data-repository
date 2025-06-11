@@ -216,6 +216,11 @@ html.cover-page {
                     padding-inline-end: 1.75rem;
                     border-right: 2px solid @white;
 
+                    @media only screen and (max-width: 767px) {
+                        border-right: none;
+                    }
+                    
+
                     .footer__brand {
                         flex: 1;
                         svg {
@@ -235,10 +240,19 @@ html.cover-page {
                     justify-content: space-between;
                     height: 100%;
                     padding-block: 2rem;
+                    @media only screen and (max-width: 767px) {
+                          padding-top: 0;
+                    }
+                    
                     .footer__copyright {
                         display: flex;
                         align-items: flex-end;
                         opacity: .5;
+                    }
+                    .footer__meta {
+                      @media only screen and (max-width: 767px) {
+                            padding-left: 1rem !important;
+                    }
                     }
                     a {
                         color: @footerTextLightColor;

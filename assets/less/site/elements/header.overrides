@@ -15,7 +15,6 @@
     object-fit: cover;
     object-position: center center;
     .tagline-container {
-        max-width: 50%;
         margin-top: 30vh;
         h1 {
             font-size: clamp(2rem, 3rem + 2vh, 5rem);

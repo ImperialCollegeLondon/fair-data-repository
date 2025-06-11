@@ -11,8 +11,8 @@
 
     <div class="hero">
         <div class="ui container frontpage-hero">
-            <div class="row">
-                <div class="sixteen wide center aligned tagline-container">
+            <div class="ui grid rel-mt-2">
+                <div class="eleven wide computer sixteen wide tablet column tagline-container">
                     {%- block frontpage_title %}
                         <h1 class="ui aligned left">
                             {{ _(config.THEME_FRONTPAGE_TITLE) }}
@@ -26,16 +26,19 @@
         </div>
     </div>
     {%- block frontpage_form %}
-        <div id="frontpage-search-bar" class="row ui container search-container">
-            <form action="{{ url_for('invenio_search_ui.search') }}"
-                  class="ui form big left action input frontpage-header--search" role="search">
-                <h2 class="search--label">Search records</h2>
-                <input type="text" name="q" class="form-control" aria-label="{{ _('Search') }}"
-                       placeholder="{{ _('Search') }}">
-                <button type="submit" class="ui icon search button" aria-label="{{ _('Search') }}">
-                    Search <i class="angle right icon"></i>
-                </button>
-            </form>
+        <div class="ui stackable grid container rel-mt-2">
+            
+            <div id="frontpage-search-bar"  class="eleven wide computer sixteen wide tablet column search-container">
+                <form action="{{ url_for('invenio_search_ui.search') }}"
+                    class="ui form big left action input frontpage-header--search" role="search">
+                    <h2 class="search--label">Search records</h2>
+                    <input type="text" name="q" class="form-control" aria-label="{{ _('Search') }}"
+                        placeholder="{{ _('Search') }}">
+                    <button type="submit" class="ui icon search button" aria-label="{{ _('Search') }}">
+                        Search <i class="angle right icon"></i>
+                    </button>
+                </form>
+            </div>
         </div>
     {%- endblock frontpage_form %}
 {%- endblock frontpage_search %}

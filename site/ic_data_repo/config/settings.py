@@ -10,13 +10,18 @@ import os
 from datetime import datetime, timedelta
 
 import invenio_rdm_records
-from invenio_app_rdm.config import CELERY_BEAT_SCHEDULE
+from invenio_app_rdm.config import (
+    CELERY_BEAT_SCHEDULE,
+    VOCABULARIES_DATASTREAM_READERS,
+    VOCABULARIES_DATASTREAM_WRITERS,
+)
 from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 from invenio_rdm_records.services.components import DefaultRecordsComponents
 from marshmallow_utils.fields import NestedAttribute
 
+from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialAccessSchema, ImperialMetadataSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import SymplecticComponent
@@ -256,3 +261,6 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
 RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [SymplecticComponent]
+
+VOCABULARIES_DATASTREAM_WRITERS["affiliations-service"] = AffiliationsWriter
+VOCABULARIES_DATASTREAM_READERS["stream-yaml"] = StreamingYamlSequenceReader

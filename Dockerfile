@@ -26,9 +26,6 @@ RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
     invenio collect --verbose  && \
     invenio webpack buildall
 
-# get full set of affiliations data
-RUN mv ${INVENIO_INSTANCE_PATH}/app_data/vocabularies/affiliations_ror_full.yaml ${INVENIO_INSTANCE_PATH}/app_data/vocabularies/affiliations_ror.yaml
-
 # Make directory owned by Invenio user
 RUN chown -R invenio test_data/ ${INVENIO_INSTANCE_PATH}/app_data/
 

@@ -7,6 +7,15 @@
         font-weight: @fontMedium;
         font-family: @ImperialSansDisplay;
         text-decoration: none;
+        max-height: 6rem;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        word-break: keep-all;
+        overflow-wrap: break-word;
     }
     &:hover {
         a {

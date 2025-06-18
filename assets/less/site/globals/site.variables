@@ -47,12 +47,7 @@
 @accessRightEmbargoed: @yellow;
 @accessRightMetadataOnly: @teal;
 
-/*-OLD------------------
-@restricted-components-background-color_old: #feeaea;
-@restricted-components-border-color_old: #e0b4b4;
-@embargoed-components-background-color_old: #fbf8ee;
-@embargoed-components-border-color_old: #c9ba9b;
---------------------*/
+@warningColor: @orange;
 
 @footerDarkColor: @black;
 @subFooterColor: @footerDarkColor;
@@ -76,7 +71,9 @@
 
 @inputColor: @black;
 @inputBackgroundColor: @white;
-@inputBorderColor: @whiteSmoke;
+@inputBorder: 1px solid @black;
+@textAreaBorder: 1px solid @black;
+@inputBorderRadius: 0;
 
 @mutedAccordionHeaderColor: @whiteSmoke;
 @defaultBrandColor: @imperialBlue;
@@ -113,7 +110,7 @@
 /*--- 1rem ---*/
 @fontSizeBase: 16px;
 
-@fontSizeHeadline: 5rem;
+@fontSizeHeadline: 3rem;
 @fontSizeSubheadline: 2rem;
 @fontSizeItemHeadline: 1.25rem;
 @fontSizeBodyHeader: 1rem;
@@ -122,6 +119,8 @@
 
 @font-size-small: @fontSizeCaption;
 @font-size-tiny: @fontSizeCaption;
+
+@codeColor: #96175F;
 
 @defaultBorderRadius: 0;
 

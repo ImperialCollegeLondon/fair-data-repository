@@ -1,4 +1,4 @@
-"""JS/CSS Webpack bundles for Imperial Fair Data Repository."""
+"""JS/CSS Webpack bundles for Helix."""
 
 from invenio_assets.webpack import WebpackThemeBundle
 

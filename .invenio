@@ -3,7 +3,7 @@ flavour = RDM
 logfile = /logs/invenio-cli.log
 
 [cookiecutter]
-project_name = Imperial Fair Data Repository
+project_name = Helix
 project_shortname = ic-data-repo
 package_name = ic_data_repo
 project_site = invenio.rcs.ic.ac.uk

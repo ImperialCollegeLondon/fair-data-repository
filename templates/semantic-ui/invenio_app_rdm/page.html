@@ -11,17 +11,17 @@
 {%- extends "invenio_theme/page.html" -%}
 
 {%- block body_inner %}
-
   {%- block page_header %}
     {% include config.THEME_HEADER_TEMPLATE %}
   {%- endblock page_header %}
 
   <main id="main">
+    {%- block page_body %}
     <div class="ui container invenio-page-body">
-      {%- block page_body %}
         {% include "invenio_theme/body.html" %}
-      {%- endblock page_body %}
+
     </div>
+  {%- endblock page_body %}
   </main>
 
   {%- block page_footer %}

@@ -1,6 +1,9 @@
 # VS Code configuration files
 .vscode/
 
+# Intellij config files
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

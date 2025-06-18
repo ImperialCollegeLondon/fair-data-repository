@@ -1,42 +1,47 @@
-.ui.input,
-.ui.input > input {
-        background-color: @inputBackgroundColor;
-        color: @inputColor;
-        border-radius: 0 !important;
-        border: 1px solid @whiteSmoke;
-        i.icon.search {
-          color: @primaryColor;
-        }
-        &:focus,
-        &:focus-visible,
-        &:focus-within,
-        &:hover,
-        &:active {
-            outline: @deepSkyBlue;
-            outline-width: 3px;
-            outline-offset: 3px;
-        }
-        &::placeholder{
-           color: @darkGray;
-        }
+input {
+  &::placeholder {
+    color: @black;
+    text-decoration: none;
+  }
 
+  &::-webkit-input-placeholder {
+    color: @black;
+    text-decoration: none;
+  }
+
+  &:-ms-input-placeholder {
+    color: @black;
+    text-decoration: none;
+  }
+
+  &::-moz-placeholder {
+    color: @black;
+    opacity: 1; // Required in Firefox
+    text-decoration: none;
+  }
+
+  &:-moz-placeholder {
+    color: @black;
+    opacity: 1;
+    text-decoration: none;
+  }
 }
 
-div.ui.search .ui.input input {
-    background-color: @whiteSmoke;
-    border: 1px solid @whiteSmoke;
-    button.ui.button.search {
-        border-color: @whiteSmoke;
-    }
-}
+.ui.input{
+    button {
+            border-radius: 0px;
+            border: 1px solid @black;
+            background-color: @white;
+            &:hover {
+                background-color: black;
+            }
 
-.ui.action.input:not(.frontpage-header--search) {
-    &:focus,
-    &:focus-visible,
-    &:focus-within,
-    &:hover,
-    &:active {
-        outline: 3px solid #c71585;
-        outline-offset: 3px;
+        }
+    input {
+            color: @black;
+            background-color: @white;
+            line-height: 1.2rem;
+            text-decoration: none;
+            border: 1px solid @black;
     }
 }

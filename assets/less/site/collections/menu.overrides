@@ -38,14 +38,26 @@
         }
     }
 }
+.frontpage-header {
+      z-index: 1000;
+    .header {
+        box-shadow: none;
+        .outer-navbar {
+            left: 0;
+            position: absolute;
+            right: 0;
+        }
+    }
+}
 
 .outer-navbar {
+    z-index: 1000;
     background-image: None;
     background-color: transparent;
     border-color: transparent;
 
     #invenio-nav {
-        background: @white;
+        background: transparent;
         border-top: 2px solid @brandColor;
         border-bottom: 2px solid @brandColor;
         margin: 1rem 0;
@@ -136,6 +148,10 @@
 
 .invenio-administration #invenio-admin-top-nav.ui.menu {
     background: @white;
+}
+
+button.ui.button {
+    border: 1px solid @black;
 }
 
 .ui.dropdown .menu.visible.transition {

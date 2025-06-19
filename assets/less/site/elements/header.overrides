@@ -1,37 +1,83 @@
-/***********************************************
-         Invenio App RDM Header Overrides
-***********************************************/
-
-  h1,
-  h1.ui.header,
-  .ui.huge.header {
-    font-size: fontSizeHeadline;
-  }
-
-  h2,
-  h2.ui.header,
-  .ui.large.header {
-    font-size: @fontSizeSubheadline;
-
-    &:not(:first-child) {
-      margin-top: 2.5rem;
+.hero {
+    height: 90vh;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("@{imagesFolder}/background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    .container:first-child {
+        position: absolute;
+        height: 100%;
+        left: 0;
+        right: 0;
     }
-  }
+}
+.ui.container.frontpage-hero {
+    object-fit: cover;
+    object-position: center center;
+    .tagline-container {
+        margin-top: 30vh;
+        h1 {
+            font-size: clamp(2rem, 3rem + 2vh, 5rem);
+        }
+        h2 {
+            font-size: clamp(1.5rem, 2.5rem + 2vh, 3rem);
+            line-height: 120%;
+        }
+    }
+}
 
-  h3,
-  h3.ui.header,
-  .ui.medium.header {
-    font-size: @fontSizeBodyHeader;
-  }
+.search-container {
+    background-color: @deepSkyBlue;
+    padding: 2rem 3rem;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: -65px;
+    h2.search-label {
+        margin-bottom: 0;
+        flex-grow: 1;
+        font-size: clamp(1rem, 1.5rem + 2vw, 2rem);
+    }
+    form.frontpage-header--search {
+            display: flex;
+            flex: 1 1 100%;
+            background: transparent;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1rem;
+            h2 {
+                flex: 0 0 auto;
+                line-height: 150%;
+                margin-bottom: 0;
+            }
+            input {
+                flex: 1 1 200px;
+                min-width: 0;
+                border-radius: 0 !important;
+            }
+            button.btn {
+                background-color: @black;
+                border-color: @black !important;
+                min-width: fit-content;
+                max-width: fit-content;
+                &:hover {
+                    background-color: @imperialBlue;
+                }
+                @media (max-width: 600px) {
+                    min-width: 100%;
+                    max-width: 100%;
+                }
+            }
+    }
+}
 
-  h4,
-  h4.ui.header,
-  .ui.small.header {
-    font-size: @fontSizeBase;
-  }
-
-aside.sidebar {
-  h3.hidden {
-    display: none;
-  }
+.ui.container.page-subheader {
+    padding-inline: @itemVerticalPadding @itemHorizontalPadding;
+    display: flex;
+    align-items: center;
+    &-outer {
+        background-color: @subheaderColor;
+    }
 }

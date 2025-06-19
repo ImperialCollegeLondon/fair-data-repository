@@ -4,6 +4,7 @@ In particular, this includes tasks to be run periodically in the background.
 """
 
 from io import BytesIO
+from pathlib import Path
 
 import requests
 from celery import shared_task
@@ -45,7 +46,9 @@ def update_funders_vocabulary(archive_download_url: str) -> None:
                     "regex": r"-ror-data\.json",
                 },
             },
-            {"type": "json"},
+            # exploiting that yaml is a json superset use our streaming reader
+            # helps avoid memory issues in deployment
+            {"type": "stream-yaml"},
         ],
         "transformers": [{"type": "ror-funder"}],
         "writers": [
@@ -69,3 +72,29 @@ def export_record_to_symplectic(record) -> None:
         current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"],
     )
     client.create_record(record)
+
+
+@shared_task
+def import_full_affilations_vocab():
+    """Import the full affiliations vocabulary from YAML file in app_data."""
+    datastream_config = {
+        "readers": [
+            {
+                "type": "stream-yaml",
+                "args": {
+                    "origin": Path(current_app.instance_path)
+                    / "app_data"
+                    / "vocabularies"
+                    / "affiliations_ror_full.yaml",
+                },
+            },
+        ],
+        "transformers": [],
+        "writers": [
+            {
+                "type": "affiliations-service",
+                "args": {"identity": system_identity, "update": True},
+            }
+        ],
+    }
+    import_to_vocabulary(datastream_config, allow_errors=False)

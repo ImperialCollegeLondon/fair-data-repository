@@ -1,9 +1,39 @@
-.ui.form {
-    input {
-        border-radius: 0;
+.ui.form.input {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background-color: transparent;
+    align-items: center;
+    justify-content: flex-start;
+    border: none;
+    h2 {
+        margin-bottom: 0;
+        flex-shrink: 0;
     }
+    input {
+        flex: 1 0 50%;
+        border-radius: 0;
+        border: 1px solid @black;
+        border-color: @black !important;
+        &::placeholder {
+            color: @black;
+            text-decoration: none;
+        }
+    }
+    button.button.search {
+        border-color: @black;
+    }
+
+}
+
+.ui.action.input:not([class*="left action"]) > input {
+  border-right-color: @black;
 }
 
 .ui.form div.hidden-form-input {
     display: none;
+}
+
+.ui.button.search {
+    border: none !important;
 }

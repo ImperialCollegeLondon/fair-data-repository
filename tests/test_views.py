@@ -183,3 +183,27 @@ def test_deposit_view_permissions(user, user_client, db, vocabularies, app):
     # page now accessible
     response = user_client.get("/uploads/new")
     assert response.status_code == 200
+
+
+def test_ui_changes_for_depositors(user, user_client, db):
+    """Check that the UI changes for users with deposit permissions."""
+    # As seen by non-depositors.
+    res = user_client.get("/")
+    assert res.status_code == 200
+
+    # Check that non-depositor information is shown.
+    assert re.search(r"You have read-only access.", res.data.decode("utf-8"))
+
+    # Check that the deposit button is not visible.
+    assert not re.search(r"quick-create-dropdown", res.data.decode("utf-8"))
+
+    # As seen by depositors.
+    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
+    res = user_client.get("/")
+    assert res.status_code == 200
+
+    # Check that non-depositor information is not shown.
+    assert not re.search(r"You have read-only access.", res.data.decode("utf-8"))
+
+    # Check that the deposit button is visible.
+    assert re.search(r"quick-create-dropdown", res.data.decode("utf-8"))

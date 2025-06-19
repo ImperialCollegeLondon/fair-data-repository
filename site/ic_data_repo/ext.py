@@ -2,15 +2,72 @@
 
 import asyncio
 
+from flask import g
 from flask_login import user_logged_in
 from invenio_access.permissions import ActionUsers
 from invenio_db import db
+from invenio_rdm_records.proxies import current_rdm_records
+from jinja2 import nodes
+from jinja2.ext import Extension
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph.generated.models.o_data_errors.o_data_error import ODataError
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 
 from .microsoft_graph_api_client import get_client
 from .permissions import can_user_deposit, deposit_action
+
+
+class IfUserCanTag(Extension):
+    """Jinja2 tag to check if a user can do things in templates."""
+
+    tags = {"if_user_can"}
+
+    def parse(self, parser):
+        """Parse user permission check tags.
+
+        Example usage in a template:
+        {% if_user_can "permission_1", "permission_2", ... %}
+          <p>Content for users with all required permissions.</p>
+        {% else %}
+          <p>Content for everyone else.</p>
+        {% end_if_user_can %}
+        """
+        lineno = next(parser.stream).lineno
+
+        # parse the permissions and check the user.
+        args = [parser.parse_expression()]
+        while parser.stream.skip_if("comma"):
+            args.append(parser.parse_expression())
+        check_call = self.call_method("_check_permissions", args)
+
+        # if body.
+        body_if = parser.parse_statements(
+            ("name:else", "name:end_if_user_can"),
+            drop_needle=False,
+        )
+
+        # elif body is not used.
+        body_elif = []
+
+        # else body, if present.
+        body_else = []
+        if parser.stream.current.test("name:else"):
+            next(parser.stream)  # consume 'else'
+            body_else = parser.parse_statements(
+                ("name:end_if_user_can",),
+                drop_needle=True,
+            )
+        else:
+            # Still need to consume the end tag if no else is present.
+            parser.stream.expect("name:end_if_user_can")
+
+        return nodes.If(check_call, body_if, body_elif, body_else).set_lineno(lineno)
+
+    def _check_permissions(self, *permissions):
+        """Check if the user has all the specified permissions."""
+        identity = g.identity
+        service = current_rdm_records.records_service
+        return all(service.check_permission(identity, p) for p in permissions)
 
 
 class ImperialExtension:
@@ -73,3 +130,6 @@ class ImperialExtension:
                 with db.session.begin_nested():
                     db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
                 db.session.commit()
+
+        # Register jinja2 extension for user permission checks.
+        app.jinja_env.add_extension(IfUserCanTag)

@@ -38,7 +38,22 @@
                         Search <i class="angle right icon"></i>
                     </button>
                 </form>
+
             </div>
+            {# Display low privilege information #}
+            {% if_user_can "create" %}
+            {% else %}
+              {% if current_user.is_authenticated %}
+                <div class="eleven wide computer sixteen wide tablet column">
+                <div class="ui container center aligned segment">
+                <p class="ui header">
+                    You have read-only access. To request permission to deposit data, please contact <a href="mailto:{{config.SUPPORT_CONTACT_EMAIL}}">{{config.SUPPORT_CONTACT_EMAIL}}</a>.
+                </p>
+                </div>
+                </div>
+              {%endif%}
+            {% end_if_user_can %}
+
         </div>
     {%- endblock frontpage_form %}
 {%- endblock frontpage_search %}

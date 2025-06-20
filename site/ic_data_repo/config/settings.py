@@ -7,11 +7,10 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import invenio_rdm_records
 from invenio_app_rdm.config import (
-    CELERY_BEAT_SCHEDULE,
     VOCABULARIES_DATASTREAM_READERS,
     VOCABULARIES_DATASTREAM_WRITERS,
 )
@@ -245,13 +244,6 @@ RDM_ALLOW_METADATA_ONLY_RECORDS = False
 
 NOTIFICATION_BACKENDS = {
     EmailNotificationBackend.id: EmailNotificationBackend,
-}
-
-# Periodic tasks
-# --------------
-CELERY_BEAT_SCHEDULE["update_imperial_users"] = {
-    "task": "ic_data_repo.tasks.update_imperial_users",
-    "schedule": timedelta(weeks=1),
 }
 
 SYMPLECTIC_API_URL = os.getenv("SYMPLECTIC_API_URL")

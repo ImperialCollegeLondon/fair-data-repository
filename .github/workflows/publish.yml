@@ -36,14 +36,14 @@ jobs:
         run: |
           echo "image_tag_with_sha=${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
       - name: Scan backend Docker image with Trivy
-        uses: aquasecurity/trivy-action@v0.31
+        uses: aquasecurity/trivy-action@0.31.0
         with:
           image-ref: ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
           format: "table"
           exit-code: 0 # Do not fail the build on vulnerabilities
           output: trivy-backend.txt
       - name: Upload Trivy backend scan report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: trivy-backend-report
           path: trivy-backend.txt

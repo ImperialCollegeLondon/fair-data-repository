@@ -64,7 +64,6 @@ jobs:
           --set invenio.extra_secrets.icl_secrets.values.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
           --set invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL=${{ vars.ICL_OAUTH_WELL_KNOWN_URL }} \
           --set rabbitmq.auth.password="${{ secrets.RABBITMQ_AUTH_PASSWORD }}" \
-          --set postgresql.auth.password="${{ secrets.POSTGRESQL_AUTH_PASSWORD }}" \
           --set invenio.hostname=${{ vars.HOSTNAME }} \
           --set web.image=${{ inputs.image_tag_with_sha }} \
           --set worker.image=${{ inputs.image_tag_with_sha }} \
@@ -86,4 +85,4 @@ jobs:
           --set-string workerBeat.resources.limits.cpu=${{ vars.WORKER_LIMITS_CPU }} \
           --set workerBeat.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }} \
           --set postgresqlExternal.hostname=${{ vars.POSTGRES_HOSTNAME }} \\
-          --set postgresqlExternal.password=${{ secrets.POSTGRES_PASSWORD }}
+          --set postgresqlExternal.password="${{ secrets.POSTGRES_PASSWORD }}"

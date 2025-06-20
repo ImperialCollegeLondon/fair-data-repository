@@ -72,7 +72,7 @@ jobs:
           --set invenio.extraConfig.INVENIO_DATACITE_PREFIX=${{ vars.DATACITE_PREFIX }} \
           --set-string invenio.extraConfig.INVENIO_DATACITE_TEST_MODE=True \
           --set invenio.extraConfig.INVENIO_MAIL_USERNAME=${{ vars.EMAIL_USERNAME }} \
-          --set invenio.extra_secrets.icl_secrets.values.INVENIO_MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+          --set invenio.extra_secrets.icl_secrets.values.INVENIO_MAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
           --set persistence.size=${{ vars.FILES_STORAGE_SIZE }} \
           --set-string invenio.extraConfig.INVENIO_MAIL_USE_TLS=True \
           --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=${{ vars.EMAIL_USERNAME }} \
@@ -84,5 +84,5 @@ jobs:
           --set workerBeat.resources.requests.memory=${{ vars.WORKER_REQUESTS_MEMORY }} \
           --set-string workerBeat.resources.limits.cpu=${{ vars.WORKER_LIMITS_CPU }} \
           --set workerBeat.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }} \
-          --set postgresqlExternal.hostname=${{ vars.POSTGRES_HOSTNAME }} \\
+          --set postgresqlExternal.hostname=${{ vars.POSTGRES_HOSTNAME }} \
           --set postgresqlExternal.password="${{ secrets.POSTGRES_PASSWORD }}"

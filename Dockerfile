@@ -9,6 +9,7 @@
 # bootstrap script located in ./scripts/bootstrap.
 
 FROM registry.cern.ch/inveniosoftware/almalinux:1
+RUN dnf upgrade -y && dnf clean all
 
 COPY site ./site
 COPY Pipfile Pipfile.lock ./

@@ -61,7 +61,7 @@ jobs:
           --set invenio.security_login_salt="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
           --set invenio.csrf_secret_salt="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \
           --set invenio.extraConfig.ICL_OAUTH_CLIENT_ID=${{ vars.ICL_OAUTH_CLIENT_ID }} \
-          --set invenio.extraConfig.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
+          --set invenio.extra_secrets.icl_secrets.values.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
           --set invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL=${{ vars.ICL_OAUTH_WELL_KNOWN_URL }} \
           --set rabbitmq.auth.password="${{ secrets.RABBITMQ_AUTH_PASSWORD }}" \
           --set postgresql.auth.password="${{ secrets.POSTGRESQL_AUTH_PASSWORD }}" \
@@ -73,7 +73,7 @@ jobs:
           --set invenio.extraConfig.INVENIO_DATACITE_PREFIX=${{ vars.DATACITE_PREFIX }} \
           --set-string invenio.extraConfig.INVENIO_DATACITE_TEST_MODE=True \
           --set invenio.extraConfig.INVENIO_MAIL_USERNAME=${{ vars.EMAIL_USERNAME }} \
-          --set invenio.extraConfig.INVENIO_MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+          --set invenio.extra_secrets.icl_secrets.values.INVENIO_MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
           --set persistence.size=${{ vars.FILES_STORAGE_SIZE }} \
           --set-string invenio.extraConfig.INVENIO_MAIL_USE_TLS=True \
           --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=${{ vars.EMAIL_USERNAME }} \
@@ -84,4 +84,6 @@ jobs:
           --set workerBeat.resources.requests.cpu=${{ vars.WORKER_REQUESTS_CPU }} \
           --set workerBeat.resources.requests.memory=${{ vars.WORKER_REQUESTS_MEMORY }} \
           --set-string workerBeat.resources.limits.cpu=${{ vars.WORKER_LIMITS_CPU }} \
-          --set workerBeat.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }}
+          --set workerBeat.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }} \
+          --set postgresqlExternal.hostname=${{ vars.POSTGRES_HOSTNAME }} \\
+          --set postgresqlExternal.password=${{ secrets.POSTGRES_PASSWORD }}

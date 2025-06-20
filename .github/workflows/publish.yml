@@ -31,18 +31,6 @@ jobs:
           context: .
           push: true
           tags: ${{steps.meta.outputs.tags }}
-      - name: Get image frontend metadata
-        id: frontend-meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: type=raw,value=frontend-${{ github.ref_name }}
-      - name: Build and push frontend Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./docker/nginx
-          push: true
-          tags: ${{steps.frontend-meta.outputs.tags }}
       - name: Export data for deployment
         id: export-data
         run: |

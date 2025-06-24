@@ -160,8 +160,15 @@ class SymplecticClient:
             )
             licence_text_element.text = rights[0].get("id")
 
-        doi = record.get("id")
-        self.add_doi_subtree(native_element, "c-validated-doi", doi)
+        # Find DOI in metadata['related_identifiers']
+        doi = None
+        for identifier in metadata.get("related_identifiers", []):
+            if identifier.get("scheme") == "doi":
+                doi = identifier.get("identifier")
+                break
+
+        if doi:
+            self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
         version = metadata.get("version")
         if version:

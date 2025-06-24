@@ -1,0 +1,20 @@
+{#
+    Override for invenio_theme/page_settings that filters out the application
+    settings page when constructing the side bar for settings pages.
+
+    Bit of a hack but it there doesn't seem to be a clean way to prevent the
+    applications menu from being added as a menu item.
+#}
+
+{% extends 'invenio_theme/page_settings.html' %}
+{%- block settings_menu_item scoped %}
+  {% if item.name != 'applications' %}
+  <a
+    href="{{ item.url }}"
+    class="brand item {% if item.active %}active{% endif %}"
+    {% if item.active %} aria-current="page" {% endif %}
+  >
+    {{ item.text|safe }}
+  </a>
+  {% endif %}
+{%- endblock %}

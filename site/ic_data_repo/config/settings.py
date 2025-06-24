@@ -260,3 +260,7 @@ VOCABULARIES_DATASTREAM_READERS["stream-yaml"] = StreamingYamlSequenceReader
 # Email addresses
 # ---------------
 SUPPORT_CONTACT_EMAIL = os.getenv("SUPPORT_CONTACT_EMAIL")
+
+USERPROFILES_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
+ACCOUNTS_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
+OAUTHCLIENT_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"

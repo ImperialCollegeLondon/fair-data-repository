@@ -91,7 +91,8 @@
           role="menu"
           aria-labelledby="user-profile-dropdown-btn"
         >
-          {%- for item in current_menu.submenu('settings').children if item.visible %}
+          {# filter out application settings menu here as it's not possible to prevent it being added #}
+          {%- for item in current_menu.submenu('settings').children if item.visible and item.name != 'applications' %}
             <a role="menuitem" class="item" href="{{ item.url }}" tabindex="-1">
               {{ item.text|safe }}
             </a>
@@ -122,7 +123,8 @@
         <h2 class="ui small header">{{ _("My account") }}</h2>
 
         <div role="menu">
-          {%- for item in current_menu.submenu('settings').children if item.visible %}
+          {# as above filter out application settings menu #}
+          {%- for item in current_menu.submenu('settings').children if item.visible and item.name != 'applications' %}
             <a role="menuitem" class="item" href="{{ item.url }}">
               {{ item.text|safe }}
             </a>

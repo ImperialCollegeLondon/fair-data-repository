@@ -243,3 +243,62 @@ class SymplecticClient:
             headers=self.headers,
         )
         response.raise_for_status()
+
+        root = etree.fromstring(response.content)
+        ns = {"api": "http://www.symplectic.co.uk/publications/api"}
+
+        # Extract <api:object> id
+        object_elem = root.find(".//api:object", namespaces=ns)
+        object_id = object_elem.get("id") if object_elem is not None else None
+
+        # Extract all <api:text> for fields named c-related-doi
+        related_doi_text = []
+        for field in root.findall(".//api:field[@name='c-related-doi']", namespaces=ns):
+            text_elem = field.find("api:text", namespaces=ns)
+            if text_elem is not None and text_elem.text:
+                related_doi_text.append(text_elem.text)
+
+        # Fetch related object IDs
+        related_object_id = self.fetch_related_objects(related_doi_text)
+        if related_object_id:
+            self.link_related_records(object_id, related_object_id)
+
+        return object_id, related_doi_text, related_object_id
+
+    def fetch_related_objects(self, related_doi_texts):
+        """Search for object_ids to link to based on related DOIs."""
+        results = []
+        for doi in related_doi_texts:
+            url = f'{self.api_url}/publications?detail=single-record&query=doi="{doi}"'
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            results.append(response.text)
+
+        root = etree.fromstring(response.content)
+        ns = {"api": "http://www.symplectic.co.uk/publications/api"}
+
+        object_elem = root.find(".//api:object", namespaces=ns)
+        related_object_id = object_elem.get("id") if object_elem is not None else None
+
+        if related_object_id:
+            return related_object_id
+        return None
+
+    def link_related_records(self, from_object_id, to_object_id):
+        """Link related records using the object IDs from the responses from the API."""
+        ns = "http://www.symplectic.co.uk/publications/api"
+        root = etree.Element("import-relationship", xmlns=ns)
+        etree.SubElement(root, "from-object").text = f"publication({from_object_id})"
+        etree.SubElement(root, "to-object").text = f"publication({to_object_id})"
+        etree.SubElement(root, "type-id").text = "1"
+
+        xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
+
+        url = f"{self.api_url}/relationships"
+        response = requests.post(
+            url,
+            data=xml_data,
+            headers=self.headers,
+        )
+        response.raise_for_status()
+        return response

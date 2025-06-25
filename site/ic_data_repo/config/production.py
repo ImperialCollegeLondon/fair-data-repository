@@ -13,3 +13,5 @@ SITE_API_URL = f"https://{APP_ALLOWED_HOSTS[0]}/api"
 ACCOUNTS_LOCAL_LOGIN_ENABLED = False
 
 MAIL_SUPPRESS_SEND = False
+
+SUPPORT_CONTACT_EMAIL = "rdm-enquiries@ic.ac.uk"

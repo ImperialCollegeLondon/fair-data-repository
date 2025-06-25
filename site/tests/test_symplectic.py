@@ -34,6 +34,9 @@ def sample_metadata():
                 }
             ],
             "publisher": "Imperial College London",
+            "identifiers": [
+                {"scheme": "doi", "identifier": "10.5281/zenodo.783021"},
+            ],
             "resource_type": {"id": "dataset"},
             "publication_date": "2025-05-19",
             "related_identifiers": [
@@ -65,13 +68,6 @@ def minimal_metadata():
             "publisher": "Imperial College London",
             "resource_type": {"id": "dataset"},
             "publication_date": "2025-05-19",
-            "related_identifiers": [
-                {
-                    "scheme": "doi",
-                    "identifier": "10.5281/zenodo.783021",
-                    "relation_type": {"id": "iscontinuedby"},
-                }
-            ],
         },
     }
 
@@ -215,16 +211,6 @@ def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
     assert date_element.find(f"{{{client.NAMESPACE_URI}}}day").text == "19"
     assert date_element.find(f"{{{client.NAMESPACE_URI}}}month").text == "5"
     assert date_element.find(f"{{{client.NAMESPACE_URI}}}year").text == "2025"
-
-    doi_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
-    )
-    assert doi_field is not None
-    # Now check for the DOI from related_identifiers, not the record id
-    assert (
-        doi_field.find(f"{{{client.NAMESPACE_URI}}}text").text
-        == "10.5281/zenodo.783021"
-    )
 
     abstract_field = native.find(
         f".//{{{client.NAMESPACE_URI}}}field[@name='abstract']"

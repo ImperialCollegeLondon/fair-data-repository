@@ -131,6 +131,24 @@ def test_generate_record_xml(client, sample_metadata):
     assert len(persons) == 1
     assert persons[0].find(f"{{{client.NAMESPACE_URI}}}last-name").text == "John"
 
+    # c-validated-doi from identifiers
+    validated_doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
+    )
+    assert validated_doi_field is not None
+    validated_doi_text = validated_doi_field.find(f"{{{client.NAMESPACE_URI}}}text")
+    assert validated_doi_text is not None
+    assert validated_doi_text.text == "10.5281/zenodo.783021"
+
+    # c-related-doi from related_identifiers
+    related_doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-related-doi']"
+    )
+    assert related_doi_field is not None
+    related_doi_text = related_doi_field.find(f"{{{client.NAMESPACE_URI}}}text")
+    assert related_doi_text is not None
+    assert related_doi_text.text == "10.5281/zenodo.783021"
+
 
 @patch("requests.put")
 def test_create_record_success(mock_put, client, sample_metadata):

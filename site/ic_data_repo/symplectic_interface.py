@@ -160,15 +160,32 @@ class SymplecticClient:
             )
             licence_text_element.text = rights[0].get("id")
 
-        # Find DOI in metadata['related_identifiers']
+        # Add c-validated-doi field if a DOI is present
         doi = None
-        for identifier in metadata.get("related_identifiers", []):
+        for identifier in metadata.get("identifiers", []):
             if identifier.get("scheme") == "doi":
                 doi = identifier.get("identifier")
                 break
 
         if doi:
             self.add_doi_subtree(native_element, "c-validated-doi", doi)
+
+        # Add c-related-doi fields for each DOI in related_identifiers
+        for identifier in metadata.get("related_identifiers", []):
+            if identifier.get("scheme") == "doi":
+                related_doi_element = etree.SubElement(
+                    native_element,
+                    self.api_qname("field"),
+                    attrib={
+                        "name": "c-related-doi",
+                        "type": "text",
+                        "display-name": "DOI of related publication",
+                    },
+                )
+                related_doi_text = etree.SubElement(
+                    related_doi_element, self.api_qname("text")
+                )
+                related_doi_text.text = identifier.get("identifier")
 
         version = metadata.get("version")
         if version:

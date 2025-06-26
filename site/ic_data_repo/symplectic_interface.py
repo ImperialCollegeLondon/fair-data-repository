@@ -4,6 +4,7 @@ from datetime import datetime
 from functools import partial
 
 import requests
+from flask import current_app
 from lxml import etree
 
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
@@ -161,31 +162,31 @@ class SymplecticClient:
             licence_text_element.text = rights[0].get("id")
 
         # Add c-validated-doi field if a DOI is present
-        doi = None
-        for identifier in metadata.get("identifiers", []):
-            if identifier.get("scheme") == "doi":
-                doi = identifier.get("identifier")
-                break
-
-        if doi:
-            self.add_doi_subtree(native_element, "c-validated-doi", doi)
+        doi_prefix = current_app.config["DOI_PREFIX"] + "/"
+        print(f"DOI prefix: {doi_prefix}")
+        doi_suffix = record.get("id")
+        doi = doi_prefix + doi_suffix
+        print(f"DOI: {doi}")
+        self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
         # Add c-related-doi fields for each DOI in related_identifiers
         for identifier in metadata.get("related_identifiers", []):
-            if identifier.get("scheme") == "doi":
-                related_doi_element = etree.SubElement(
-                    native_element,
-                    self.api_qname("field"),
-                    attrib={
-                        "name": "c-related-doi",
-                        "type": "text",
-                        "display-name": "DOI of related publication",
-                    },
-                )
-                related_doi_text = etree.SubElement(
-                    related_doi_element, self.api_qname("text")
-                )
-                related_doi_text.text = identifier.get("identifier")
+            relation_type = identifier.get("relation_type", {})
+            if relation_type.get("id") == "ispublishedin":
+                if identifier.get("scheme") == "doi":
+                    related_doi_element = etree.SubElement(
+                        native_element,
+                        self.api_qname("field"),
+                        attrib={
+                            "name": "c-related-doi",
+                            "type": "text",
+                            "display-name": "DOI of related publication",
+                        },
+                    )
+                    related_doi_text = etree.SubElement(
+                        related_doi_element, self.api_qname("text")
+                    )
+                    related_doi_text.text = identifier.get("identifier")
 
         version = metadata.get("version")
         if version:

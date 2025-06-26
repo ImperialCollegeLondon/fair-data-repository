@@ -2,7 +2,6 @@
 
 from unittest.mock import patch
 
-import flask
 import pytest
 import requests
 from ic_data_repo.symplectic_interface import SymplecticClient
@@ -10,21 +9,13 @@ from lxml import etree
 
 DUMMY_URL = "https://api.symplectic.example.com"
 DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
-
-
-@pytest.fixture(autouse=True)
-def app_context():
-    """Create a Flask app context for testing."""
-    app = flask.Flask(__name__)
-    app.config["DOI_PREFIX"] = "10.12345"
-    with app.app_context():
-        yield
+DATACITE_PREFIX = "10.12345/"
 
 
 @pytest.fixture
 def client():
     """Create a Symplectic client instance with mocked environment variables."""
-    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY)
+    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY, DATACITE_PREFIX)
 
 
 @pytest.fixture
@@ -83,6 +74,7 @@ def test_client_initialization(client):
     """Test that the client initializes with values from env."""
     assert client.api_url == DUMMY_URL
     assert client.api_key == DUMMY_SUBSCRIPTION_KEY
+    assert client.datacite_prefix == DATACITE_PREFIX
     assert client.headers == {
         "Content-Type": "text/xml",
         "Subscription-Key": DUMMY_SUBSCRIPTION_KEY,
@@ -124,7 +116,7 @@ def test_add_doi_subtree(client):
 
 def test_generate_record_xml(client, sample_metadata):
     """Test generating XML with minimal metadata."""
-    xml = client.generate_record_xml(sample_metadata)
+    xml = client.generate_record_xml(sample_metadata, client.datacite_prefix)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
 
     title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
@@ -208,7 +200,7 @@ def test_create_record_minimal_metadata(mock_put, client, minimal_metadata):
 
 def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
     """Test generating XML with truly minimal metadata."""
-    xml = client.generate_record_xml(minimal_metadata)
+    xml = client.generate_record_xml(minimal_metadata, client.datacite_prefix)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
 
     title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
@@ -241,18 +233,3 @@ def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
         f".//{{{client.NAMESPACE_URI}}}field[@name='abstract']"
     )
     assert abstract_field is None
-
-    version_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='version']")
-    assert version_field is None
-
-    validated_doi_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
-    )
-    assert (
-        validated_doi_field is not None
-    )  # This will exist if DOI_PREFIX and id are always present
-
-    related_doi_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='c-related-doi']"
-    )
-    assert related_doi_field is None

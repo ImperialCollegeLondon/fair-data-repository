@@ -4,7 +4,6 @@ from datetime import datetime
 from functools import partial
 
 import requests
-from flask import current_app
 from lxml import etree
 
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
@@ -162,31 +161,31 @@ class SymplecticClient:
             licence_text_element.text = rights[0].get("id")
 
         # Add c-validated-doi field if a DOI is present
-        doi_prefix = current_app.config["DOI_PREFIX"] + "/"
-        print(f"DOI prefix: {doi_prefix}")
-        doi_suffix = record.get("id")
-        doi = doi_prefix + doi_suffix
-        print(f"DOI: {doi}")
-        self.add_doi_subtree(native_element, "c-validated-doi", doi)
+        doi = None
+        for identifier in metadata.get("identifiers", []):
+            if identifier.get("scheme") == "doi":
+                doi = identifier.get("identifier")
+                break
+
+        if doi:
+            self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
         # Add c-related-doi fields for each DOI in related_identifiers
         for identifier in metadata.get("related_identifiers", []):
-            relation_type = identifier.get("relation_type", {})
-            if relation_type.get("id") == "ispublishedin":
-                if identifier.get("scheme") == "doi":
-                    related_doi_element = etree.SubElement(
-                        native_element,
-                        self.api_qname("field"),
-                        attrib={
-                            "name": "c-related-doi",
-                            "type": "text",
-                            "display-name": "DOI of related publication",
-                        },
-                    )
-                    related_doi_text = etree.SubElement(
-                        related_doi_element, self.api_qname("text")
-                    )
-                    related_doi_text.text = identifier.get("identifier")
+            if identifier.get("scheme") == "doi":
+                related_doi_element = etree.SubElement(
+                    native_element,
+                    self.api_qname("field"),
+                    attrib={
+                        "name": "c-related-doi",
+                        "type": "text",
+                        "display-name": "DOI of related publication",
+                    },
+                )
+                related_doi_text = etree.SubElement(
+                    related_doi_element, self.api_qname("text")
+                )
+                related_doi_text.text = identifier.get("identifier")
 
         version = metadata.get("version")
         if version:
@@ -244,3 +243,62 @@ class SymplecticClient:
             headers=self.headers,
         )
         response.raise_for_status()
+
+        root = etree.fromstring(response.content)
+        ns = {"api": "http://www.symplectic.co.uk/publications/api"}
+
+        # Extract <api:object> id
+        object_elem = root.find(".//api:object", namespaces=ns)
+        object_id = object_elem.get("id") if object_elem is not None else None
+
+        # Extract all <api:text> for fields named c-related-doi
+        related_doi_text = []
+        for field in root.findall(".//api:field[@name='c-related-doi']", namespaces=ns):
+            text_elem = field.find("api:text", namespaces=ns)
+            if text_elem is not None and text_elem.text:
+                related_doi_text.append(text_elem.text)
+
+        # Fetch related object IDs
+        related_object_id = self.fetch_related_objects(related_doi_text)
+        if related_object_id:
+            self.link_related_records(object_id, related_object_id)
+
+        return object_id, related_doi_text, related_object_id
+
+    def fetch_related_objects(self, related_doi_texts):
+        """Search for object_ids to link to based on related DOIs."""
+        results = []
+        for doi in related_doi_texts:
+            url = f'{self.api_url}/publications?detail=single-record&query=doi="{doi}"'
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            results.append(response.text)
+
+        root = etree.fromstring(response.content)
+        ns = {"api": "http://www.symplectic.co.uk/publications/api"}
+
+        object_elem = root.find(".//api:object", namespaces=ns)
+        related_object_id = object_elem.get("id") if object_elem is not None else None
+
+        if related_object_id:
+            return related_object_id
+        return None
+
+    def link_related_records(self, from_object_id, to_object_id):
+        """Link related records using the object IDs from the responses from the API."""
+        ns = "http://www.symplectic.co.uk/publications/api"
+        root = etree.Element("import-relationship", xmlns=ns)
+        etree.SubElement(root, "from-object").text = f"publication({from_object_id})"
+        etree.SubElement(root, "to-object").text = f"publication({to_object_id})"
+        etree.SubElement(root, "type-id").text = "1"
+
+        xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
+
+        url = f"{self.api_url}/relationships"
+        response = requests.post(
+            url,
+            data=xml_data,
+            headers=self.headers,
+        )
+        response.raise_for_status()
+        return response

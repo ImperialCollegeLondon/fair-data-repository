@@ -4,7 +4,6 @@ from datetime import datetime
 from functools import partial
 
 import requests
-from flask import current_app
 from lxml import etree
 
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
@@ -18,10 +17,11 @@ class SymplecticClient:
     NAMESPACE_URI = NAMESPACE_URI
     api_qname = partial(etree.QName, NAMESPACE_URI)
 
-    def __init__(self, api_url, api_key):
+    def __init__(self, api_url, api_key, datacite_prefix):
         """Initialize the Symplectic client."""
         self.api_url = api_url
         self.api_key = api_key
+        self.datacite_prefix = datacite_prefix
         self.headers = {
             "Content-Type": "text/xml",
             "Subscription-Key": self.api_key,
@@ -62,7 +62,7 @@ class SymplecticClient:
             },
         )
 
-    def generate_record_xml(self, record):
+    def generate_record_xml(self, record, datacite_prefix):
         """Generate the XML for the record to be created in Symplectic."""
         metadata = record.get("metadata", {})
 
@@ -162,31 +162,31 @@ class SymplecticClient:
             licence_text_element.text = rights[0].get("id")
 
         # Add c-validated-doi field if a DOI is present
-        doi_prefix = current_app.config["DOI_PREFIX"] + "/"
-        print(f"DOI prefix: {doi_prefix}")
+        doi_prefix = self.datacite_prefix + "/"
         doi_suffix = record.get("id")
         doi = doi_prefix + doi_suffix
-        print(f"DOI: {doi}")
         self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
         # Add c-related-doi fields for each DOI in related_identifiers
         for identifier in metadata.get("related_identifiers", []):
             relation_type = identifier.get("relation_type", {})
-            if relation_type.get("id") == "ispublishedin":
-                if identifier.get("scheme") == "doi":
-                    related_doi_element = etree.SubElement(
-                        native_element,
-                        self.api_qname("field"),
-                        attrib={
-                            "name": "c-related-doi",
-                            "type": "text",
-                            "display-name": "DOI of related publication",
-                        },
-                    )
-                    related_doi_text = etree.SubElement(
-                        related_doi_element, self.api_qname("text")
-                    )
-                    related_doi_text.text = identifier.get("identifier")
+            if (
+                relation_type.get("id") == "ispublishedin"
+                and identifier.get("scheme") == "doi"
+            ):
+                related_doi_element = etree.SubElement(
+                    native_element,
+                    self.api_qname("field"),
+                    attrib={
+                        "name": "c-related-doi",
+                        "type": "text",
+                        "display-name": "DOI of related publication",
+                    },
+                )
+                related_doi_text = etree.SubElement(
+                    related_doi_element, self.api_qname("text")
+                )
+                related_doi_text.text = identifier.get("identifier")
 
         version = metadata.get("version")
         if version:
@@ -235,7 +235,8 @@ class SymplecticClient:
 
     def create_record(self, metadata):
         """Create a record in Symplectic Elements."""
-        record_xml = self.generate_record_xml(metadata)
+        record_xml = self.generate_record_xml(metadata, self.datacite_prefix)
+
         proprietary_id = metadata.get("id")
         url = f"{self.api_url}/publication/records/manual/{proprietary_id}"
         response = requests.put(

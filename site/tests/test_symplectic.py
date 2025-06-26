@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+import flask
 import pytest
 import requests
 from ic_data_repo.symplectic_interface import SymplecticClient
@@ -9,6 +10,15 @@ from lxml import etree
 
 DUMMY_URL = "https://api.symplectic.example.com"
 DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
+
+
+@pytest.fixture(autouse=True)
+def app_context():
+    """Create a Flask app context for testing."""
+    app = flask.Flask(__name__)
+    app.config["DOI_PREFIX"] = "10.12345"
+    with app.app_context():
+        yield
 
 
 @pytest.fixture
@@ -34,16 +44,13 @@ def sample_metadata():
                 }
             ],
             "publisher": "Imperial College London",
-            "identifiers": [
-                {"scheme": "doi", "identifier": "10.5281/zenodo.783021"},
-            ],
             "resource_type": {"id": "dataset"},
             "publication_date": "2025-05-19",
             "related_identifiers": [
                 {
                     "scheme": "doi",
                     "identifier": "10.5281/zenodo.783021",
-                    "relation_type": {"id": "iscontinuedby"},
+                    "relation_type": {"id": "ispublishedin"},
                 }
             ],
         },
@@ -138,7 +145,7 @@ def test_generate_record_xml(client, sample_metadata):
     assert validated_doi_field is not None
     validated_doi_text = validated_doi_field.find(f"{{{client.NAMESPACE_URI}}}text")
     assert validated_doi_text is not None
-    assert validated_doi_text.text == "10.5281/zenodo.783021"
+    assert validated_doi_text.text.endswith(sample_metadata["id"])
 
     # c-related-doi from related_identifiers
     related_doi_field = native.find(
@@ -237,3 +244,15 @@ def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
 
     version_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='version']")
     assert version_field is None
+
+    validated_doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
+    )
+    assert (
+        validated_doi_field is not None
+    )  # This will exist if DOI_PREFIX and id are always present
+
+    related_doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-related-doi']"
+    )
+    assert related_doi_field is None

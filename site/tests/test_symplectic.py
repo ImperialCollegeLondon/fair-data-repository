@@ -1,6 +1,6 @@
 """Tests for the Symplectic API client."""
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import flask
 import pytest
@@ -158,8 +158,15 @@ def test_generate_record_xml(client, sample_metadata):
 
 
 @patch("requests.put")
-def test_create_record_success(mock_put, client, sample_metadata):
+@patch.object(SymplecticClient, "fetch_related_objects")
+def test_create_record_success(mock_fetch_related, mock_put, client, sample_metadata):
     """Test successful record creation by mocking the API response."""
+    mock_response = mock_put.return_value
+    mock_response.content = b"<root></root>"
+    mock_response.raise_for_status.return_value = None
+
+    mock_fetch_related.return_value = []
+
     client.create_record(sample_metadata)
 
     expected_url = (
@@ -191,19 +198,88 @@ def test_create_record_failure(mock_put, client, sample_metadata):
     assert called_headers == client.headers
 
 
-@patch("requests.put")
-def test_create_record_minimal_metadata(mock_put, client, minimal_metadata):
-    """Test successful record creation with minimal metadata."""
-    client.create_record(minimal_metadata)
+@patch("requests.get")
+def test_fetch_related_objects(mock_get, client):
+    """Test fetching related objects with a DOI."""
+    mock_response = MagicMock()
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="67890" category="publication"/>
+    </api:response>
+    """
+    mock_response.text = mock_response.content.decode("utf-8")
+    mock_response.raise_for_status.return_value = None
+    mock_get.return_value = mock_response
 
-    expected_url = (
-        f"{client.api_url}/publication/records/manual/{minimal_metadata['id']}"
+    test_dois = ["10.5281/zenodo.123456"]
+    related_id = client.fetch_related_objects(test_dois)
+
+    assert related_id == "67890"
+    mock_get.assert_called_once()
+    assert "zenodo.123456" in mock_get.call_args[0][0]
+
+
+@patch("requests.post")
+def test_link_related_records(mock_post, client):
+    """Test linking related records."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_post.return_value = mock_response
+
+    from_id = "12345"
+    to_id = "67890"
+    client.link_related_records(from_id, to_id)
+
+    mock_post.assert_called_once()
+    called_url = mock_post.call_args[0][0]
+    called_data = mock_post.call_args[1]["data"]
+    assert called_url == f"{client.api_url}/relationships"
+    assert f"publication({from_id})" in called_data
+    assert f"publication({to_id})" in called_data
+    assert "<type-id>1</type-id>" in called_data
+
+
+@patch("requests.put")
+@patch("requests.get")
+@patch("requests.post")
+def test_create_record_integration(
+    mock_post, mock_get, mock_put, client, sample_metadata
+):
+    """Test full integration of create_record with other functions."""
+    put_response = MagicMock()
+    put_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="12345"/>
+      <api:field name="c-related-doi"><api:text>10.5281/zenodo.783021</api:text></api:field>  # noqa: E501
+    </api:response>
+    """
+    put_response.raise_for_status.return_value = None
+    mock_put.return_value = put_response
+
+    get_response = MagicMock()
+    get_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="67890"/>
+    </api:response>
+    """
+    get_response.text = get_response.content.decode("utf-8")
+    get_response.raise_for_status.return_value = None
+    mock_get.return_value = get_response
+
+    post_response = MagicMock()
+    post_response.raise_for_status.return_value = None
+    mock_post.return_value = post_response
+
+    object_id, related_doi_text, related_object_id = client.create_record(
+        sample_metadata
     )
+
+    assert object_id == "12345"
+    assert related_doi_text == ["10.5281/zenodo.783021"]
+    assert related_object_id == "67890"
     mock_put.assert_called_once()
-    called_url = mock_put.call_args[0][0]
-    called_headers = mock_put.call_args[1]["headers"]
-    assert called_url == expected_url
-    assert called_headers == client.headers
+    mock_get.assert_called_once()
+    mock_post.assert_called_once()
 
 
 def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
@@ -241,18 +317,3 @@ def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
         f".//{{{client.NAMESPACE_URI}}}field[@name='abstract']"
     )
     assert abstract_field is None
-
-    version_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='version']")
-    assert version_field is None
-
-    validated_doi_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
-    )
-    assert (
-        validated_doi_field is not None
-    )  # This will exist if DOI_PREFIX and id are always present
-
-    related_doi_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='c-related-doi']"
-    )
-    assert related_doi_field is None

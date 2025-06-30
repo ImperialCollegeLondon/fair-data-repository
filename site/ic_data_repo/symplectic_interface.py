@@ -164,7 +164,7 @@ class SymplecticClient:
         # Add c-validated-doi field if a DOI is present
 
         doi = f"{datacite_prefix}/{record.get('id')}"
-  
+
         self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
         # Add c-related-doi fields for each DOI in related_identifiers

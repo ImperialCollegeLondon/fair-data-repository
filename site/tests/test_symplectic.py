@@ -202,6 +202,7 @@ def test_fetch_related_objects(mock_get, client):
     mock_response.raise_for_status.return_value = None
     mock_get.return_value = mock_response
 
+
 @patch("requests.put")
 def test_create_record_minimal_metadata(
     mock_put, client, minimal_metadata, datacite_prefix

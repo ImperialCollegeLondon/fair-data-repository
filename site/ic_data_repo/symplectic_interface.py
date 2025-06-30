@@ -161,7 +161,7 @@ class SymplecticClient:
             licence_text_element.text = rights[0].get("id")
 
         # Add c-validated-doi field if a DOI is present
-        doi = f"{datacite_prefix}/{record.get('id')}"
+        doi = f"10.0590/{record.get('id')}"
 
         self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
@@ -272,7 +272,7 @@ class SymplecticClient:
             response = requests.get(url, headers=self.headers)
             response.raise_for_status()
 
-            root = etree.fromstring(response.text)
+            root = etree.fromstring(response.content)
             ns = {"api": "http://www.symplectic.co.uk/publications/api"}
 
             object_elem = root.find(".//api:object", namespaces=ns)

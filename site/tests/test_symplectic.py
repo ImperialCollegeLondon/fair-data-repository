@@ -9,12 +9,19 @@ from lxml import etree
 
 DUMMY_URL = "https://api.symplectic.example.com"
 DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
+DATACITE_PREFIX = "10.5281/"
 
 
 @pytest.fixture
 def client():
     """Create a Symplectic client instance with mocked environment variables."""
     return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY)
+
+
+@pytest.fixture
+def datacite_prefix():
+    """Provide a dummy datacite prefix for testing."""
+    return DATACITE_PREFIX
 
 
 @pytest.fixture
@@ -36,6 +43,13 @@ def sample_metadata():
             "publisher": "Imperial College London",
             "resource_type": {"id": "dataset"},
             "publication_date": "2025-05-19",
+            "related_identifiers": [
+                {
+                    "scheme": "doi",
+                    "identifier": "10.5281/zenodo.783021",
+                    "relation_type": {"id": "ispublishedin"},
+                }
+            ],
         },
     }
 
@@ -105,9 +119,9 @@ def test_add_doi_subtree(client):
     )
 
 
-def test_generate_record_xml(client, sample_metadata):
+def test_generate_record_xml(client, sample_metadata, datacite_prefix):
     """Test generating XML with minimal metadata."""
-    xml = client.generate_record_xml(sample_metadata)
+    xml = client.generate_record_xml(sample_metadata, datacite_prefix)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
 
     title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
@@ -121,11 +135,29 @@ def test_generate_record_xml(client, sample_metadata):
     assert len(persons) == 1
     assert persons[0].find(f"{{{client.NAMESPACE_URI}}}last-name").text == "John"
 
+    # c-validated-doi from identifiers
+    validated_doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
+    )
+    assert validated_doi_field is not None
+    validated_doi_text = validated_doi_field.find(f"{{{client.NAMESPACE_URI}}}text")
+    assert validated_doi_text is not None
+    assert validated_doi_text.text.endswith(sample_metadata["id"])
+
+    # c-related-doi from related_identifiers
+    related_doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-related-doi']"
+    )
+    assert related_doi_field is not None
+    related_doi_text = related_doi_field.find(f"{{{client.NAMESPACE_URI}}}text")
+    assert related_doi_text is not None
+    assert related_doi_text.text == "10.5281/zenodo.783021"
+
 
 @patch("requests.put")
-def test_create_record_success(mock_put, client, sample_metadata):
+def test_create_record_success(mock_put, client, sample_metadata, datacite_prefix):
     """Test successful record creation by mocking the API response."""
-    client.create_record(sample_metadata)
+    client.create_record(sample_metadata, datacite_prefix)
 
     expected_url = (
         f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
@@ -138,14 +170,14 @@ def test_create_record_success(mock_put, client, sample_metadata):
 
 
 @patch("requests.put")
-def test_create_record_failure(mock_put, client, sample_metadata):
+def test_create_record_failure(mock_put, client, sample_metadata, datacite_prefix):
     """Test record creation failure by mocking an unsuccessful API response."""
     mock_put().raise_for_status.side_effect = requests.exceptions.HTTPError(
         "400 Client Error", response=mock_put
     )
     mock_put.reset_mock()
     with pytest.raises(requests.exceptions.HTTPError):
-        client.create_record(sample_metadata)
+        client.create_record(sample_metadata, datacite_prefix)
     expected_url = (
         f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
     )
@@ -157,9 +189,11 @@ def test_create_record_failure(mock_put, client, sample_metadata):
 
 
 @patch("requests.put")
-def test_create_record_minimal_metadata(mock_put, client, minimal_metadata):
+def test_create_record_minimal_metadata(
+    mock_put, client, minimal_metadata, datacite_prefix
+):
     """Test successful record creation with minimal metadata."""
-    client.create_record(minimal_metadata)
+    client.create_record(minimal_metadata, datacite_prefix)
 
     expected_url = (
         f"{client.api_url}/publication/records/manual/{minimal_metadata['id']}"
@@ -171,9 +205,11 @@ def test_create_record_minimal_metadata(mock_put, client, minimal_metadata):
     assert called_headers == client.headers
 
 
-def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
+def test_generate_record_xml_with_minimal_metadata(
+    client, minimal_metadata, datacite_prefix
+):
     """Test generating XML with truly minimal metadata."""
-    xml = client.generate_record_xml(minimal_metadata)
+    xml = client.generate_record_xml(minimal_metadata, datacite_prefix)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
 
     title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
@@ -202,18 +238,7 @@ def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
     assert date_element.find(f"{{{client.NAMESPACE_URI}}}month").text == "5"
     assert date_element.find(f"{{{client.NAMESPACE_URI}}}year").text == "2025"
 
-    doi_field = native.find(
-        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
-    )
-    assert doi_field is not None
-    assert (
-        doi_field.find(f"{{{client.NAMESPACE_URI}}}text").text == minimal_metadata["id"]
-    )
-
     abstract_field = native.find(
         f".//{{{client.NAMESPACE_URI}}}field[@name='abstract']"
     )
     assert abstract_field is None
-
-    version_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='version']")
-    assert version_field is None

@@ -71,7 +71,7 @@ def export_record_to_symplectic(record) -> None:
         current_app.config["SYMPLECTIC_API_URL"],
         current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"],
     )
-    client.create_record(record)
+    client.create_record(record, current_app.config["DATACITE_PREFIX"])
 
 
 @shared_task

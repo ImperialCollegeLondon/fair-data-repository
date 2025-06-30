@@ -162,9 +162,9 @@ class SymplecticClient:
             licence_text_element.text = rights[0].get("id")
 
         # Add c-validated-doi field if a DOI is present
-        doi_prefix = self.datacite_prefix + "/"
-        doi_suffix = record.get("id")
-        doi = doi_prefix + doi_suffix
+
+        doi = f"{datacite_prefix}/{record.get('id')}"
+  
         self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
         # Add c-related-doi fields for each DOI in related_identifiers
@@ -233,9 +233,9 @@ class SymplecticClient:
 
         return import_record_element
 
-    def create_record(self, metadata):
+    def create_record(self, metadata, datacite_prefix):
         """Create a record in Symplectic Elements."""
-        record_xml = self.generate_record_xml(metadata, self.datacite_prefix)
+        record_xml = self.generate_record_xml(metadata, datacite_prefix)
 
         proprietary_id = metadata.get("id")
         url = f"{self.api_url}/publication/records/manual/{proprietary_id}"

@@ -161,7 +161,7 @@ class SymplecticClient:
             licence_text_element.text = rights[0].get("id")
 
         # Add c-validated-doi field if a DOI is present
-        doi = f"10.0590/{record.get('id')}"
+        doi = f"{datacite_prefix}/{record.get('id')}"
 
         self.add_doi_subtree(native_element, "c-validated-doi", doi)
 

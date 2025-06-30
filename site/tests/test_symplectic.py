@@ -9,13 +9,19 @@ from lxml import etree
 
 DUMMY_URL = "https://api.symplectic.example.com"
 DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
-DATACITE_PREFIX = "10.12345/"
+DATACITE_PREFIX = "10.5281/"
 
 
 @pytest.fixture
 def client():
     """Create a Symplectic client instance with mocked environment variables."""
-    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY, DATACITE_PREFIX)
+    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY)
+
+
+@pytest.fixture
+def datacite_prefix():
+    """Provide a dummy datacite prefix for testing."""
+    return DATACITE_PREFIX
 
 
 @pytest.fixture
@@ -74,7 +80,6 @@ def test_client_initialization(client):
     """Test that the client initializes with values from env."""
     assert client.api_url == DUMMY_URL
     assert client.api_key == DUMMY_SUBSCRIPTION_KEY
-    assert client.datacite_prefix == DATACITE_PREFIX
     assert client.headers == {
         "Content-Type": "text/xml",
         "Subscription-Key": DUMMY_SUBSCRIPTION_KEY,
@@ -114,9 +119,9 @@ def test_add_doi_subtree(client):
     )
 
 
-def test_generate_record_xml(client, sample_metadata):
+def test_generate_record_xml(client, sample_metadata, datacite_prefix):
     """Test generating XML with minimal metadata."""
-    xml = client.generate_record_xml(sample_metadata, client.datacite_prefix)
+    xml = client.generate_record_xml(sample_metadata, datacite_prefix)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
 
     title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
@@ -150,9 +155,9 @@ def test_generate_record_xml(client, sample_metadata):
 
 
 @patch("requests.put")
-def test_create_record_success(mock_put, client, sample_metadata):
+def test_create_record_success(mock_put, client, sample_metadata, datacite_prefix):
     """Test successful record creation by mocking the API response."""
-    client.create_record(sample_metadata)
+    client.create_record(sample_metadata, datacite_prefix)
 
     expected_url = (
         f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
@@ -165,14 +170,14 @@ def test_create_record_success(mock_put, client, sample_metadata):
 
 
 @patch("requests.put")
-def test_create_record_failure(mock_put, client, sample_metadata):
+def test_create_record_failure(mock_put, client, sample_metadata, datacite_prefix):
     """Test record creation failure by mocking an unsuccessful API response."""
     mock_put().raise_for_status.side_effect = requests.exceptions.HTTPError(
         "400 Client Error", response=mock_put
     )
     mock_put.reset_mock()
     with pytest.raises(requests.exceptions.HTTPError):
-        client.create_record(sample_metadata)
+        client.create_record(sample_metadata, datacite_prefix)
     expected_url = (
         f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
     )
@@ -184,9 +189,11 @@ def test_create_record_failure(mock_put, client, sample_metadata):
 
 
 @patch("requests.put")
-def test_create_record_minimal_metadata(mock_put, client, minimal_metadata):
+def test_create_record_minimal_metadata(
+    mock_put, client, minimal_metadata, datacite_prefix
+):
     """Test successful record creation with minimal metadata."""
-    client.create_record(minimal_metadata)
+    client.create_record(minimal_metadata, datacite_prefix)
 
     expected_url = (
         f"{client.api_url}/publication/records/manual/{minimal_metadata['id']}"
@@ -198,9 +205,11 @@ def test_create_record_minimal_metadata(mock_put, client, minimal_metadata):
     assert called_headers == client.headers
 
 
-def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
+def test_generate_record_xml_with_minimal_metadata(
+    client, minimal_metadata, datacite_prefix
+):
     """Test generating XML with truly minimal metadata."""
-    xml = client.generate_record_xml(minimal_metadata, client.datacite_prefix)
+    xml = client.generate_record_xml(minimal_metadata, datacite_prefix)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
 
     title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")

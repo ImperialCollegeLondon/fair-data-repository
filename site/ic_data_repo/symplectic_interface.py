@@ -17,11 +17,10 @@ class SymplecticClient:
     NAMESPACE_URI = NAMESPACE_URI
     api_qname = partial(etree.QName, NAMESPACE_URI)
 
-    def __init__(self, api_url, api_key, datacite_prefix):
+    def __init__(self, api_url, api_key):
         """Initialize the Symplectic client."""
         self.api_url = api_url
         self.api_key = api_key
-        self.datacite_prefix = datacite_prefix
         self.headers = {
             "Content-Type": "text/xml",
             "Subscription-Key": self.api_key,
@@ -162,7 +161,6 @@ class SymplecticClient:
             licence_text_element.text = rights[0].get("id")
 
         # Add c-validated-doi field if a DOI is present
-
         doi = f"{datacite_prefix}/{record.get('id')}"
 
         self.add_doi_subtree(native_element, "c-validated-doi", doi)
@@ -246,7 +244,7 @@ class SymplecticClient:
         )
         response.raise_for_status()
 
-        root = etree.fromstring(response.content)
+        root = etree.fromstring(response.text)
         ns = {"api": "http://www.symplectic.co.uk/publications/api"}
 
         # Extract <api:object> id
@@ -269,21 +267,22 @@ class SymplecticClient:
 
     def fetch_related_objects(self, related_doi_texts):
         """Search for object_ids to link to based on related DOIs."""
-        results = []
         for doi in related_doi_texts:
             url = f'{self.api_url}/publications?detail=single-record&query=doi="{doi}"'
             response = requests.get(url, headers=self.headers)
             response.raise_for_status()
-            results.append(response.text)
 
-        root = etree.fromstring(response.content)
-        ns = {"api": "http://www.symplectic.co.uk/publications/api"}
+            root = etree.fromstring(response.text)
+            ns = {"api": "http://www.symplectic.co.uk/publications/api"}
 
-        object_elem = root.find(".//api:object", namespaces=ns)
-        related_object_id = object_elem.get("id") if object_elem is not None else None
+            object_elem = root.find(".//api:object", namespaces=ns)
+            related_object_id = (
+                object_elem.get("id") if object_elem is not None else None
+            )
 
-        if related_object_id:
-            return related_object_id
+            if related_object_id:
+                return related_object_id
+
         return None
 
     def link_related_records(self, from_object_id, to_object_id):

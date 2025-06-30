@@ -157,7 +157,7 @@ def test_generate_record_xml(client, sample_metadata, datacite_prefix):
 @patch("requests.put")
 def test_create_record_success(mock_put, client, sample_metadata, datacite_prefix):
     """Test successful record creation by mocking the API response."""
-    mock_put.return_value.text = b"""
+    mock_put.return_value.content = b"""
     <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
         <api:object id="12345"/>
     </api:response>"""
@@ -197,7 +197,7 @@ def test_create_record_minimal_metadata(
     mock_put, client, minimal_metadata, datacite_prefix
 ):
     """Test successful record creation with minimal metadata."""
-    mock_put.return_value.text = b"""
+    mock_put.return_value.content = b"""
     <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
         <api:object id="12345"/>
     </api:response>"""
@@ -278,7 +278,7 @@ def test_create_record_integration(
     mock_post, mock_get, mock_put, client, sample_metadata
 ):
     """Test full integration of create_record with other functions."""
-    mock_put.return_value.text = b"""
+    mock_put.return_value.content = b"""
     <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
         <api:object id="12345">
             <api:native>

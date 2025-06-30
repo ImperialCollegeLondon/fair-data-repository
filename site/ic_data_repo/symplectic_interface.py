@@ -244,7 +244,7 @@ class SymplecticClient:
         )
         response.raise_for_status()
 
-        root = etree.fromstring(response.text)
+        root = etree.fromstring(response.content)
         ns = {"api": "http://www.symplectic.co.uk/publications/api"}
 
         # Extract <api:object> id

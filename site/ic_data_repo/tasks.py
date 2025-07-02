@@ -10,13 +10,10 @@ import requests
 from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
-from lxml import etree
 
 from .microsoft_graph_api_client import get_client
 from .symplectic_interface import SymplecticClient
 from .vocabs import import_imperial_contributors_to_invenio, import_to_vocabulary
-
-NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
 
 
 @shared_task
@@ -74,17 +71,9 @@ def export_record_to_symplectic(record) -> None:
         current_app.config["SYMPLECTIC_API_URL"],
         current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"],
     )
-    response = client.create_record(record, current_app.config["DATACITE_PREFIX"])
-
-    root = etree.fromstring(response)
-    ns = {"api": NAMESPACE_URI}
-
-    object_elem = root.find(".//api:object", namespaces=ns)
-    object_id = object_elem.get("id") if object_elem is not None else None
+    object_id = client.create_record(record, current_app.config["DATACITE_PREFIX"])
 
     metadata = record.get("metadata", {})
-
-    current_app.logger.info(f"Metadata saved to metadata_{object_id}.json")
 
     related_identifiers = metadata.get("related_identifiers", [])
 
@@ -96,7 +85,7 @@ def export_record_to_symplectic(record) -> None:
         ),
         None,
     )
-
+    related_object_id = None
     if related_work_doi:
         related_object_id = client.fetch_related_objects(related_work_doi)
     if related_object_id:

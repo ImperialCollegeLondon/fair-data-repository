@@ -161,7 +161,7 @@ class SymplecticClient:
             licence_text_element.text = rights[0].get("id")
 
         # Add c-validated-doi field if a DOI is present
-        doi = f"{datacite_prefix}/{record.get('id')}"
+        doi = f"10.0590/{record.get('id')}"
 
         self.add_doi_subtree(native_element, "c-validated-doi", doi)
 
@@ -244,7 +244,13 @@ class SymplecticClient:
         )
         response.raise_for_status()
 
-        return response.content
+        root = etree.fromstring(response.content)
+        ns = {"api": NAMESPACE_URI}
+
+        object_elem = root.find(".//api:object", namespaces=ns)
+        object_id = object_elem.get("id") if object_elem is not None else None
+
+        return object_id
 
     def fetch_related_objects(self, related_doi_text):
         """Search for object_id to link to based on related DOI."""

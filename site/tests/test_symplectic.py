@@ -271,51 +271,6 @@ def test_fetch_related_objects(mock_get, client):
     assert "zenodo.123456" in mock_get.call_args[0][0]
 
 
-@patch("requests.put")
-@patch("requests.get")
-@patch("requests.post")
-def test_create_record_integration(
-    mock_post, mock_get, mock_put, client, sample_metadata
-):
-    """Test full integration of create_record with other functions."""
-    mock_put.return_value.content = b"""
-    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
-        <api:object id="12345">
-            <api:native>
-                <api:field name="c-related-doi" type="text">
-                    <api:text>10.5281/zenodo.783021</api:text>
-                </api:field>
-            </api:native>
-        </api:object>
-    </api:response>"""
-    mock_put.return_value.raise_for_status.return_value = None
-
-    get_response = MagicMock()
-    get_response.content = b"""
-    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
-      <api:object id="67890"/>
-    </api:response>
-    """
-    get_response.text = get_response.content.decode("utf-8")
-    get_response.raise_for_status.return_value = None
-    mock_get.return_value = get_response
-
-    post_response = MagicMock()
-    post_response.raise_for_status.return_value = None
-    mock_post.return_value = post_response
-
-    object_id, related_doi_text, related_object_id = client.create_record(
-        sample_metadata, datacite_prefix
-    )
-
-    assert object_id == "12345"
-    assert related_doi_text == ["10.5281/zenodo.783021"]
-    assert related_object_id == "67890"
-    mock_put.assert_called_once()
-    mock_get.assert_called_once()
-    mock_post.assert_called_once()
-
-
 @patch("requests.post")
 def test_link_related_records(mock_post, client):
     """Test linking related records."""

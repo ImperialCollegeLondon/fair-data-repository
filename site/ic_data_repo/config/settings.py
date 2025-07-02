@@ -147,9 +147,9 @@ APP_RDM_DEPOSIT_FORM_AUTOCOMPLETE_NAMES = "search"  # "search_only" or "off"
 # ===================
 # See https://inveniordm.docs.cern.ch/customize/dois/
 DATACITE_ENABLED = False
-DATACITE_USERNAME = os.getenv("DATACITE_USERNAME")
-DATACITE_PASSWORD = os.getenv("DATACITE_PASSWORD")
-DATACITE_PREFIX = os.getenv("DATACITE_PREFIX")
+DATACITE_USERNAME = ""
+DATACITE_PASSWORD = ""
+DATACITE_PREFIX = ""
 DATACITE_TEST_MODE = True
 DATACITE_DATACENTER_SYMBOL = ""
 

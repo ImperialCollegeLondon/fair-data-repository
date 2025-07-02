@@ -77,14 +77,12 @@ def export_record_to_symplectic(record) -> None:
 
     related_identifiers = metadata.get("related_identifiers", [])
 
-    related_work_doi = next(
-        (
-            item["identifier"]
-            for item in related_identifiers
-            if item.get("relation_type", {}).get("id") == "ispublishedin"
-        ),
-        None,
+    related_work_doi = ", ".join(
+        identifier["identifier"]
+        for identifier in related_identifiers
+        if identifier.get("scheme") == "doi"
     )
+
     related_object_id = None
     if related_work_doi:
         related_object_id = client.fetch_related_objects(related_work_doi)

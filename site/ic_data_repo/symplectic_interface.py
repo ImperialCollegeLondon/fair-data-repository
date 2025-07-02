@@ -273,7 +273,9 @@ class SymplecticClient:
         root = etree.Element("import-relationship", xmlns=ns)
         etree.SubElement(root, "from-object").text = f"publication({from_object_id})"
         etree.SubElement(root, "to-object").text = f"publication({to_object_id})"
-        etree.SubElement(root, "type-id").text = "1"
+        etree.SubElement(root, "type-id").text = (
+            "1"  # This is the only possible type-id
+        )
 
         xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
 

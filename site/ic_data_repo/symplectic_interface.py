@@ -267,15 +267,13 @@ class SymplecticClient:
 
         return related_object_id
 
-    def link_related_records(self, from_object_id, to_object_id):
+    def link_related_records(self, from_object_id, to_object_id, type_id):
         """Link related records using the object IDs from the responses from the API."""
         ns = NAMESPACE_URI
         root = etree.Element("import-relationship", xmlns=ns)
         etree.SubElement(root, "from-object").text = f"publication({from_object_id})"
         etree.SubElement(root, "to-object").text = f"publication({to_object_id})"
-        etree.SubElement(root, "type-id").text = (
-            "1"  # This is the only possible type-id
-        )
+        etree.SubElement(root, "type-id").text = f"{type_id}"
 
         xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
 

@@ -74,20 +74,28 @@ def export_record_to_symplectic(record) -> None:
     object_id = client.create_record(record, current_app.config["DATACITE_PREFIX"])
 
     metadata = record.get("metadata", {})
-
     related_identifiers = metadata.get("related_identifiers", [])
 
-    related_work_doi = ", ".join(
-        identifier["identifier"]
+    # Define a mapping for relation_type to type_id more can be added as needed
+    relation_type_to_type_id = {
+        "isderivedfrom": 1,
+        "issupplementedby": 131,
+    }
+
+    related_work_doi = {
+        identifier["identifier"]: relation_type_to_type_id[
+            identifier["relation_type"]["id"]
+        ]
         for identifier in related_identifiers
         if identifier.get("scheme") == "doi"
-    )
+        and identifier.get("relation_type", {}).get("id") in relation_type_to_type_id
+    }
 
-    related_object_id = None
     if related_work_doi:
-        related_object_id = client.fetch_related_objects(related_work_doi)
-    if related_object_id:
-        client.link_related_records(object_id, related_object_id)
+        doi, type_id = next(iter(related_work_doi.items()))
+        related_object_id = client.fetch_related_objects(doi)
+        if related_object_id:
+            client.link_related_records(object_id, related_object_id, type_id)
 
     return
 

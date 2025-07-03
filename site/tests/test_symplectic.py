@@ -280,7 +280,8 @@ def test_link_related_records(mock_post, client):
 
     from_id = "12345"
     to_id = "67890"
-    client.link_related_records(from_id, to_id)
+    type_id = 1
+    client.link_related_records(from_id, to_id, type_id)
 
     mock_post.assert_called_once()
     called_url = mock_post.call_args[0][0]

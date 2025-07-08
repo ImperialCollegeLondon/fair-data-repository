@@ -15,6 +15,11 @@ from .microsoft_graph_api_client import get_client
 from .symplectic_interface import SymplecticClient
 from .vocabs import import_imperial_contributors_to_invenio, import_to_vocabulary
 
+relation_type_to_type_id = {
+    "isderivedfrom": 1,
+    "issupplementedby": 131,
+}
+
 
 @shared_task
 def update_imperial_users() -> None:
@@ -77,18 +82,14 @@ def export_record_to_symplectic(record) -> None:
     related_identifiers = metadata.get("related_identifiers", [])
 
     # Define a mapping for relation_type to type_id more can be added as needed
-    relation_type_to_type_id = {
-        "isderivedfrom": 1,
-        "issupplementedby": 131,
-    }
 
     related_work_doi = {
-        identifier["identifier"]: relation_type_to_type_id[
-            identifier["relation_type"]["id"]
-        ]
+        identifier["identifier"]: type_id
         for identifier in related_identifiers
         if identifier.get("scheme") == "doi"
-        and identifier.get("relation_type", {}).get("id") in relation_type_to_type_id
+        and identifier.get("relation_type", {}).get("id")
+        and (type_id := relation_type_to_type_id.get(identifier["relation_type"]["id"]))
+        is not None
     }
 
     if related_work_doi:

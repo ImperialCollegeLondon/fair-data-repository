@@ -15,6 +15,7 @@ from .microsoft_graph_api_client import get_client
 from .symplectic_interface import SymplecticClient
 from .vocabs import import_imperial_contributors_to_invenio, import_to_vocabulary
 
+# Define a mapping for relation_type to type_id more can be added as needed
 relation_type_to_type_id = {
     "isderivedfrom": 1,
     "issupplementedby": 131,
@@ -80,8 +81,6 @@ def export_record_to_symplectic(record) -> None:
 
     metadata = record.get("metadata", {})
     related_identifiers = metadata.get("related_identifiers", [])
-
-    # Define a mapping for relation_type to type_id more can be added as needed
 
     related_work_doi = {
         identifier["identifier"]: type_id

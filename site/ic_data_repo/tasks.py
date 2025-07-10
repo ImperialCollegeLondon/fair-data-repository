@@ -92,11 +92,10 @@ def export_record_to_symplectic(record) -> None:
     }
 
     if related_work_doi:
-        doi, type_id = next(iter(related_work_doi.items()))
-        related_object_id = client.fetch_related_objects(doi)
-        if related_object_id:
-            client.link_related_records(object_id, related_object_id, type_id)
-
+        for doi, type_id in related_work_doi.items():
+            related_object_ids = client.fetch_related_objects(doi)
+            for related_object_id in related_object_ids:
+                client.link_related_records(object_id, related_object_id, type_id)
     return
 
 

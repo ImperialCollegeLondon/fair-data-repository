@@ -266,7 +266,7 @@ def test_fetch_related_objects(mock_get, client):
     test_dois = ["10.5281/zenodo.123456"]
     related_id = client.fetch_related_objects(test_dois)
 
-    assert related_id == "67890"
+    assert related_id == ["67890"]
     mock_get.assert_called_once()
     assert "zenodo.123456" in mock_get.call_args[0][0]
 

@@ -86,16 +86,14 @@ def export_record_to_symplectic(record) -> None:
         identifier["identifier"]: type_id
         for identifier in related_identifiers
         if identifier.get("scheme") == "doi"
-        and identifier.get("relation_type", {}).get("id")
-        and (type_id := relation_type_to_type_id.get(identifier["relation_type"]["id"]))
-        is not None
+        and (relation_type := identifier.get("relation_type", {})).get("id")
+        and (type_id := relation_type_to_type_id.get(relation_type["id"])) is not None
     }
 
-    if related_work_doi:
-        for doi, type_id in related_work_doi.items():
-            related_object_ids = client.fetch_related_objects(doi)
-            for related_object_id in related_object_ids:
-                client.link_related_records(object_id, related_object_id, type_id)
+    for doi, type_id in related_work_doi.items():
+        related_object_ids = client.fetch_related_objects(doi)
+        for related_object_id in related_object_ids:
+            client.link_related_records(object_id, related_object_id, type_id)
     return
 
 

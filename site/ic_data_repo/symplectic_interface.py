@@ -243,3 +243,47 @@ class SymplecticClient:
             headers=self.headers,
         )
         response.raise_for_status()
+
+        root = etree.fromstring(response.content)
+        ns = {"api": NAMESPACE_URI}
+
+        object_elem = root.find(".//api:object", namespaces=ns)
+        object_id = object_elem.get("id") if object_elem is not None else None
+
+        return object_id
+
+    def fetch_related_objects(self, related_doi_text):
+        """Search for all object_ids to link to based on related DOI."""
+        url = f'{self.api_url}/publications?detail=single-record&query=doi="{related_doi_text}"'  # noqa: E501
+        response = requests.get(url, headers=self.headers)
+        response.raise_for_status()
+
+        root = etree.fromstring(response.content)
+        ns = {"api": NAMESPACE_URI}
+
+        # Find all object elements and extract their IDs
+        object_elems = root.findall(".//api:object", namespaces=ns)
+        related_object_ids = [
+            elem.get("id") for elem in object_elems if elem is not None
+        ]
+
+        return related_object_ids
+
+    def link_related_records(self, from_object_id, to_object_id, type_id):
+        """Link related records using the object IDs from the responses from the API."""
+        ns = NAMESPACE_URI
+        root = etree.Element("import-relationship", xmlns=ns)
+        etree.SubElement(root, "from-object").text = f"publication({from_object_id})"
+        etree.SubElement(root, "to-object").text = f"publication({to_object_id})"
+        etree.SubElement(root, "type-id").text = f"{type_id}"
+
+        xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
+
+        url = f"{self.api_url}/relationships"
+        response = requests.post(
+            url,
+            data=xml_data,
+            headers=self.headers,
+        )
+        response.raise_for_status()
+        return response

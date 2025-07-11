@@ -15,6 +15,12 @@ from .microsoft_graph_api_client import get_client
 from .symplectic_interface import SymplecticClient
 from .vocabs import import_imperial_contributors_to_invenio, import_to_vocabulary
 
+# Define a mapping for relation_type to type_id more can be added as needed
+relation_type_to_type_id = {
+    "isderivedfrom": 1,
+    "issupplementedby": 131,
+}
+
 
 @shared_task
 def update_imperial_users() -> None:
@@ -71,7 +77,24 @@ def export_record_to_symplectic(record) -> None:
         current_app.config["SYMPLECTIC_API_URL"],
         current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"],
     )
-    client.create_record(record, current_app.config["DATACITE_PREFIX"])
+    object_id = client.create_record(record, current_app.config["DATACITE_PREFIX"])
+
+    metadata = record.get("metadata", {})
+    related_identifiers = metadata.get("related_identifiers", [])
+
+    related_work_doi = {
+        identifier["identifier"]: type_id
+        for identifier in related_identifiers
+        if identifier.get("scheme") == "doi"
+        and (relation_type := identifier.get("relation_type", {})).get("id")
+        and (type_id := relation_type_to_type_id.get(relation_type["id"])) is not None
+    }
+
+    for doi, type_id in related_work_doi.items():
+        related_object_ids = client.fetch_related_objects(doi)
+        for related_object_id in related_object_ids:
+            client.link_related_records(object_id, related_object_id, type_id)
+    return
 
 
 @shared_task

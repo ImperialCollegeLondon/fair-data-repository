@@ -1,6 +1,6 @@
 """Tests for the Symplectic API client."""
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
@@ -157,6 +157,10 @@ def test_generate_record_xml(client, sample_metadata, datacite_prefix):
 @patch("requests.put")
 def test_create_record_success(mock_put, client, sample_metadata, datacite_prefix):
     """Test successful record creation by mocking the API response."""
+    mock_put.return_value.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+        <api:object id="12345"/>
+    </api:response>"""
     client.create_record(sample_metadata, datacite_prefix)
 
     expected_url = (
@@ -170,7 +174,7 @@ def test_create_record_success(mock_put, client, sample_metadata, datacite_prefi
 
 
 @patch("requests.put")
-def test_create_record_failure(mock_put, client, sample_metadata, datacite_prefix):
+def test_create_record_failure(mock_put, client, sample_metadata):
     """Test record creation failure by mocking an unsuccessful API response."""
     mock_put().raise_for_status.side_effect = requests.exceptions.HTTPError(
         "400 Client Error", response=mock_put
@@ -193,6 +197,10 @@ def test_create_record_minimal_metadata(
     mock_put, client, minimal_metadata, datacite_prefix
 ):
     """Test successful record creation with minimal metadata."""
+    mock_put.return_value.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+        <api:object id="12345"/>
+    </api:response>"""
     client.create_record(minimal_metadata, datacite_prefix)
 
     expected_url = (
@@ -205,9 +213,7 @@ def test_create_record_minimal_metadata(
     assert called_headers == client.headers
 
 
-def test_generate_record_xml_with_minimal_metadata(
-    client, minimal_metadata, datacite_prefix
-):
+def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
     """Test generating XML with truly minimal metadata."""
     xml = client.generate_record_xml(minimal_metadata, datacite_prefix)
     native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
@@ -242,3 +248,45 @@ def test_generate_record_xml_with_minimal_metadata(
         f".//{{{client.NAMESPACE_URI}}}field[@name='abstract']"
     )
     assert abstract_field is None
+
+
+@patch("requests.get")
+def test_fetch_related_objects(mock_get, client):
+    """Test fetching related objects with a DOI."""
+    mock_response = MagicMock()
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="67890" category="publication"/>
+    </api:response>
+    """
+    mock_response.text = mock_response.content.decode("utf-8")
+    mock_response.raise_for_status.return_value = None
+    mock_get.return_value = mock_response
+
+    test_dois = ["10.5281/zenodo.123456"]
+    related_id = client.fetch_related_objects(test_dois)
+
+    assert related_id == ["67890"]
+    mock_get.assert_called_once()
+    assert "zenodo.123456" in mock_get.call_args[0][0]
+
+
+@patch("requests.post")
+def test_link_related_records(mock_post, client):
+    """Test linking related records."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_post.return_value = mock_response
+
+    from_id = "12345"
+    to_id = "67890"
+    type_id = 1
+    client.link_related_records(from_id, to_id, type_id)
+
+    mock_post.assert_called_once()
+    called_url = mock_post.call_args[0][0]
+    called_data = mock_post.call_args[1]["data"]
+    assert called_url == f"{client.api_url}/relationships"
+    assert f"publication({from_id})" in called_data
+    assert f"publication({to_id})" in called_data
+    assert "<type-id>1</type-id>" in called_data

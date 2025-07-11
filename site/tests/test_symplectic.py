@@ -281,12 +281,13 @@ def test_link_related_records(mock_post, client):
     from_id = "12345"
     to_id = "67890"
     type_id = 1
-    client.link_related_records(from_id, to_id, type_id)
+    to_object_type = "publication"
+    client.link_related_records(from_id, to_id, type_id, to_object_type)
 
     mock_post.assert_called_once()
     called_url = mock_post.call_args[0][0]
     called_data = mock_post.call_args[1]["data"]
     assert called_url == f"{client.api_url}/relationships"
-    assert f"publication({from_id})" in called_data
-    assert f"publication({to_id})" in called_data
+    assert f"{to_object_type}({from_id})" in called_data
+    assert f"{to_object_type}({to_id})" in called_data
     assert "<type-id>1</type-id>" in called_data

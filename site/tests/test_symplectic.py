@@ -295,32 +295,45 @@ def test_link_related_records(mock_post, client):
 
 @patch("requests.get")
 def test_get_related_awards(mock_get, client):
-    """Test fetching related awards returns a single ID as string."""
+    """Test fetching related awards with proper error handling."""
     mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_get.return_value = mock_response
+
+    award_id = "award123"
+    award_type_id = "institution-reference"
+
+    # Test multiple awards found - should raise ValueError
     mock_response.content = b"""
     <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
       <api:object id="award123" category="grant"/>
       <api:object id="award456" category="grant"/>
     </api:response>
     """
-    mock_response.raise_for_status.return_value = None
-    mock_get.return_value = mock_response
 
-    award_id = "award123"
-    award_type_id = "grant"
-    related_awards = client.get_related_awards(award_id, award_type_id)
+    with pytest.raises(ValueError, match="Multiple awards found"):
+        client.get_related_awards(award_id, award_type_id)
 
-    # Should return a list of IDs if more than one object is found
-    assert isinstance(related_awards, list) or isinstance(related_awards, str)
-    assert "award123" in related_awards
-    mock_get.assert_called_once()
-    assert f'"{award_type_id}"="{award_id}"' in mock_get.call_args[0][0]
+    # Test no awards found - should raise ValueError
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+    </api:response>
+    """
 
-    # Test single award returned as string
+    with pytest.raises(ValueError, match="No awards found"):
+        client.get_related_awards(award_id, award_type_id)
+
+    # Test single award found - should return the ID as string
     mock_response.content = b"""
     <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
       <api:object id="award789" category="grant"/>
     </api:response>
     """
-    related_awards = client.get_related_awards("award789", award_type_id)
-    assert related_awards
+
+    single_award_id = "award789"
+    related_award = client.get_related_awards(single_award_id, award_type_id)
+    assert related_award == "award789"
+    assert isinstance(related_award, str)
+
+    mock_get.assert_called()
+    assert f'"{award_type_id}"="{single_award_id}"' in mock_get.call_args[0][0]

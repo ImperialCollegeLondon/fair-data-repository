@@ -305,4 +305,9 @@ class SymplecticClient:
             elem.get("id") for elem in object_elems if elem is not None
         ]
 
+        if len(related_object_id) == 0:
+            raise ValueError(f"No awards found for {award_type_id}")
+        elif len(related_object_id) > 1:
+            raise ValueError(f"Multiple awards found for {award_type_id}")
+
         return related_object_id[0]

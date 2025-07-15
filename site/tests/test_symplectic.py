@@ -355,5 +355,5 @@ def test_get_related_awards_multiple_results(mock_get, client):
     award_id = "award123"
     award_type_id = "institution-reference"
 
-    with pytest.raises(MultipleAwardsFoundError, match="Multiple awards found"):
+    with pytest.raises(MultipleAwardsFoundError, match="Multiple awards for"):
         client.get_related_awards(award_id, award_type_id)

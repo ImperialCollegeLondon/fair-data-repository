@@ -4,6 +4,7 @@ from datetime import datetime
 from functools import partial
 
 import requests
+from flask import current_app
 from lxml import etree
 
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
@@ -292,7 +293,7 @@ class SymplecticClient:
         return response
 
     def get_related_awards(self, award_id, award_type_id):
-        """Link awards to the record in Symplectic."""
+        """This calls the symplectic API to get the related awards."""
         url = f'{self.api_url}/grants?detail=full&per-page=25&page=15&query="{award_type_id}"="{award_id}"'  # noqa: E501
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
@@ -306,8 +307,8 @@ class SymplecticClient:
         ]
 
         if len(related_object_id) == 0:
-            raise ValueError(f"No awards found for {award_type_id}")
+            raise current_app.logger.error(f"No awards found for {award_type_id}")
         elif len(related_object_id) > 1:
-            raise ValueError(f"Multiple awards found for {award_type_id}")
+            raise current_app.logger.error(f"Multiple awards found for {award_type_id}")
 
         return related_object_id[0]

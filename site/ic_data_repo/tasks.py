@@ -114,7 +114,7 @@ def export_record_to_symplectic(record) -> None:
                 )
             except ValueError as e:
                 # Log the error but continue processing other awards
-                current_app.logger.warning(f"Failed to link award {award_id}: {e}")
+                current_app.logger.exception(f"Failed to link award {award_id}: {e}")
                 continue
 
     return

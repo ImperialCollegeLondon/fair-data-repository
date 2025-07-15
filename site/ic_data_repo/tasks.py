@@ -105,7 +105,7 @@ def export_record_to_symplectic(record) -> None:
             award_id_type = "institution-reference"
         elif award_id := award.get("number"):
             award_id_type = "funder-reference"
-        
+
         if award_id:
             try:
                 related_award_id = client.get_related_awards(award_id, award_id_type)

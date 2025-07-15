@@ -101,17 +101,12 @@ def export_record_to_symplectic(record) -> None:
 
     for fund in funding:
         award = fund.get("award", {})
-        award_id = None
-        award_id_type = None
-
-        if award.get("id"):
-            award_id = award["id"]
+        if award_id := award.get("id"):
             award_id_type = "institution-reference"
-        elif award.get("number"):
-            award_id = award["number"]
+        elif award_id := award.get("number"):
             award_id_type = "funder-reference"
-
-        if award_id and award_id_type:
+        
+        if award_id:
             try:
                 related_award_id = client.get_related_awards(award_id, award_id_type)
                 client.link_related_records(

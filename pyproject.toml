@@ -24,6 +24,7 @@ module = [
        "ic_data_repo.config.*",
        "ic_data_repo.permissions.*",
        "invenio_access.*",
+       "invenio_accounts.*",
        "invenio_app.*",
        "invenio_app_rdm.config.*",
        "invenio_assets.*",

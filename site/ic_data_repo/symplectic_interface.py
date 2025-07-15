@@ -4,12 +4,29 @@ from datetime import datetime
 from functools import partial
 
 import requests
-from flask import current_app
 from lxml import etree
 
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
 etree.register_namespace("api", NAMESPACE_URI)
 SYMPLECTIC_DATASET_TYPE_ID = "22"
+
+
+class SymplecticException(Exception):
+    """Base exception for Symplectic API errors."""
+
+    pass
+
+
+class NoAwardsFoundError(SymplecticException):
+    """Raised when no awards are found for a given search criteria."""
+
+    pass
+
+
+class MultipleAwardsFoundError(SymplecticException):
+    """Raised when multiple awards are found."""
+
+    pass
 
 
 class SymplecticClient:
@@ -307,8 +324,12 @@ class SymplecticClient:
         ]
 
         if len(related_object_id) == 0:
-            raise current_app.logger.error(f"No awards found for {award_type_id}")
+            error_msg = f"No awards found for {award_type_id}='{award_id}'"
+            raise NoAwardsFoundError(error_msg)
         elif len(related_object_id) > 1:
-            raise current_app.logger.error(f"Multiple awards found for {award_type_id}")
+            error_msg = (
+                f"Multiple awards for {award_type_id}='{award_id}': {related_object_id}"
+            )
+            raise MultipleAwardsFoundError(error_msg)
 
         return related_object_id[0]

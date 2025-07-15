@@ -12,7 +12,11 @@ from flask import current_app
 from invenio_access.permissions import system_identity
 
 from .microsoft_graph_api_client import get_client
-from .symplectic_interface import SymplecticClient
+from .symplectic_interface import (
+    MultipleAwardsFoundError,
+    NoAwardsFoundError,
+    SymplecticClient,
+)
 from .vocabs import import_imperial_contributors_to_invenio, import_to_vocabulary
 
 # Define a mapping for relation_type to type_id more can be added as needed
@@ -112,9 +116,8 @@ def export_record_to_symplectic(record) -> None:
                 client.link_related_records(
                     object_id, related_award_id, type_id=2, to_object_type="grant"
                 )
-            except ValueError as e:
-                # Log the error but continue processing other awards
-                current_app.logger.exception(f"Failed to link award {award_id}: {e}")
+            except (NoAwardsFoundError, MultipleAwardsFoundError) as e:
+                current_app.logger.warning(f"Failed to link award {award_id}: {e}")
                 continue
 
     return

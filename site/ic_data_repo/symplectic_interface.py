@@ -11,6 +11,24 @@ etree.register_namespace("api", NAMESPACE_URI)
 SYMPLECTIC_DATASET_TYPE_ID = "22"
 
 
+class SymplecticException(Exception):
+    """Base exception for Symplectic API errors."""
+
+    pass
+
+
+class NoAwardsFoundError(SymplecticException):
+    """Raised when no awards are found for a given search criteria."""
+
+    pass
+
+
+class MultipleAwardsFoundError(SymplecticException):
+    """Raised when multiple awards are found."""
+
+    pass
+
+
 class SymplecticClient:
     """Client for interacting with the Symplectic API."""
 
@@ -269,12 +287,14 @@ class SymplecticClient:
 
         return related_object_ids
 
-    def link_related_records(self, from_object_id, to_object_id, type_id):
+    def link_related_records(
+        self, from_object_id, to_object_id, type_id, to_object_type
+    ):
         """Link related records using the object IDs from the responses from the API."""
         ns = NAMESPACE_URI
         root = etree.Element("import-relationship", xmlns=ns)
         etree.SubElement(root, "from-object").text = f"publication({from_object_id})"
-        etree.SubElement(root, "to-object").text = f"publication({to_object_id})"
+        etree.SubElement(root, "to-object").text = f"{to_object_type}({to_object_id})"
         etree.SubElement(root, "type-id").text = f"{type_id}"
 
         xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
@@ -286,4 +306,30 @@ class SymplecticClient:
             headers=self.headers,
         )
         response.raise_for_status()
+
         return response
+
+    def get_related_awards(self, award_id, award_type_id):
+        """This calls the symplectic API to get the related awards."""
+        url = f'{self.api_url}/grants?detail=full&per-page=25&page=15&query="{award_type_id}"="{award_id}"'  # noqa: E501
+        response = requests.get(url, headers=self.headers)
+        response.raise_for_status()
+
+        root = etree.fromstring(response.content)
+        ns = {"api": NAMESPACE_URI}
+
+        object_elems = root.findall(".//api:object", namespaces=ns)
+        related_object_id = [
+            elem.get("id") for elem in object_elems if elem is not None
+        ]
+
+        if len(related_object_id) == 0:
+            error_msg = f"No awards found for {award_type_id}='{award_id}'"
+            raise NoAwardsFoundError(error_msg)
+        elif len(related_object_id) > 1:
+            error_msg = (
+                f"Multiple awards for {award_type_id}='{award_id}': {related_object_id}"
+            )
+            raise MultipleAwardsFoundError(error_msg)
+
+        return related_object_id[0]

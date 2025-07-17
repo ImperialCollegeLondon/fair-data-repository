@@ -4,7 +4,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
-from ic_data_repo.symplectic_interface import SymplecticClient
+from ic_data_repo.symplectic_interface import (
+    MultipleAwardsFoundError,
+    NoAwardsFoundError,
+    SymplecticClient,
+)
 from lxml import etree
 
 DUMMY_URL = "https://api.symplectic.example.com"
@@ -281,12 +285,75 @@ def test_link_related_records(mock_post, client):
     from_id = "12345"
     to_id = "67890"
     type_id = 1
-    client.link_related_records(from_id, to_id, type_id)
+    to_object_type = "publication"
+    client.link_related_records(from_id, to_id, type_id, to_object_type)
 
     mock_post.assert_called_once()
     called_url = mock_post.call_args[0][0]
     called_data = mock_post.call_args[1]["data"]
     assert called_url == f"{client.api_url}/relationships"
-    assert f"publication({from_id})" in called_data
-    assert f"publication({to_id})" in called_data
+    assert f"{to_object_type}({from_id})" in called_data
+    assert f"{to_object_type}({to_id})" in called_data
     assert "<type-id>1</type-id>" in called_data
+
+
+@patch("requests.get")
+def test_get_related_awards_success(mock_get, client):
+    """Test fetching a single related award successfully."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="award789" category="grant"/>
+    </api:response>
+    """
+    mock_get.return_value = mock_response
+
+    award_id = "award123"
+    award_type_id = "institution-reference"
+
+    result = client.get_related_awards(award_id, award_type_id)
+
+    assert result == "award789"
+    mock_get.assert_called_once()
+    assert f'query="{award_type_id}"="{award_id}"' in mock_get.call_args[0][0]
+
+
+@patch("requests.get")
+def test_get_related_awards_no_results(mock_get, client):
+    """Test fetching related awards when none are found."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+    </api:response>
+    """
+    mock_get.return_value = mock_response
+
+    award_id = "award123"
+    award_type_id = "institution-reference"
+
+    with pytest.raises(
+        NoAwardsFoundError, match=f"No awards found for {award_type_id}='{award_id}'"
+    ):
+        client.get_related_awards(award_id, award_type_id)
+
+
+@patch("requests.get")
+def test_get_related_awards_multiple_results(mock_get, client):
+    """Test fetching related awards when multiple are found."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="award123" category="grant"/>
+      <api:object id="award456" category="grant"/>
+    </api:response>
+    """
+    mock_get.return_value = mock_response
+
+    award_id = "award123"
+    award_type_id = "institution-reference"
+
+    with pytest.raises(MultipleAwardsFoundError, match="Multiple awards for"):
+        client.get_related_awards(award_id, award_type_id)

@@ -1,0 +1,31 @@
+{# Template for email test notification script only #}
+
+{%- block subject -%}
+Test Notification
+{%- endblock subject -%}
+
+{% block plain_body %}
+Hello {{ recipient.data.email }},
+
+You have received a test notification from InvenioRDM.
+
+Message:
+{{ notification.context.message }}
+
+Best regards,
+Your InvenioRDM System
+{% endblock plain_body %}
+
+{% block html_body %}
+<p>Hello {{ recipient.data.email }},</p>
+
+<p>You have received a test notification from InvenioRDM.</p>
+
+<p>Message:
+{{ notification.context.message }}</p>
+
+
+<p>Best regards,</p>
+<p>Your InvenioRDM System</p>
+
+{% endblock html_body %}

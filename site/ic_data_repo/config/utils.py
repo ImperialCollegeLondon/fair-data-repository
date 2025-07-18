@@ -1,6 +1,6 @@
 """Utilities for settings."""
 
-from typing import Any, List
+from typing import Any
 
 from flask_login import current_user
 
@@ -8,7 +8,7 @@ _ICL_ROR_ID = "041kmwe10"
 """The ROR identifier for Imperial."""
 
 
-def get_user_form_default() -> List[dict[str, Any]]:
+def get_user_form_default() -> list[dict[str, Any]]:
     """Format the current user profile for the submission form.
 
     The default user profile schema has two string properties;

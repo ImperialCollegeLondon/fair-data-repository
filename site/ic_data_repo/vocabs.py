@@ -4,13 +4,14 @@ import asyncio
 import logging
 import subprocess as sp
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from csv import DictReader
 from dataclasses import dataclass
 from datetime import datetime
 from logging import Logger
 from pathlib import Path
 from shutil import which
-from typing import Any, Iterable, Optional
+from typing import Any
 
 import yaml
 from flask import current_app
@@ -202,7 +203,7 @@ def _get_request_config_for_roles(
 
 
 async def get_possible_imperial_contributors(
-    client: GraphServiceClient, max_count: Optional[int] = None
+    client: GraphServiceClient, max_count: int | None = None
 ) -> list[ImperialUser]:
     """Get Imperial users who may be contributors based on their role type."""
     config = _get_request_config_for_roles(
@@ -242,7 +243,7 @@ def _get_invenio_path() -> str:
 def import_imperial_contributors_to_invenio(
     client: GraphServiceClient,
     logger: Logger = _get_default_logger(),
-    max_count: Optional[int] = None,
+    max_count: int | None = None,
 ) -> None:
     """Import Imperial users which are possible contributors into the names vocab."""
     logger.info("Importing Imperial users...")
@@ -302,7 +303,7 @@ def _convert_award_datetime(date: str):
         return datetime.min
 
 
-def _get_funder_org_id(row: dict[str, str]) -> Optional[dict[str, str]]:
+def _get_funder_org_id(row: dict[str, str]) -> dict[str, str] | None:
     """Get a funder ROR from a row of ICIS data.
 
     Takes a conservative approach still not clear on how some data is structured in

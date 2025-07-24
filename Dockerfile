@@ -57,11 +57,12 @@ RUN dnf install -y \
         xz-devel \
         sqlite-devel \
         which \
-        xmlsec1-devel  \
-        procps-ng htop less \
-        strace lsof file \
-        iotop iftop \
-        tcpdump bind-utils && \
+        nodejs \
+        xmlsec1-devel && \
+        # procps-ng htop less \
+        # strace lsof file \
+        # iotop iftop \
+        # tcpdump bind-utils && \
     dnf clean all
 
 # Symlink Python
@@ -70,10 +71,7 @@ RUN dnf install -y \
 # RUN yum remove python3-packaging -y
 RUN pip install --upgrade pip pipenv wheel
 
-# Install Node.js
-RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
-    dnf -y install nodejs && \
-    dnf clean all
+
 
 # Create working directory
 ENV WORKING_DIR=/opt/invenio
@@ -100,7 +98,7 @@ RUN chgrp -R 0 ${WORKING_DIR} && \
 
 COPY site ./site
 COPY Pipfile Pipfile.lock ./
-RUN pipenv install --deploy --system
+RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
 
 COPY ./docker/uwsgi/ ${INVENIO_INSTANCE_PATH}
 COPY ./invenio.cfg ${INVENIO_INSTANCE_PATH}
@@ -111,10 +109,12 @@ COPY ./ .
 
 RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
     cp -r ./assets/. ${INVENIO_INSTANCE_PATH}/assets/ && \
-    invenio collect --verbose  && \
-    invenio webpack buildall
+    /opt/invenio/src/.venv/bin/invenio collect --verbose  && \
+    /opt/invenio/src/.venv/bin/invenio webpack buildall
 
-# Make directory owned by Invenio user
+    # Make directory owned by Invenio user
 RUN chown -R invenio test_data/ ${INVENIO_INSTANCE_PATH}/app_data/
+COPY ./docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-ENTRYPOINT [ "bash", "-c"]
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

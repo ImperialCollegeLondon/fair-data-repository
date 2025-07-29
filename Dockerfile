@@ -32,7 +32,9 @@ ENV LC_ALL=en_US.UTF-8
  # `epel-release` is not recent/complete enough, as some packages below are missing
  RUN dnf config-manager --set-enabled crb && \
      dnf install -y \
-         https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm
+         https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm && \
+    dnf clean all
+    
 
 # Install needed and useful tools:
 #  - python and friends
@@ -59,18 +61,13 @@ RUN dnf install -y \
         which \
         nodejs \
         xmlsec1-devel && \
-        # procps-ng htop less \
-        # strace lsof file \
-        # iotop iftop \
-        # tcpdump bind-utils && \
     dnf clean all
 
 # Symlink Python
 # RUN ln -sfn /usr/bin/python3 /usr/bin/python
 # `python3-packaging` is installed by `yum` and it causes issues with `pip` installations
 # RUN yum remove python3-packaging -y
-RUN pip install --upgrade pip pipenv wheel
-
+RUN pip install --upgrade pip pipenv wheel --no-cache-dir
 
 
 # Create working directory
@@ -94,11 +91,10 @@ RUN chgrp -R 0 ${WORKING_DIR} && \
     chmod -R g=u ${WORKING_DIR} && \
     useradd invenio --uid ${INVENIO_USER_ID} --gid 0 && \
     chown -R invenio:root ${WORKING_DIR}
-#RUN dnf upgrade -y && dnf clean all
 
 COPY site ./site
 COPY Pipfile Pipfile.lock ./
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
+RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --extra-pip-args="--no-cache-dir" 
 
 COPY ./docker/uwsgi/ ${INVENIO_INSTANCE_PATH}
 COPY ./invenio.cfg ${INVENIO_INSTANCE_PATH}
@@ -110,7 +106,8 @@ COPY ./ .
 RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
     cp -r ./assets/. ${INVENIO_INSTANCE_PATH}/assets/ && \
     /opt/invenio/src/.venv/bin/invenio collect --verbose  && \
-    /opt/invenio/src/.venv/bin/invenio webpack buildall
+    /opt/invenio/src/.venv/bin/invenio webpack buildall && \
+    npm cache clean --force
 
     # Make directory owned by Invenio user
 RUN chown -R invenio test_data/ ${INVENIO_INSTANCE_PATH}/app_data/

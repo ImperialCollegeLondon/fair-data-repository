@@ -62,7 +62,7 @@ services:
     extends:
       file: docker-services.yml
       service: app
-    command: ["uwsgi /opt/invenio/var/instance/uwsgi_ui.ini"]
+    command: ["uwsgi", "/opt/invenio/var/instance/uwsgi_ui.ini"]
     image: ic-data-repo:latest
     ports:
       - "5000"
@@ -76,7 +76,7 @@ services:
     extends:
       file: docker-services.yml
       service: app
-    command: ["uwsgi /opt/invenio/var/instance/uwsgi_rest.ini"]
+    command: ["uwsgi", "/opt/invenio/var/instance/uwsgi_rest.ini"]
     image: ic-data-repo:latest
     ports:
       - "5000"
@@ -89,7 +89,7 @@ services:
     extends:
       file: docker-services.yml
       service: app
-    command: ["celery -A invenio_app.celery worker --beat --loglevel=INFO"]
+    command: ["celery", "-A", "invenio_app.celery", "worker", "--beat", "--loglevel=INFO"]
     image: ic-data-repo:latest
     volumes:
       - uploaded_data:/opt/invenio/var/instance/data

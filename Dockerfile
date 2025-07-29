@@ -34,7 +34,7 @@ ENV LC_ALL=en_US.UTF-8
      dnf install -y \
          https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm && \
     dnf clean all
-    
+
 
 # Install needed and useful tools:
 #  - python and friends
@@ -94,7 +94,7 @@ RUN chgrp -R 0 ${WORKING_DIR} && \
 
 COPY site ./site
 COPY Pipfile Pipfile.lock ./
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --extra-pip-args="--no-cache-dir" 
+RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --extra-pip-args="--no-cache-dir"
 
 COPY ./docker/uwsgi/ ${INVENIO_INSTANCE_PATH}
 COPY ./invenio.cfg ${INVENIO_INSTANCE_PATH}

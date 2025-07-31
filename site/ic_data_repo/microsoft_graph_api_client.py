@@ -47,7 +47,7 @@ The current list of possible job families is:
 There are also many users with no job family specified.
 """
 
-from typing import AsyncIterable, Optional
+from collections.abc import AsyncIterable
 
 from azure.identity.aio import ClientSecretCredential
 from kiota_abstractions.base_request_configuration import RequestConfiguration
@@ -68,7 +68,7 @@ def get_client(
 
 async def get_imperial_users(
     client: GraphServiceClient,
-    config: Optional[RequestConfiguration[_QueryParameters]] = None,
+    config: RequestConfiguration[_QueryParameters] | None = None,
 ) -> AsyncIterable[User]:
     """Get Imperial users.
 

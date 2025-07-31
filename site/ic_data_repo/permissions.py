@@ -1,7 +1,5 @@
 """Permission configuration."""
 
-from typing import Optional
-
 from flask_principal import ActionNeed
 from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
 from invenio_records_permissions.generators import Generator
@@ -41,7 +39,7 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     can_create = [AbleToDeposit()]
 
 
-def user_is_postgraduate(role_type: str, job_family: Optional[str]) -> bool:
+def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:
     """Checks if a user is a postgraduate."""
     if role_type == POSTGRADUATE_ROLE_TYPE:
         if job_family is not None:
@@ -50,7 +48,7 @@ def user_is_postgraduate(role_type: str, job_family: Optional[str]) -> bool:
     return False
 
 
-def user_is_allowed_employee(role_type: str, job_family: Optional[str]) -> bool:
+def user_is_allowed_employee(role_type: str, job_family: str | None) -> bool:
     """Checks if a user has an allowed job family."""
     if job_family in ALLOWED_JOB_FAMILIES:
         if role_type == POSTGRADUATE_ROLE_TYPE:
@@ -59,7 +57,7 @@ def user_is_allowed_employee(role_type: str, job_family: Optional[str]) -> bool:
     return False
 
 
-def can_user_deposit(role_type: str, job_family: Optional[str]) -> bool:
+def can_user_deposit(role_type: str, job_family: str | None) -> bool:
     """Checks if a user can deposit datasets based on their identity data."""
     if user_is_postgraduate(role_type, job_family) or user_is_allowed_employee(
         role_type, job_family

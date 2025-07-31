@@ -33,7 +33,7 @@ DATACITE_API_PATH = "https://api.datacite.org/dois/"
 
 
 if __name__ == "__main__":
-    with open("dois", "r") as f:
+    with open("dois") as f:
         dois = f.read().strip().split("\n")
 
     for doi in dois:

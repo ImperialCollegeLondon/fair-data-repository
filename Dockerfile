@@ -28,9 +28,7 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
- # EPEL: Extra Packages for Enterprise Linux 9
- # `epel-release` is not recent/complete enough, as some packages below are missing
- RUN dnf config-manager --set-enabled crb && \
+RUN dnf config-manager --set-enabled crb && \
      dnf install -y \
          https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm && \
     dnf clean all
@@ -42,8 +40,6 @@ ENV LC_ALL=en_US.UTF-8
 #  - process/file inspection tools (strace, lsof, file)
 #  - performance monitoring tools (iotop, iftop)
 #  - networking tools (tcpdump, bind-utils)
-# The installation of "Development Tools" should not be required. Be aware of its
-# size ~1.1 Gb
 RUN dnf install -y \
         pip \
         python3-devel \
@@ -64,9 +60,6 @@ RUN dnf install -y \
     dnf clean all
 
 # Symlink Python
-# RUN ln -sfn /usr/bin/python3 /usr/bin/python
-# `python3-packaging` is installed by `yum` and it causes issues with `pip` installations
-# RUN yum remove python3-packaging -y
 RUN pip install --upgrade pip pipenv wheel --no-cache-dir
 
 
@@ -109,7 +102,6 @@ RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
     /opt/invenio/src/.venv/bin/invenio webpack buildall && \
     npm cache clean --force
 
-    # Make directory owned by Invenio user
 RUN chown -R invenio test_data/ ${INVENIO_INSTANCE_PATH}/app_data/
 COPY ./docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 

@@ -133,3 +133,48 @@ class ImperialExtension:
 
         # Register jinja2 extension for user permission checks.
         app.jinja_env.add_extension(IfUserCanTag)
+
+
+class SymplecticExt:
+    """Extension for Symplectic API interactions."""
+
+    def __init__(self, app=None):
+        """Initialize the Symplectic extension."""
+        self.service = None
+        self.resource = None
+
+        if app:
+            self.init_app(app)
+
+    def init_app(self, app):
+        """Initialize the extension with the Flask app."""
+        self.init_config(app)
+        self.init_service(app)
+        self.init_resource(app)
+        app.extensions["symplectic"] = self
+
+    def init_config(self, app):
+        """Initialize configuration."""
+        # Set default configuration
+        for k in dir(app.config):
+            if k.startswith("SYMPLECTIC_"):
+                app.config.setdefault(k, getattr(app.config, k))
+
+    def init_service(self, app):
+        """Initialize service."""
+        from ic_data_repo.symplectic.services.config import SymplecticServiceConfig
+        from ic_data_repo.symplectic.services.service import SymplecticService
+
+        service_config = SymplecticServiceConfig.build(app)
+        self.service = SymplecticService(service_config)
+
+    def init_resource(self, app):
+        """Initialize resource."""
+        from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
+        from ic_data_repo.symplectic.resources.resource import SymplecticResource
+
+        resource_config = SymplecticResourceConfig()
+        self.resource = SymplecticResource(resource_config, self.service)
+
+        # Register blueprint
+        app.register_blueprint(self.resource.as_blueprint())

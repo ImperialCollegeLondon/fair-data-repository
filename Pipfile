@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 check-manifest = ">=0.25"
 pre-commit = "*"
-pytest-invenio = "<3"
+pytest-invenio = "*"
 pytest-mypy = "*"
 mkdocs = "*"
 mkdocs-material = "*"
@@ -29,6 +29,7 @@ invenio-app-rdm = {extras = ["opensearch2"], version = "~=13.0.0"}
 msgraph-sdk = "*"
 lxml = "*"
 types-lxml = "*"
+types-requests = "*"
 
 [requires]
 python_version = "3.12"

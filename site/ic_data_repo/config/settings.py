@@ -40,7 +40,7 @@ SEND_FILE_MAX_AGE_DEFAULT = 300
 # Do not commit it to a source code repository.
 SECRET_KEY = "CHANGE_ME"
 
-APP_ALLOWED_HOSTS = ["0.0.0.0", "localhost", "127.0.0.1"]
+TRUSTED_HOSTS = ["0.0.0.0", "localhost", "127.0.0.1"]
 
 # Flask-SQLAlchemy
 # ================

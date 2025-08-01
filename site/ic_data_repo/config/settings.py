@@ -9,7 +9,6 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 import os
 from datetime import datetime
 
-import invenio_rdm_records
 from invenio_app_rdm.config import (
     VOCABULARIES_DATASTREAM_READERS,
     VOCABULARIES_DATASTREAM_WRITERS,
@@ -130,14 +129,11 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "creators": lambda: get_user_form_default(),
 }
 
-# This is a hacky way to overwrite record schemas
-record_schema = invenio_rdm_records.services.config.RDMRecordServiceConfig.schema
-record_schema._declared_fields.update(
-    {
-        "access": NestedAttribute(ImperialAccessSchema),
-        "metadata": NestedAttribute(ImperialMetadataSchema),
-    }
-)
+# Override record schemas
+RDM_RECORD_SCHEMA = {
+    "access": NestedAttribute(ImperialAccessSchema),
+    "metadata": NestedAttribute(ImperialMetadataSchema),
+}
 
 # See:
 # https://github.com/inveniosoftware/invenio-app-rdm/blob/master/invenio_app_rdm/config.py

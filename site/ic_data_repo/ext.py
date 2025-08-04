@@ -4,6 +4,10 @@ import asyncio
 
 from flask import g
 from flask_login import user_logged_in
+from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
+from ic_data_repo.symplectic.resources.resource import SymplecticResource
+from ic_data_repo.symplectic.services.config import SymplecticServiceConfig
+from ic_data_repo.symplectic.services.service import SymplecticService
 from invenio_access.permissions import ActionUsers
 from invenio_db import db
 from invenio_rdm_records.proxies import current_rdm_records
@@ -162,17 +166,11 @@ class SymplecticExt:
 
     def init_service(self, app):
         """Initialize service."""
-        from ic_data_repo.symplectic.services.config import SymplecticServiceConfig
-        from ic_data_repo.symplectic.services.service import SymplecticService
-
         service_config = SymplecticServiceConfig.build(app)
         self.service = SymplecticService(service_config)
 
     def init_resource(self, app):
         """Initialize resource."""
-        from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
-        from ic_data_repo.symplectic.resources.resource import SymplecticResource
-
         resource_config = SymplecticResourceConfig()
         self.resource = SymplecticResource(resource_config, self.service)
 

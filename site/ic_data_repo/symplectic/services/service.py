@@ -28,6 +28,6 @@ class SymplecticService(Service):
             # Call the symplectic interface
             related_object_ids = self._client.fetch_related_objects(doi)
             # Return wrapped result
-            return self.result_item_cls(self, identity, related_object_ids)
+            return self.config.result_item_cls(self, identity, related_object_ids)
         except Exception as e:
             raise SymplecticServiceError(f"Failed to fetch related objects: {str(e)}")

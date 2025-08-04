@@ -51,6 +51,3 @@ class SymplecticResource(Resource):
 
         # Return the result dictionary with HTTP 200 status
         return result.to_dict(), 200
-
-        # Return the result as a dictionary
-        return result.to_dict(), 200

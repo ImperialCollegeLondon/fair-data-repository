@@ -45,7 +45,6 @@ class SymplecticResource(Resource):
     def get_related_objects(self):
         """Get related objects for a DOI."""
         # Get validated DOI from request context
-        print(f"Requesting related objects for DOI: {resource_requestctx.args['doi']}")
         doi = resource_requestctx.args["doi"]
         # Call the service with flask identity
         result = self.service.fetch_related_objects(g.identity, doi)

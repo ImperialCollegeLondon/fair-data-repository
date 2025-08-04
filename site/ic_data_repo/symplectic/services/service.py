@@ -20,7 +20,6 @@ class SymplecticService(Service):
     def fetch_related_objects(self, identity, doi):
         """Fetch related objects for a given DOI."""
         # Check permissions
-        print(f"Fetching related objects for DOI: {doi}")
 
         self.require_permission(identity, "read")
 

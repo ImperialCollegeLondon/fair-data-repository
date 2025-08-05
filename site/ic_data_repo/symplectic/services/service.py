@@ -29,4 +29,4 @@ class SymplecticService(Service):
             # Return wrapped result
             return self.config.result_item_cls(self, identity, related_object_ids)
         except Exception as e:
-            raise SymplecticServiceError(f"Failed to fetch related objects: {str(e)}")
+            raise SymplecticServiceError(f"Failed to fetch related objects") from e

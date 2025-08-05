@@ -158,11 +158,9 @@ class SymplecticExt:
         app.extensions["symplectic"] = self
 
     def init_config(self, app):
-        """Initialize configuration."""
-        # Set default configuration
-        for k in dir(app.config):
-            if k.startswith("SYMPLECTIC_"):
-                app.config.setdefault(k, getattr(app.config, k))
+        """Initialize configuration for the Symplectic extension."""
+        app.config.setdefault("SYMPLECTIC_API_URL", "")
+        app.config.setdefault("SYMPLECTIC_API_SUBSCRIPTION_KEY", "")
 
     def init_service(self, app):
         """Initialize service."""

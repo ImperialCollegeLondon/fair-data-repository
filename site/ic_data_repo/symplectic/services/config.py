@@ -18,5 +18,7 @@ class SymplecticServiceConfig(ServiceConfig):
         """Build the service configuration from the Flask app config."""
         config = cls()
         config.symplectic_api_url = app.config.get("SYMPLECTIC_API_URL", "")
-        config.symplectic_api_key = app.config.get("SYMPLECTIC_API_KEY", "")
+        config.symplectic_api_key = app.config.get(
+            "SYMPLECTIC_API_SUBSCRIPTION_KEY", ""
+        )
         return config

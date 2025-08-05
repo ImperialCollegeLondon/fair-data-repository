@@ -7,4 +7,4 @@ from invenio_records_permissions.generators import AnyUser, SystemProcess
 class SymplecticPermissionPolicy(RecordPermissionPolicy):
     """Permission policy for Symplectic service."""
 
-    can_read = [AnyUser(), SystemProcess()]
+    can_read = [AuthenticatedUser(), SystemProcess()]

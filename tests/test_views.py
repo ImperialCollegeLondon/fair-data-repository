@@ -7,6 +7,8 @@ from unittest.mock import patch
 import pytest
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers
+from invenio_oauth2server.models import Token
+from invenio_oauth2server.proxies import current_oauth2server
 
 
 @pytest.fixture
@@ -59,19 +61,27 @@ def test_index_auth(user_client, app):
     assert not re.search(r"/uploads/new(?!\?community=icl)", res.data.decode("utf-8"))
 
 
-def get_csrf_token(client):
-    """Get the CSRF token from the client cookie jar."""
-    if cookie := client.get_cookie("csrftoken"):
-        return cookie.value
-    raise ValueError("CSRF token not found in cookies")
+@pytest.fixture
+def browser_headers(user_client):
+    """Headers for web browser requests, including CSRF token."""
+    csrf_token = user_client.get_cookie("csrftoken").value
+    if not csrf_token:
+        raise ValueError("CSRF token not found in cookies")
+    return {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrf_token,
+    }
 
 
 @pytest.fixture
-def headers(user_client):
-    """Headers for requests, including CSRF token."""
+def api_headers(db, user_client, user_depositor):
+    """Headers for API requests, including API token."""
+    scopes = [s[0] for s in current_oauth2server.scope_choices()]
+    token = Token.create_personal("test_token", user_depositor.id, scopes=scopes)
+    db.session.commit()
     return {
+        "Authorization": f"Bearer {token.access_token}",
         "Content-Type": "application/json",
-        "X-CSRFToken": get_csrf_token(user_client),
     }
 
 
@@ -104,7 +114,7 @@ def access():
 
 
 def test_metadata_schema(
-    user_client, location, vocabularies, user_depositor, headers, metadata, access
+    client, location, vocabularies, user_depositor, api_headers, metadata, access
 ):
     """Test that the metadata schema is enforced."""
     metadata["resource_type"] = "fake_resource_type"
@@ -112,10 +122,10 @@ def test_metadata_schema(
     metadata["publication_date"] = "1970-01-01"
     access["record"] = "restricted"
     access["files"] = "restricted"
-    result = user_client.post(
+    result = client.post(
         "/api/records",
         json={"metadata": metadata, "access": access},
-        headers=headers,
+        headers=api_headers,
     )
     assert result.status_code == 201
 
@@ -136,35 +146,35 @@ def test_metadata_schema(
 
 
 def test_metadata_schema_rights(
-    user_client, location, vocabularies, user_depositor, headers, metadata
+    client, location, vocabularies, user_depositor, api_headers, metadata
 ):
     """Test that the rights schema is enforced."""
     # Test that no license is accepted.
     metadata["rights"] = []
-    result = user_client.post(
+    result = client.post(
         "/api/records",
         json={"metadata": metadata},
-        headers=headers,
+        headers=api_headers,
     )
     assert result.status_code == 201
     assert "rights" not in result.json["metadata"]
 
     # Test that a single license is accepted.
     metadata["rights"] = [{"id": "cc0-1.0"}]
-    result = user_client.post(
+    result = client.post(
         "/api/records",
         json={"metadata": metadata},
-        headers=headers,
+        headers=api_headers,
     )
     assert result.status_code == 201
     assert result.json["metadata"]["rights"][0]["id"] == "cc0-1.0"
 
     # Test that multiple rights entries are not accepted.
     metadata["rights"] = [{"id": "cc0-1.0"}, {"id": "cc-by-4.0"}]
-    result = user_client.post(
+    result = client.post(
         "/api/records",
         json={"metadata": metadata},
-        headers=headers,
+        headers=api_headers,
     )
     assert result.status_code == 201
     assert result.json["errors"][0]["messages"][0].startswith("No more than")

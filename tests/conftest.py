@@ -148,3 +148,37 @@ def flush_redis(redis_container):
 def app(app, flush_redis):
     """Override the existing app fixture to add flush_redis teardown."""
     return app
+
+
+@pytest.fixture
+def db(database, db_session_options):
+    """Creates a new database session for a test, rolls back after test."""
+    from flask_sqlalchemy.session import Session as FlaskSQLAlchemySession
+
+    connection = database.engine.connect()
+    transaction = connection.begin()  # Outer transaction
+
+    class PytestInvenioSession(FlaskSQLAlchemySession):
+        def commit(self, *args, **kwargs):
+            # prevent any commits to the outer session
+            self.flush(*args, **kwargs)
+
+    options = dict(
+        bind=connection,
+        binds={},
+        **db_session_options,
+        class_=PytestInvenioSession,
+    )
+    session = database._make_scoped_session(options=options)
+    session.begin_nested()  # Savepoint
+
+    old_session = database.session
+    database.session = session
+    try:
+        yield database
+    finally:
+        session.rollback()
+        session.remove()  # Remove session from registry (if using scoped_session)
+        transaction.rollback()  # Roll back the outer transaction
+        connection.close()  # Close the connection
+        database.session = old_session

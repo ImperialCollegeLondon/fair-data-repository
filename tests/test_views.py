@@ -61,9 +61,8 @@ def test_index_auth(user_client, app):
 
 def get_csrf_token(client):
     """Get the CSRF token from the client cookie jar."""
-    for cookie in client.cookie_jar:
-        if cookie.name == "csrftoken":
-            return cookie.value
+    if cookie := client.get_cookie("csrftoken"):
+        return cookie.value
     raise ValueError("CSRF token not found in cookies")
 
 

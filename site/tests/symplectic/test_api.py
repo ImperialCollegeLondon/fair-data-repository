@@ -31,7 +31,10 @@ def client(app):
     # Setup mock response
     mock_result = MagicMock(spec=SymplecticRelatedObjectsResult)
     mock_result.to_dict.return_value = {
-        "related_object_ids": ["123", "456"],
+        "results": [
+            {"id": "123", "title": "Paper Title 1", "doi": "10.1021/jp506459v"},
+            {"id": "456", "title": "Paper Title 2", "doi": "10.1234/example"},
+        ],
         "count": 2,
         "links": {"self": "/api/symplectic/related-objects"},
     }
@@ -70,6 +73,10 @@ def test_related_objects_endpoint(client):
 
     # Check response content
     response_data = response.get_json()
-    assert "related_object_ids" in response_data
+    assert "results" in response_data
     assert "count" in response_data
     assert response_data["count"] == 2
+    assert response_data["results"] == [
+        {"id": "123", "title": "Paper Title 1", "doi": "10.1021/jp506459v"},
+        {"id": "456", "title": "Paper Title 2", "doi": "10.1234/example"},
+    ]

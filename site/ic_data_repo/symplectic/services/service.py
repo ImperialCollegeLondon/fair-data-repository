@@ -20,13 +20,14 @@ class SymplecticService(Service):
     def fetch_related_objects(self, identity, doi):
         """Fetch related objects for a given DOI."""
         # Check permissions
-
         self.require_permission(identity, "read")
 
         try:
-            # Call the symplectic interface
-            related_object_ids = self._client.fetch_related_objects(doi)
+            # Call the search_symplectic method instead of fetch_related_objects
+            search_results = self._client.search_symplectic(doi)
             # Return wrapped result
-            return self.config.result_item_cls(self, identity, related_object_ids)
+            return self.config.result_item_cls(self, identity, search_results)
         except Exception as e:
-            raise SymplecticServiceError("Failed to fetch related objects") from e
+            raise SymplecticServiceError(
+                f"Failed to fetch related objects: {str(e)}"
+            ) from e

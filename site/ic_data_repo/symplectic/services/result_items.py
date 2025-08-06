@@ -20,7 +20,10 @@ class SymplecticRelatedObjectsResult(ServiceItemResult):
     def to_dict(self):
         """Return the related objects as a dictionary."""
         return {
-            "related_object_ids": self._related_objects,
+            "results": [
+                {"id": obj.get("id"), "title": obj.get("title"), "doi": obj.get("doi")}
+                for obj in self._related_objects
+            ],
             "count": len(self._related_objects),
             "links": {"self": "/api/symplectic/related-objects"},
         }

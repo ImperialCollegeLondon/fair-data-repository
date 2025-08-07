@@ -32,6 +32,7 @@ module = [
        "invenio_db.*",
        "invenio_i18n.*",
        "invenio_notifications.*",
+       "invenio_oauth2server.*",
        "invenio_oauthclient.*",
        "invenio_records_permissions.*",
        "invenio_records_resources.*",

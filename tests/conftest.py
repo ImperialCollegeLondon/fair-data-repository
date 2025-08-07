@@ -118,7 +118,7 @@ def instance_path(instance_path):
 
 
 @pytest.fixture
-def vocabularies():
+def vocabularies(db):
     """Load vocabularies."""
     vocabularies = VocabulariesFixture(
         system_identity,

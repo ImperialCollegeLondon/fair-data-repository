@@ -17,10 +17,9 @@ from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 from invenio_rdm_records.services.components import DefaultRecordsComponents
-from marshmallow_utils.fields import NestedAttribute
 
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
-from ..imperial_schema import ImperialAccessSchema, ImperialMetadataSchema
+from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import SymplecticComponent
 from .custom_fields import *  # noqa: F401,F403
@@ -130,10 +129,7 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
 }
 
 # Override record schemas
-RDM_RECORD_SCHEMA = {
-    "access": NestedAttribute(ImperialAccessSchema),
-    "metadata": NestedAttribute(ImperialMetadataSchema),
-}
+RDM_RECORD_SCHEMA = ImperialRecordSchema
 
 # See:
 # https://github.com/inveniosoftware/invenio-app-rdm/blob/master/invenio_app_rdm/config.py

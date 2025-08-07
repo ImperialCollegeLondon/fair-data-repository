@@ -4,6 +4,10 @@ import asyncio
 
 from flask import g
 from flask_login import user_logged_in
+from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
+from ic_data_repo.symplectic.resources.resource import SymplecticResource
+from ic_data_repo.symplectic.services.config import SymplecticServiceConfig
+from ic_data_repo.symplectic.services.service import SymplecticService
 from invenio_access.permissions import ActionUsers
 from invenio_db import db
 from invenio_rdm_records.proxies import current_rdm_records
@@ -133,3 +137,40 @@ class ImperialExtension:
 
         # Register jinja2 extension for user permission checks.
         app.jinja_env.add_extension(IfUserCanTag)
+
+
+class SymplecticExt:
+    """Extension for Symplectic API interactions."""
+
+    def __init__(self, app=None):
+        """Initialize the Symplectic extension."""
+        self.service = None
+        self.resource = None
+
+        if app:
+            self.init_app(app)
+
+    def init_app(self, app):
+        """Initialize the extension with the Flask app."""
+        self.init_config(app)
+        self.init_service(app)
+        self.init_resource(app)
+        app.extensions["symplectic"] = self
+
+    def init_config(self, app):
+        """Initialize configuration for the Symplectic extension."""
+        app.config.setdefault("SYMPLECTIC_API_URL", "")
+        app.config.setdefault("SYMPLECTIC_API_SUBSCRIPTION_KEY", "")
+
+    def init_service(self, app):
+        """Initialize service."""
+        service_config = SymplecticServiceConfig.build(app)
+        self.service = SymplecticService(service_config)
+
+    def init_resource(self, app):
+        """Initialize resource."""
+        resource_config = SymplecticResourceConfig()
+        self.resource = SymplecticResource(resource_config, self.service)
+
+        # Register blueprint
+        app.register_blueprint(self.resource.as_blueprint())

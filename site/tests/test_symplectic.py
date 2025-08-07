@@ -357,3 +357,61 @@ def test_get_related_awards_multiple_results(mock_get, client):
 
     with pytest.raises(MultipleAwardsFoundError, match="Multiple awards for"):
         client.get_related_awards(award_id, award_type_id)
+
+
+@patch("requests.get")
+def test_search_symplectic(mock_get, client):
+    """Test searching Symplectic for records matching a DOI."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+        <api:object id="12345" category="publication">
+            <api:record>
+                <api:native>
+                    <api:field name="title" type="text">
+                        <api:text>Test Title</api:text>
+                    </api:field>
+                    <api:field name="doi" type="text">
+                        <api:text>10.1234/test-doi</api:text>
+                    </api:field>
+                </api:native>
+            </api:record>
+        </api:object>
+        <api:object id="67890" category="publication">
+            <api:record>
+                <api:native>
+                    <api:field name="title" type="text">
+                        <api:text>Another Test Title</api:text>
+                    </api:field>
+                    <api:field name="doi" type="text">
+                        <api:text>10.5678/another-doi</api:text>
+                    </api:field>
+                </api:native>
+            </api:record>
+        </api:object>
+    </api:response>
+    """
+    mock_get.return_value = mock_response
+
+    query = "10.1234/test-doi"
+    results = client.search_symplectic(query)
+
+    # Assert the results are parsed correctly
+    assert len(results) == 2
+    assert results[0] == {
+        "id": "12345",
+        "title": "Test Title",
+        "doi": "10.1234/test-doi",
+    }
+    assert results[1] == {
+        "id": "67890",
+        "title": "Another Test Title",
+        "doi": "10.5678/another-doi",
+    }
+
+    # Assert the correct API call was made
+    mock_get.assert_called_once()
+    called_url = mock_get.call_args[0][0]
+    assert f'query=doi="{query}"' in called_url
+    assert called_url.startswith(client.api_url)

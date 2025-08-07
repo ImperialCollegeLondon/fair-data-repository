@@ -1,0 +1,1 @@
+"""Symplectic API resource module."""

@@ -8,30 +8,6 @@ from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers
 
 
-@pytest.fixture
-def user(UserFixture, app, db):
-    """An initialised user."""
-    u = UserFixture(
-        email="foo@bar.com",
-        password="password",
-    )
-    u.create(app, db)
-    return u
-
-
-@pytest.fixture
-def user_client(user, client):
-    """A client logged in as the user fixture."""
-    return user.login(client)
-
-
-@pytest.fixture
-def user_depositor(user, db):
-    """Give the user fixture permission to create deposits."""
-    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
-    return user
-
-
 @pytest.fixture(autouse=True)
 def mock_manifest():
     """Mock manifest to always return a value for theme.css."""

@@ -151,6 +151,23 @@ def app(app, flush_redis):
 
 
 @pytest.fixture
+def user(UserFixture, app, db):
+    """An initialised user."""
+    u = UserFixture(
+        email="foo@bar.com",
+        password="password",
+    )
+    u.create(app, db)
+    return u
+
+
+@pytest.fixture
+def user_client(user, client):
+    """A client logged in as the user fixture."""
+    return user.login(client)
+
+
+@pytest.fixture
 def db(database, db_session_options):
     """Creates a new database session for a test, rolls back after test."""
     from flask_sqlalchemy.session import Session as FlaskSQLAlchemySession

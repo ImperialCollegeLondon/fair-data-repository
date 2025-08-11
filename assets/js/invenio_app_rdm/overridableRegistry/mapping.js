@@ -13,6 +13,7 @@ import { parametrize } from "react-overridable";
 import { TextAreaField } from "react-invenio-forms";
 import { CardDepositStatusBox } from "../../ic_data_repo/CardDepositStatusBox";
 import { FundingField } from "../../ic_data_repo/Funding/FundingField";
+import { RelatedWorksField } from "../../ic_data_repo/RelatedWorksField";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText: "The main individuals or institutions involved in creating the data set.",
@@ -48,5 +49,6 @@ export const overriddenComponents = {
   "InvenioAppRdm.DashboardUploads.EmptyResults.element": NullElement,
   "InvenioAppRdm.Deposit.CardDepositStatusBox.container": CardDepositStatusBox,
   "InvenioAppRdm.Deposit.FundingField.container": FundingField,
+  "InvenioAppRdm.Deposit.RelatedWorksField.container": RelatedWorksField,
   "ReactInvenioDeposit.MetadataAccess.layout": NullElement,
 };

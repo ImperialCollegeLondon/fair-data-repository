@@ -334,9 +334,9 @@ class SymplecticClient:
 
         return related_object_id[0]
 
-    def search_symplectic(self, query):
+    def search_symplectic(self, query, search_type):
         """Search Symplectic for records matching the query."""
-        url = f'{self.api_url}/publications?detail=single-record&query=doi="{query}"'  # noqa: E501
+        url = f'{self.api_url}/publications?detail=full&query={search_type}~"{query}"'  # noqa: E501
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
 

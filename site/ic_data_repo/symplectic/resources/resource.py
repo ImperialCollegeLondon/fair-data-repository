@@ -40,14 +40,23 @@ class SymplecticResource(Resource):
             route("GET", routes["related_objects"], self.get_related_objects),
         ]
 
-    @request_parser({"doi": ma.fields.String(required=True)}, location="args")
+    @request_parser(
+        {
+            "search_query": ma.fields.String(required=True),
+            "search_type": ma.fields.String(required=True),
+        },
+        location="args",
+    )
     @response_handler()
     def get_related_objects(self):
         """Get related objects for a DOI."""
         # Get validated DOI from request context
-        doi = resource_requestctx.args["doi"]
+        search_query = resource_requestctx.args["search_query"]
+        search_type = resource_requestctx.args["search_type"]
         # Call the service with flask identity
-        result = self.service.fetch_related_objects(g.identity, doi)
+        result = self.service.fetch_related_objects(
+            g.identity, search_query, search_type
+        )
 
         # Return the result dictionary with HTTP 200 status
         return result.to_dict(), 200

@@ -361,7 +361,7 @@ def test_get_related_awards_multiple_results(mock_get, client):
 
 @patch("requests.get")
 def test_search_symplectic(mock_get, client):
-    """Test searching Symplectic for records matching a DOI."""
+    """Test searching Symplectic for records matching DOI and title keyword."""
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
     mock_response.content = b"""
@@ -394,8 +394,9 @@ def test_search_symplectic(mock_get, client):
     """
     mock_get.return_value = mock_response
 
-    query = "10.1234/test-doi"
-    results = client.search_symplectic(query)
+    # DOI search
+    doi_query = "10.1234/test-doi"
+    results = client.search_symplectic(doi_query, "doi")
 
     # Assert the results are parsed correctly
     assert len(results) == 2
@@ -410,8 +411,18 @@ def test_search_symplectic(mock_get, client):
         "doi": "10.5678/another-doi",
     }
 
-    # Assert the correct API call was made
+    # Assert the correct API call was made for DOI search
     mock_get.assert_called_once()
     called_url = mock_get.call_args[0][0]
-    assert f'query=doi="{query}"' in called_url
+    assert f'query=doi="{doi_query}"' in called_url
+    assert called_url.startswith(client.api_url)
+
+    # Title keyword search
+    mock_get.reset_mock()
+    title_query = "cancer genomics"
+    _ = client.search_symplectic(title_query, "title_keyword")
+
+    mock_get.assert_called_once()
+    called_url = mock_get.call_args[0][0]
+    assert f'query=title-field~"{title_query}"' in called_url
     assert called_url.startswith(client.api_url)

@@ -17,14 +17,14 @@ class SymplecticService(Service):
             api_url=config.symplectic_api_url, api_key=config.symplectic_api_key
         )
 
-    def fetch_related_objects(self, identity, doi):
+    def fetch_related_objects(self, identity, search_query, search_type):
         """Fetch related objects for a given DOI."""
         # Check permissions
         self.require_permission(identity, "read")
 
         try:
             # Call the search_symplectic method instead of fetch_related_objects
-            search_results = self._client.search_symplectic(doi)
+            search_results = self._client.search_symplectic(search_query, search_type)
             # Return wrapped result
             return self.config.result_item_cls(self, identity, search_results)
         except Exception as e:

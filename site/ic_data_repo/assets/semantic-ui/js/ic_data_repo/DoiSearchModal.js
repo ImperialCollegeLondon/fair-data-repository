@@ -6,26 +6,27 @@ import { http } from "react-invenio-forms";
 
 export function DoiSearchModal({ trigger, onSelect }) {
   const [open, setOpen] = useState(false);
-  const [doi, setDoi] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchType, setSearchType] = useState("doi"); // "doi" | "title_keyword"
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSearch = async () => {
-    if (!doi) return;
+    if (!searchQuery) return;
     setLoading(true);
     setError(null);
     try {
       const response = await http.get("/api/symplectic/related-objects", {
-        params: { doi },
+        params: { search_query: searchQuery, search_type: searchType },
       });
       const resultItems = response.data.results || [];
       setResults(resultItems);
       if (resultItems.length === 0) {
-        setError("No related objects found for this DOI.");
+        setError(i18next.t("No related objects found for this search."));
       }
     } catch (e) {
-      setError(e.response?.data?.message || e.message || "An error occurred.");
+      setError(e.response?.data?.message || e.message || i18next.t("An error occurred."));
       setResults([]);
     } finally {
       setLoading(false);
@@ -34,7 +35,8 @@ export function DoiSearchModal({ trigger, onSelect }) {
 
   const handleClose = () => {
     setOpen(false);
-    setDoi("");
+    setSearchQuery("");
+    setSearchType("doi");
     setResults([]);
     setError(null);
     setLoading(false);
@@ -45,6 +47,11 @@ export function DoiSearchModal({ trigger, onSelect }) {
     handleClose();
   };
 
+  const searchOptions = [
+    { key: "doi", value: "doi", text: i18next.t("DOI") },
+    { key: "title_keyword", value: "title_keyword", text: i18next.t("Title keyword") },
+  ];
+
   return (
     <Modal
       onClose={handleClose}
@@ -53,25 +60,42 @@ export function DoiSearchModal({ trigger, onSelect }) {
       trigger={trigger}
       closeIcon
     >
-      <Modal.Header>{i18next.t("Find by DOI")}</Modal.Header>
+      <Modal.Header>{i18next.t("Find related objects")}</Modal.Header>
       <Modal.Content>
         <Form onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
-          <Form.Field>
-            <Input
-              action={{
-                icon: "search",
-                content: i18next.t("Search"),
-                onClick: handleSearch,
-                loading: loading,
-                disabled: loading,
-              }}
-              placeholder="Enter DOI..."
-              value={doi}
-              onChange={(e) => setDoi(e.target.value)}
+          <Form.Group widths="equal">
+            <Form.Select
+              label={i18next.t("Search type")}
+              options={searchOptions}
+              value={searchType}
+              onChange={(e, { value }) => setSearchType(value)}
+              disabled={loading}
+              placeholder={i18next.t("Select search type")}
             />
-          </Form.Field>
+            <Form.Field width={10}>
+              <label>{i18next.t("Search")}</label>
+              <Input
+                action={{
+                  icon: "search",
+                  content: i18next.t("Search"),
+                  onClick: handleSearch,
+                  loading: loading,
+                  disabled: loading,
+                }}
+                placeholder={
+                  searchType === "doi"
+                    ? i18next.t("Enter DOI...")
+                    : i18next.t("Enter title keywords...")
+                }
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </Form.Field>
+          </Form.Group>
         </Form>
+
         {error && <Message negative>{error}</Message>}
+
         {results.length > 0 && (
           <List divided relaxed>
             <List.Header>{i18next.t("Search Results")}</List.Header>
@@ -103,5 +127,5 @@ export function DoiSearchModal({ trigger, onSelect }) {
 
 DoiSearchModal.propTypes = {
   trigger: PropTypes.node.isRequired,
-  onSelect: PropTypes.func.isRequired,
+  onSelect: PropTypes.func,
 };

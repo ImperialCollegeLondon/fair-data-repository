@@ -346,36 +346,33 @@ class SymplecticClient:
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}
 
-        # Find all object elements
         object_elems = root.findall(".//api:object", namespaces=ns)
         results = []
         for obj_elem in object_elems:
             obj_id = obj_elem.get("id")
             title = None
             doi = None
-
-            # Find the first api:record/api:native under this object
             record_native = obj_elem.find(".//api:record/api:native", namespaces=ns)
             if record_native is not None:
-                # Find title
                 title_field = record_native.find(
                     './/api:field[@name="title"]/api:text', namespaces=ns
                 )
                 if title_field is not None and title_field.text:
                     title = title_field.text
-                # Find doi
                 doi_field = record_native.find(
                     './/api:field[@name="doi"]/api:text', namespaces=ns
                 )
                 if doi_field is not None and doi_field.text:
                     doi = doi_field.text
 
-            results.append(
-                {
-                    "id": obj_id,
-                    "title": title,
-                    "doi": doi,
-                }
-            )
+            if not doi or not doi.strip():
+                continue
+
+            item = {
+                "id": obj_id,
+                "title": title,
+                "doi": doi,
+            }
+            results.append(item)
 
         return results

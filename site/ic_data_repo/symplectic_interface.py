@@ -336,10 +336,10 @@ class SymplecticClient:
 
     def search_symplectic(self, query, search_type):
         """Search Symplectic for records matching the query."""
-        if search_type == "doi":
-            url = f'{self.api_url}/publications?detail=full&query=doi="{query}"'
-        elif search_type == "title_keyword":
-            url = f'{self.api_url}/publications?detail=full&query=title-field~"{query}"'  # noqa: E501
+        if search_type == "content":
+            url = f'{self.api_url}/publications?detail=full&query=content~"{query}"'
+        elif search_type == "first-author-name":
+            url = f'{self.api_url}/publications?detail=full&query=first-author-name="{query}"'  # noqa: E501
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
 

@@ -48,8 +48,8 @@ export function DoiSearchModal({ trigger, onSelect }) {
   };
 
   const searchOptions = [
-    { key: "doi", value: "doi", text: i18next.t("DOI") },
-    { key: "title_keyword", value: "title_keyword", text: i18next.t("Title keyword") },
+    { key: "content", value: "content", text: i18next.t("Broad search") },
+    { key: "first-author-name", value: "first-author-name", text: i18next.t("Author") },
   ];
 
   return (

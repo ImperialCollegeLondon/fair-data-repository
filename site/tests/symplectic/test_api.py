@@ -38,7 +38,7 @@ def client(app):
         "count": 2,
         "links": {"self": "/api/symplectic/related-objects"},
     }
-    mock_service.fetch_related_objects.return_value = mock_result
+    mock_service.fetch_related_publications.return_value = mock_result
 
     # Register the resource with the mocked service
     resource_config = SymplecticResourceConfig()
@@ -67,8 +67,8 @@ def test_related_objects_endpoint(client):
     assert response.status_code == 200
 
     # Service should have been called with (identity, search_query, search_type)
-    mock_service.fetch_related_objects.assert_called_once()
-    args, kwargs = mock_service.fetch_related_objects.call_args
+    mock_service.fetch_related_publications.assert_called_once()
+    args, kwargs = mock_service.fetch_related_publications.call_args
     assert len(args) == 3
     # args[0] is g.identity mock
     assert args[1] == search_query
@@ -80,14 +80,14 @@ def test_related_objects_endpoint(client):
     assert response_data["count"] == 2
 
     # Title keyword search
-    mock_service.fetch_related_objects.reset_mock()
+    mock_service.fetch_related_publications.reset_mock()
     title_query = "catalysis"
     response2 = test_client.get(
         f"/symplectic/related-objects?search_query={title_query}&search_type=title_keyword"  # noqa: E501
     )
     assert response2.status_code == 200
-    mock_service.fetch_related_objects.assert_called_once()
-    args2, _ = mock_service.fetch_related_objects.call_args
+    mock_service.fetch_related_publications.assert_called_once()
+    args2, _ = mock_service.fetch_related_publications.call_args
     assert len(args2) == 3
     assert args2[1] == title_query
     assert args2[2] == "title_keyword"

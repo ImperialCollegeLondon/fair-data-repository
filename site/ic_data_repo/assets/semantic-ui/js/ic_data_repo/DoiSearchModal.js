@@ -17,7 +17,7 @@ export function DoiSearchModal({ trigger, onSelect }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await http.get("/api/symplectic/related-objects", {
+      const response = await http.get("/api/symplectic/related-publications", {
         params: { search_query: searchQuery, search_type: searchType },
       });
       const resultItems = response.data.results || [];

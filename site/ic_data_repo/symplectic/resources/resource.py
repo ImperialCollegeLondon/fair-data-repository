@@ -37,7 +37,7 @@ class SymplecticResource(Resource):
         """Create URL rules for the resource."""
         routes = self.config.routes
         return [
-            route("GET", routes["related_objects"], self.get_related_objects),
+            route("GET", routes["related_publications"], self.get_related_publications),
         ]
 
     @request_parser(
@@ -48,13 +48,13 @@ class SymplecticResource(Resource):
         location="args",
     )
     @response_handler()
-    def get_related_objects(self):
+    def get_related_publications(self):
         """Get related objects for a DOI."""
         # Get validated DOI from request context
         search_query = resource_requestctx.args["search_query"]
         search_type = resource_requestctx.args["search_type"]
         # Call the service with flask identity
-        result = self.service.fetch_related_objects(
+        result = self.service.fetch_related_publications(
             g.identity, search_query, search_type
         )
 

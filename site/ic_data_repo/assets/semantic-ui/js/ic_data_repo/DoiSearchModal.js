@@ -48,7 +48,7 @@ export function DoiSearchModal({ trigger, onSelect }) {
   };
 
   const searchOptions = [
-    { key: "content", value: "content", text: i18next.t("Broad search") },
+    { key: "content", value: "content", text: i18next.t("Content search") },
     { key: "first-author-name", value: "first-author-name", text: i18next.t("Author") },
   ];
 
@@ -65,16 +65,21 @@ export function DoiSearchModal({ trigger, onSelect }) {
         <Form onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
           <Form.Group widths="equal">
             <Form.Select
+              width={6}
+              fluid
+              size="small"
               label={i18next.t("Search type")}
               options={searchOptions}
               value={searchType}
               onChange={(e, { value }) => setSearchType(value)}
               disabled={loading}
-              placeholder={i18next.t("Select search type")}
+              placeholder={i18next.t("Content search")}
             />
             <Form.Field width={10}>
-              <label>{i18next.t("Search")}</label>
+              <label htmlFor="doi-search-input">{i18next.t("Search")}</label>
               <Input
+                id="doi-search-input"
+                aria-describedby="doi-search-help"
                 action={{
                   icon: "search",
                   content: i18next.t("Search"),
@@ -83,15 +88,32 @@ export function DoiSearchModal({ trigger, onSelect }) {
                   disabled: loading,
                 }}
                 placeholder={
-                  searchType === "doi"
-                    ? i18next.t("Enter DOI...")
-                    : i18next.t("Enter title keywords...")
+                  i18next.t("Enter keywords...")
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </Form.Field>
           </Form.Group>
+
+          {/* Help text for controls */}
+          <Form.Field>
+            <Message info size="mini" id="doi-search-help">
+              <>
+                {i18next.t(
+                  "You can search for existing publications by title, author name and it will query"
+                )}{" "}
+                <a
+                  href="https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/symplectic/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {i18next.t("symplectic elements")}
+                </a>
+                {". "}{i18next.t("for related works.")}
+              </>
+            </Message>
+          </Form.Field>
         </Form>
 
         {error && <Message negative>{error}</Message>}

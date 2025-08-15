@@ -33,6 +33,24 @@ export class RelatedWorksField extends Component {
           {i18next.t(
             "Specify identifiers of related works. Supported identifiers include DOI, Handle, ARK, PURL, ISSN, ISBN, PubMed ID, PubMed Central ID, ADS Bibliographic Code, arXiv, Life Science Identifiers (LSID), EAN-13, ISTC, URNs, and URLs."
           )}
+          {' '}
+          <strong>
+            <>
+              {i18next.t("If you have a publication in")}
+              {" "}
+              <a
+                href="https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/symplectic/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {i18next.t("symplectic elements")}
+              </a>
+              {", "}
+              {i18next.t(
+                "you can use the Symplectic search to find the correct doi and it will make a realtionship to the related work."
+              )}
+            </>
+          </strong>
         </label>
         <ArrayField
           addButtonLabel={i18next.t("Add related work")}
@@ -100,7 +118,7 @@ export class RelatedWorksField extends Component {
                   trigger={
                     <Button type="button" icon labelPosition="left" className="mt-10">
                       <Icon name="search" />
-                      {i18next.t("Find by DOI")}
+                      {i18next.t("Symplectic search")}
                     </Button>
                   }
                   onSelect={(selectedIdentifier) => {

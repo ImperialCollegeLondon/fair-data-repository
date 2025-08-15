@@ -43,7 +43,7 @@ export function DoiSearchModal({ trigger, onSelect }) {
   };
 
   const handleSelect = (selectedItem) => {
-    onSelect(selectedItem);
+    onSelect(selectedItem.doi);
     handleClose();
   };
 

@@ -53,15 +53,15 @@ def client(app):
     return app.test_client(), mock_service
 
 
-def test_related_objects_endpoint(client):
-    """Test that the related objects endpoint calls the service."""
+def test_related_publications_endpoint(client):
+    """Test that the related publications endpoint calls the service."""
     test_client, mock_service = client
 
     # DOI search
     search_query = "10.1021/jp506459v"
     search_type = "doi"
     response = test_client.get(
-        f"/symplectic/related-objects?search_query={search_query}&search_type={search_type}"  # noqa: E501
+        f"/symplectic/related-publications?search_query={search_query}&search_type={search_type}"  # noqa: E501
     )
 
     assert response.status_code == 200
@@ -83,7 +83,7 @@ def test_related_objects_endpoint(client):
     mock_service.fetch_related_publications.reset_mock()
     title_query = "catalysis"
     response2 = test_client.get(
-        f"/symplectic/related-objects?search_query={title_query}&search_type=title_keyword"  # noqa: E501
+        f"/symplectic/related-publications?search_query={title_query}&search_type=title_keyword"  # noqa: E501
     )
     assert response2.status_code == 200
     mock_service.fetch_related_publications.assert_called_once()

@@ -78,7 +78,7 @@ export function DoiSearchModal({ trigger, onSelect }) {
               value={searchType}
               onChange={(e, { value }) => setSearchType(value)}
               disabled={loading}
-              placeholder={i18next.t("Title")}
+              placeholder={searchOptions[0].text}
             />
             <Form.Field width={10}>
               <label htmlFor="doi-search-input">{i18next.t("Search")}</label>

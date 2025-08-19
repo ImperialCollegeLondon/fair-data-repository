@@ -406,7 +406,7 @@ def test_search_symplectic(mock_get, client):
 
     # DOI search (new search_type: "doi")
     doi_query = "10.1234/test-doi"
-    results = client.search_symplectic(doi_query, "content")
+    results = client.search_symplectic(doi_query, "title-keywords")
 
     # Only two results because the third lacks a DOI
     assert len(results) == 2
@@ -423,7 +423,7 @@ def test_search_symplectic(mock_get, client):
 
     mock_get.assert_called_once()
     called_url = mock_get.call_args[0][0]
-    assert f'query=content~"{doi_query}"' in called_url
+    assert f'query=title-keywords="{doi_query}"' in called_url
     assert called_url.startswith(client.api_url)
 
     # Title keyword search (new search_type: "title_keyword")

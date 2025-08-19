@@ -125,6 +125,7 @@ export class RelatedWorksField extends Component {
                     // Update the identifier and scheme for this entry
                     form.setFieldValue(`${fieldPathPrefix}.identifier`, selectedIdentifier);
                     form.setFieldValue(`${fieldPathPrefix}.scheme`, "doi");
+                    form.setFieldValue(`${fieldPathPrefix}.resource_type`, "publication");
                   }}
                 />
               </GroupField>

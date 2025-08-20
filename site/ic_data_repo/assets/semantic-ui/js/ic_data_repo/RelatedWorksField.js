@@ -23,9 +23,22 @@ import { i18next } from "@translations/invenio_rdm_records/i18next";
 import { DoiSearchModal } from "./DoiSearchModal";
 
 export class RelatedWorksField extends Component {
+  // Helper (could also be a top-level const)
+  symplecticEnabled() {
+    try {
+      const el = document.querySelector('input[name="symplectic_search_enabled"]');
+      if (!el) return false;
+      return JSON.parse(el.value);
+    } catch {
+      return false;
+    }
+  }
+
   render() {
     const { fieldPath, label, labelIcon, required, options, showEmptyValue } =
       this.props;
+
+    const symplecticSearchEnabled = this.symplecticEnabled();
 
     return (
       <>
@@ -113,21 +126,21 @@ export class RelatedWorksField extends Component {
                   </Button>
                 </Form.Field>
 
-                {/* Place the DOI search modal here, so it can update this entry */}
-                <DoiSearchModal
-                  trigger={
-                    <Button type="button" icon labelPosition="left" className="mt-10">
-                      <Icon name="search" />
-                      {i18next.t("Symplectic search")}
-                    </Button>
-                  }
-                  onSelect={(selectedIdentifier) => {
-                    // Update the identifier and scheme for this entry
-                    form.setFieldValue(`${fieldPathPrefix}.identifier`, selectedIdentifier);
-                    form.setFieldValue(`${fieldPathPrefix}.scheme`, "doi");
-                    form.setFieldValue(`${fieldPathPrefix}.resource_type`, "publication");
-                  }}
-                />
+                {symplecticSearchEnabled && (
+                  <DoiSearchModal
+                    trigger={
+                      <Button type="button" icon labelPosition="left" className="mt-10">
+                        <Icon name="search" />
+                        {i18next.t("Symplectic search")}
+                      </Button>
+                    }
+                    onSelect={(selectedIdentifier) => {
+                      form.setFieldValue(`${fieldPathPrefix}.identifier`, selectedIdentifier);
+                      form.setFieldValue(`${fieldPathPrefix}.scheme`, "doi");
+                      form.setFieldValue(`${fieldPathPrefix}.resource_type`, "publication");
+                    }}
+                  />
+                )}
               </GroupField>
             );
           }}

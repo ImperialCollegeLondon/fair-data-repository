@@ -1,0 +1,6 @@
+{%- extends 'invenio_app_rdm/records/deposit.html' %}
+{% block page_body %}
+  {{ super() }}
+  <input type="hidden" name="symplectic_search_enabled"
+          value='{{ config.ENABLE_SYPLECTIC_SEARCH | tojson }}'>
+  {% endblock page_body %}

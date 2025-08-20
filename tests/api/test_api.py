@@ -98,3 +98,20 @@ def test_metadata_schema_rights(
     )
     assert result.status_code == 201
     assert result.json["errors"][0]["messages"][0].startswith("No more than")
+
+
+def test_metadata_schema_copyright(
+    client, location, vocabularies, user_depositor, api_headers, metadata
+):
+    """Test that the copyright metadata field is blocked."""
+    metadata["copyright"] = "some data"
+    result = client.post(
+        "/records",
+        json={"metadata": metadata},
+        headers=api_headers,
+    )
+    assert result.status_code == 201
+    error = result.json["errors"][0]
+    assert error["field"] == "metadata.copyright"
+    assert error["messages"] == ["Unknown field."]
+    assert "copyright" not in result.json["metadata"]

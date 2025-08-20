@@ -93,6 +93,7 @@ class ImperialMetadataSchema(MetadataSchema):
         required=False,
         validate=validate.Length(max=1, error=_("No more than one can be provided.")),
     )
+    copyright = SanitizedHTML(dump_only=True)
 
 
 class PublicRecordProtectionValue(String):

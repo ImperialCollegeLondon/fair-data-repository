@@ -63,4 +63,5 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.FundingField.container": FundingField,
   "ReactInvenioDeposit.MetadataAccess.layout": NullElement,
   "InvenioRdmRecords.SubmitReviewModal.container": SubmitReviewModalComponent,
+  "InvenioAppRdm.Deposit.CopyrightsField.container": HiddenField,
 };

@@ -47,6 +47,7 @@ export class RelatedWorksField extends Component {
             "Specify identifiers of related works. Supported identifiers include DOI, Handle, ARK, PURL, ISSN, ISBN, PubMed ID, PubMed Central ID, ADS Bibliographic Code, arXiv, Life Science Identifiers (LSID), EAN-13, ISTC, URNs, and URLs."
           )}
           {' '}
+          {symplecticSearchEnabled && (
           <strong>
             <>
               {i18next.t("If you have a publication in")}
@@ -63,7 +64,7 @@ export class RelatedWorksField extends Component {
                 "you can use the Symplectic search to find the correct doi and it will make a realtionship to the related work."
               )}
             </>
-          </strong>
+          </strong>)}
         </label>
         <ArrayField
           addButtonLabel={i18next.t("Add related work")}

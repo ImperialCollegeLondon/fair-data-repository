@@ -9,7 +9,6 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 import os
 from datetime import datetime
 
-import invenio_rdm_records
 from invenio_app_rdm.config import (
     VOCABULARIES_DATASTREAM_READERS,
     VOCABULARIES_DATASTREAM_WRITERS,
@@ -18,10 +17,9 @@ from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 from invenio_rdm_records.services.components import DefaultRecordsComponents
-from marshmallow_utils.fields import NestedAttribute
 
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
-from ..imperial_schema import ImperialAccessSchema, ImperialMetadataSchema
+from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import SymplecticComponent
 from .custom_fields import *  # noqa: F401,F403
@@ -41,7 +39,7 @@ SEND_FILE_MAX_AGE_DEFAULT = 300
 # Do not commit it to a source code repository.
 SECRET_KEY = "CHANGE_ME"
 
-APP_ALLOWED_HOSTS = ["0.0.0.0", "localhost", "127.0.0.1"]
+TRUSTED_HOSTS = ["0.0.0.0", "localhost", "127.0.0.1"]
 
 # Flask-SQLAlchemy
 # ================
@@ -130,14 +128,8 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "creators": lambda: get_user_form_default(),
 }
 
-# This is a hacky way to overwrite record schemas
-record_schema = invenio_rdm_records.services.config.RDMRecordServiceConfig.schema
-record_schema._declared_fields.update(
-    {
-        "access": NestedAttribute(ImperialAccessSchema),
-        "metadata": NestedAttribute(ImperialMetadataSchema),
-    }
-)
+# Override record schemas
+RDM_RECORD_SCHEMA = ImperialRecordSchema
 
 # See:
 # https://github.com/inveniosoftware/invenio-app-rdm/blob/master/invenio_app_rdm/config.py

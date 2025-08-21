@@ -130,8 +130,7 @@ export class RelatedWorksField extends Component {
                 {symplecticSearchEnabled && (
                   <DoiSearchModal
                     trigger={
-                      <Button type="button" icon labelPosition="left" className="mt-10">
-                        <Icon name="search" />
+                      <Button type="button" className="symplectic-btn">
                         {i18next.t("Symplectic search")}
                       </Button>
                     }

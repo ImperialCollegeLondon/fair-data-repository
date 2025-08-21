@@ -58,7 +58,7 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
 
 .ui.button.negative,
 .ui.button.red {
-    background-color: @negativeButtonBackgroundColor;
+    background-color: @black;
     border-color: @negativeButtonBorderColor;
     color: @negativeButtonTextColor;
     &:hover,
@@ -139,5 +139,13 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
         background-color: @black !important;
         border: 1px @black !important;
         color: @white !important;
+    }
+}
+
+.ui.button.symplectic-btn{
+    height: 75px;
+    margin: .5em .25em 0 0;
+    &:hover {
+        background: @searchButtonColorHover
     }
 }

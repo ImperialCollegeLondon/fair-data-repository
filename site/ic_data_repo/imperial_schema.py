@@ -6,7 +6,7 @@ This schema aligns with the record submission form customisations.
 
 from flask import current_app
 from invenio_i18n import lazy_gettext as _
-from invenio_rdm_records.services.schemas import MetadataSchema
+from invenio_rdm_records.services.schemas import MetadataSchema, RDMRecordSchema
 from invenio_rdm_records.services.schemas.access import AccessSchema
 from invenio_rdm_records.services.schemas.metadata import (
     CreatorSchema,
@@ -16,7 +16,7 @@ from invenio_rdm_records.services.schemas.metadata import (
 from invenio_vocabularies.services.schema import VocabularyRelationSchema
 from marshmallow import validate
 from marshmallow.fields import List, Nested, String
-from marshmallow_utils.fields import SanitizedHTML
+from marshmallow_utils.fields import NestedAttribute, SanitizedHTML
 from werkzeug.local import LocalProxy
 
 
@@ -93,6 +93,7 @@ class ImperialMetadataSchema(MetadataSchema):
         required=False,
         validate=validate.Length(max=1, error=_("No more than one can be provided.")),
     )
+    copyright = SanitizedHTML(dump_only=True)
 
 
 class PublicRecordProtectionValue(String):
@@ -107,3 +108,10 @@ class ImperialAccessSchema(AccessSchema):
     """Imperial Access Schema."""
 
     record = PublicRecordProtectionValue(required=True)
+
+
+class ImperialRecordSchema(RDMRecordSchema):
+    """Imperial Record Schema."""
+
+    access = NestedAttribute(ImperialAccessSchema)
+    metadata = NestedAttribute(ImperialMetadataSchema)

@@ -11,9 +11,10 @@ import { LimitedLicenseField } from "../../ic_data_repo/LimitedLicenseField";
 import { MandatoryPIDField } from "../../ic_data_repo/MandatoryPIDField";
 import { parametrize } from "react-overridable";
 import { TextAreaField } from "react-invenio-forms";
-import { CardDepositStatusBox } from "../../ic_data_repo/CardDepositStatusBox";
 import { FundingField } from "../../ic_data_repo/Funding/FundingField";
 import { RelatedWorksField } from "../../ic_data_repo/RelatedWorksField";
+import { i18next } from "@translations/invenio_app_rdm/i18next";
+import { SubmitReviewModal } from "@js/invenio_rdm_records";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText: "The main individuals or institutions involved in creating the data set.",
@@ -35,6 +36,19 @@ class NullElement extends Component {
   }
 }
 
+/* Add an extra checkbox to the SubmitReviewModal */
+const parameters = {
+  extraCheckboxes: [
+    {
+      fieldPath: "acceptDepositAgreement",
+      text: i18next.t(
+        "This deposit meets the requirements of the Data Deposit Agreement.",
+      ),
+    },
+  ],
+};
+const SubmitReviewModalComponent = parametrize(SubmitReviewModal, parameters);
+
 export const overriddenComponents = {
   "InvenioAppRdm.Deposit.ContributorsField.container": ContributorsField,
   "InvenioAppRdm.Deposit.CreatorsField.container": CreatorsField,
@@ -47,8 +61,9 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.AccordionFieldReferences.container": HiddenField,
   "InvenioAppRdm.Deposit.CommunityHeader.container": NullElement,
   "InvenioAppRdm.DashboardUploads.EmptyResults.element": NullElement,
-  "InvenioAppRdm.Deposit.CardDepositStatusBox.container": CardDepositStatusBox,
   "InvenioAppRdm.Deposit.FundingField.container": FundingField,
   "InvenioAppRdm.Deposit.RelatedWorksField.container": RelatedWorksField,
   "ReactInvenioDeposit.MetadataAccess.layout": NullElement,
+  "InvenioRdmRecords.SubmitReviewModal.container": SubmitReviewModalComponent,
+  "InvenioAppRdm.Deposit.CopyrightsField.container": HiddenField,
 };

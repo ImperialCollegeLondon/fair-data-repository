@@ -58,7 +58,7 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
 
 .ui.button.negative,
 .ui.button.red {
-    background-color: @black;
+    background-color: @negativeButtonBackgroundColor;
     border-color: @negativeButtonBorderColor;
     color: @negativeButtonTextColor;
     &:hover,

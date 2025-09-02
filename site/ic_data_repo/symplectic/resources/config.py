@@ -11,7 +11,7 @@ class SymplecticResourceConfig(ResourceConfig):
     url_prefix = "/symplectic"
 
     routes = {
-        "related_objects": "/related-objects",
+        "related_publications": "/related-publications",
     }
 
     # Content negotiation configuration

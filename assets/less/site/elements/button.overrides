@@ -141,3 +141,11 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
         color: @white !important;
     }
 }
+
+.ui.button.symplectic-btn{
+    height: 75px;
+    margin: .5em .25em 0 0;
+    &:hover {
+        background: @searchButtonColorHover
+    }
+}

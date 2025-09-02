@@ -256,3 +256,6 @@ SUPPORT_CONTACT_EMAIL = os.getenv("SUPPORT_CONTACT_EMAIL")
 USERPROFILES_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 ACCOUNTS_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 OAUTHCLIENT_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
+
+ENABLE_SYPLECTIC_SEARCH = False
+APP_RDM_DEPOSIT_FORM_TEMPLATE = "ic_data_repo/deposit.html"

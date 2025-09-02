@@ -361,9 +361,10 @@ def test_get_related_awards_multiple_results(mock_get, client):
 
 @patch("requests.get")
 def test_search_symplectic(mock_get, client):
-    """Test searching Symplectic for records matching a DOI."""
+    """Test searching Symplectic for records matching DOI and title keyword."""
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
+    # Added third object without a DOI (should be excluded)
     mock_response.content = b"""
     <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
         <api:object id="12345" category="publication">
@@ -390,14 +391,24 @@ def test_search_symplectic(mock_get, client):
                 </api:native>
             </api:record>
         </api:object>
+        <api:object id="99999" category="publication">
+            <api:record>
+                <api:native>
+                    <api:field name="title" type="text">
+                        <api:text>Title Without DOI</api:text>
+                    </api:field>
+                </api:native>
+            </api:record>
+        </api:object>
     </api:response>
     """
     mock_get.return_value = mock_response
 
-    query = "10.1234/test-doi"
-    results = client.search_symplectic(query)
+    # DOI search (new search_type: "doi")
+    doi_query = "10.1234/test-doi"
+    results = client.search_symplectic(doi_query, "title-keywords")
 
-    # Assert the results are parsed correctly
+    # Only two results because the third lacks a DOI
     assert len(results) == 2
     assert results[0] == {
         "id": "12345",
@@ -410,8 +421,18 @@ def test_search_symplectic(mock_get, client):
         "doi": "10.5678/another-doi",
     }
 
-    # Assert the correct API call was made
     mock_get.assert_called_once()
     called_url = mock_get.call_args[0][0]
-    assert f'query=doi="{query}"' in called_url
+    assert f'query=title-keywords="{doi_query}"' in called_url
+    assert called_url.startswith(client.api_url)
+
+    # Title keyword search (new search_type: "title_keyword")
+    mock_get.reset_mock()
+    mock_get.return_value = mock_response
+    title_query = "cancer genomics"
+    results_title = client.search_symplectic(title_query, "first-author-name")
+    assert len(results_title) == 2
+    mock_get.assert_called_once()
+    called_url = mock_get.call_args[0][0]
+    assert f'query=first-author-name="{title_query}"' in called_url
     assert called_url.startswith(client.api_url)

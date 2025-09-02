@@ -12,6 +12,7 @@ import { MandatoryPIDField } from "../../ic_data_repo/MandatoryPIDField";
 import { parametrize } from "react-overridable";
 import { TextAreaField } from "react-invenio-forms";
 import { FundingField } from "../../ic_data_repo/Funding/FundingField";
+import { RelatedWorksField } from "../../ic_data_repo/RelatedWorksField";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
 import { SubmitReviewModal } from "@js/invenio_rdm_records";
 
@@ -61,6 +62,7 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.CommunityHeader.container": NullElement,
   "InvenioAppRdm.DashboardUploads.EmptyResults.element": NullElement,
   "InvenioAppRdm.Deposit.FundingField.container": FundingField,
+  "InvenioAppRdm.Deposit.RelatedWorksField.container": RelatedWorksField,
   "ReactInvenioDeposit.MetadataAccess.layout": NullElement,
   "InvenioRdmRecords.SubmitReviewModal.container": SubmitReviewModalComponent,
   "InvenioAppRdm.Deposit.CopyrightsField.container": HiddenField,

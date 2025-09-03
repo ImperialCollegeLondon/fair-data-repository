@@ -118,6 +118,19 @@ def extract_csv_data(results):
                         text = field.findtext(".//api:text", default="", namespaces=NS)
                         fields[name] = text.strip()
 
+        # Check if funder-reference is "n/a" and try to replace with funder-name
+        if fields.get("funder-reference") in ["n/a", "N/A"]:
+            funder_name_field = (
+                native.find(".//api:field[@name='funder-name']", NS)
+                if native is not None
+                else None
+            )
+            if funder_name_field is not None:
+                text = funder_name_field.findtext(
+                    ".//api:text", default="", namespaces=NS
+                )
+                fields["funder-reference"] = text.strip()
+
         if all(fields.get(key, "").strip() for key in required_keys):
             csv_data.append([fields[key] for key in required_keys])
 
@@ -126,7 +139,7 @@ def extract_csv_data(results):
 
 initial_url = f"{API_URL}/grants?detail=full&per-page=25"
 # Change max_results as needed
-results = fetch_all_results(initial_url, max_results=25)
+results = fetch_all_results(initial_url, max_results=100)
 csv_data = extract_csv_data(results)
 
 if csv_data:

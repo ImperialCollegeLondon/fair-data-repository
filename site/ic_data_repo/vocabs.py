@@ -3,9 +3,10 @@
 import asyncio
 import logging
 import subprocess as sp
+import time
+import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from csv import DictReader
 from dataclasses import dataclass
 from datetime import datetime
 from logging import Logger
@@ -13,6 +14,7 @@ from pathlib import Path
 from shutil import which
 from typing import Any
 
+import requests
 import yaml
 from flask import current_app
 from invenio_vocabularies.datastreams.factories import DataStreamFactory
@@ -93,6 +95,9 @@ _ICIS_FUNDER_ROR_MAP = {
     "The Faraday Institution": "05dt4bt98",
 }
 """A mapping between funder names as recorded in ICIS and ROR identifiers."""
+
+
+NS = {"api": "http://www.symplectic.co.uk/publications/api"}
 
 
 def _get_default_logger() -> Logger:
@@ -291,18 +296,6 @@ def _add_entries_to_vocab(
         raise RuntimeError(f"invenio process exited with code {process.returncode}")
 
 
-def _convert_award_datetime(date: str):
-    """Convert ICIS date format strings to datetimes.
-
-    Where a date is not provided (i.e. empty string) return datetime.min on the basis
-    that it will be excluded by the date filtering.
-    """
-    try:
-        return datetime.strptime(date, "%d-%b-%y")
-    except ValueError:
-        return datetime.min
-
-
 def _get_funder_org_id(row: dict[str, str]) -> dict[str, str] | None:
     """Get a funder ROR from a row of ICIS data.
 
@@ -323,32 +316,131 @@ def _get_funder_org_id(row: dict[str, str]) -> dict[str, str] | None:
         return None
 
 
-def _process_icis_csv(filepath: Path):
-    with open(filepath) as f:
-        all_data = list(DictReader(f))
+def fetch_all_results(max_results):
+    """Fetch and combine all results up to max_results."""
+    API_URL = current_app.config("SYMPLECTIC_API_URL")
+    SUBSCRIPTION_KEY = current_app.config("SYMPLECTIC_API_SUBSCRIPTION_KEY")
 
-    uniq_awards: dict[str, dict[str, str]] = {}
-    for row in all_data:
-        uniq_awards.setdefault(row["AwardNumber"], row)
+    session = requests.Session()
+    all_results = []
+    url = API_URL
+    total_results = 0
+    headers = {"subscription-key": SUBSCRIPTION_KEY, "content-type": "text/xml"}
 
-    date_filtered_awards = [
-        val
-        for val in uniq_awards.values()
-        if _convert_award_datetime(val["AwardEndDate"]) > _AWARD_ENDDATE_CUTOFF
+    while url and total_results < max_results:
+        print(f"Fetching: {url}")
+        try:
+            response = session.get(url, headers=headers, timeout=30)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Request failed: {e}")
+            break
+
+        try:
+            root = ET.fromstring(response.text)
+        except ET.ParseError as e:
+            print(f"Failed to parse XML: {e}")
+            break
+
+        # Extract results
+        result_list = root.find(
+            ".//{http://www.symplectic.co.uk/publications/api}result-list"
+        )
+        if result_list is None:
+            print("No result-list found")
+            break
+
+        results = result_list.findall(
+            ".//{http://www.symplectic.co.uk/publications/api}result"
+        )
+        for r in results:
+            if total_results >= max_results:
+                break
+            all_results.append(ET.tostring(r, encoding="unicode"))
+            total_results += 1
+
+        print(f"Appended {len(results)} results, total so far: {total_results}")
+
+        # Get next URL
+        pagination = root.find(
+            ".//{http://www.symplectic.co.uk/publications/api}pagination"
+        )
+        if pagination is not None:
+            next_page = pagination.find(
+                './/{http://www.symplectic.co.uk/publications/api}page[@position="next"]'  # noqa:E501
+            )
+            if next_page is not None:
+                next_href = next_page.get("href")
+                old_base = "https://testsymplectic.imperial.ac.uk:8091/secure-api/v6.13"
+                url = next_href.replace(old_base, API_URL)
+            else:
+                print("No next page")
+                break
+        else:
+            print("No pagination found")
+            break
+
+        time.sleep(2)  # Rate limit
+
+    return all_results
+
+
+def extract_xml_data(results) -> list[Award]:
+    """Extract awards from Symplectic results and return a list of Award dataclasses."""
+
+    def _format_date(field: ET.Element) -> str:
+        date = field.find(".//api:date", NS)
+        if date is None:
+            return ""
+        day = date.findtext("api:day", default="", namespaces=NS)
+        month = date.findtext("api:month", default="", namespaces=NS)
+        year = date.findtext("api:year", default="", namespaces=NS)
+        return (
+            f"{year}-{month.zfill(2)}-{day.zfill(2)}" if year and month and day else ""
+        )
+
+    awards: list[Award] = []
+    required_keys = [
+        "title",
+        "institution-reference",
+        "funder-name",
+        "funder-type",
+        "start-date",
+        "end-date",
     ]
 
-    awards = []
-    for row in date_filtered_awards:
-        if not (funder_org_id := _get_funder_org_id(row)):
+    for result_xml in results:
+        root = ET.fromstring(result_xml)
+        fields: dict[str, str] = {}
+        native = root.find(".//api:native", NS)
+        if native is not None:
+            for field in native.findall(".//api:field", NS):
+                name = field.get("name")
+                if name in required_keys:
+                    if field.get("type") == "date":
+                        fields[name] = _format_date(field)
+                    else:
+                        text = field.findtext(".//api:text", default="", namespaces=NS)
+                        fields[name] = text.strip()
+
+        if not all(fields.get(key, "").strip() for key in required_keys):
             continue
+
+        shim_row = {"Funder": fields["funder-name"], "SPONSOR": fields["funder-name"]}
+        funder_org = _get_funder_org_id(shim_row)
+        if not funder_org:
+            # Skip if the funder couldn't be resolved
+            continue
+
         awards.append(
             Award(
-                imperial_id=row["AwardNumber"],
-                funder_id=row["Award Funder Reference"],
-                title=row["AwardShortTitle"],
-                funder_org_id=funder_org_id,
+                imperial_id=fields["institution-reference"],
+                funder_id=fields["funder-name"],
+                title=fields["title"],
+                funder_org_id=funder_org,
             )
         )
+
     return awards
 
 
@@ -356,7 +448,8 @@ def import_imperial_awards_to_invenio(
     award_data_file: Path, logger: Logger = _get_default_logger()
 ):
     """Import Imperial awards data into the awards vocabulary."""
-    awards = _process_icis_csv(award_data_file)
+    award_data = fetch_all_results(max_results=100)
+    awards = extract_xml_data(award_data)
     _add_entries_to_vocab("awards", awards, logger)
 
 

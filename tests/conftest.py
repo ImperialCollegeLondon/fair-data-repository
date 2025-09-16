@@ -94,6 +94,8 @@ def app_config(opensearch_container, redis_container, app_config):
         f.write("/* Empty theme file */")
 
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
+    # Let us create records without files for testing purposes.
+    app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
 
     return settings.__dict__ | app_config
 

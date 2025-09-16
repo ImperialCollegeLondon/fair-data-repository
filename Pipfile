@@ -18,6 +18,7 @@ mkdocstrings-python = "*"
 # Manifests as: https://github.com/pytest-dev/pytest/issues/12144
 pytest = "<8"
 testcontainers = "*"
+pika = "*"
 
 [packages]
 ic-data-repo = {editable=true, path="./site"}

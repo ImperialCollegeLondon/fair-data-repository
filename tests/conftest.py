@@ -42,8 +42,20 @@ def redis_container():
         yield {"host": host, "port": port}
 
 
+@pytest.fixture(scope="session")
+def rabbitmq_container():
+    """Start a RabbitMQ container."""
+    from testcontainers.rabbitmq import RabbitMqContainer
+
+    with RabbitMqContainer() as container:
+        host = container.get_container_host_ip()
+        port = container.get_exposed_port(5672)
+
+        yield {"host": host, "port": port}
+
+
 @pytest.fixture(scope="module")
-def app_config(opensearch_container, redis_container, app_config):
+def app_config(opensearch_container, redis_container, rabbitmq_container, app_config):
     """Update invenio app_config fixture for Redis/OpenSearch and webpack configs."""
     from ic_data_repo.config import settings
 
@@ -68,6 +80,14 @@ def app_config(opensearch_container, redis_container, app_config):
     app_config["CELERY_RESULT_BACKEND"] = f"{redis_url}/2"
     app_config["RATELIMIT_STORAGE_URL"] = f"{redis_url}/3"
     app_config["COMMUNITIES_IDENTITIES_CACHE_REDIS_URL"] = f"{redis_url}/4"
+
+    # RabbitMQ config.
+    rabbitmq_host = rabbitmq_container["host"]
+    rabbitmq_port = rabbitmq_container["port"]
+    app_config["BROKER_URL"] = f"amqp://guest:guest@{rabbitmq_host}:{rabbitmq_port}/"
+    app_config["CELERY_BROKER_URL"] = (
+        f"amqp://guest:guest@{rabbitmq_host}:{rabbitmq_port}/"
+    )
 
     # ---- Webpack manifest configuration ----
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
@@ -94,6 +114,8 @@ def app_config(opensearch_container, redis_container, app_config):
         f.write("/* Empty theme file */")
 
     app_config["WEBPACKEXT_MANIFEST_PATH"] = manifest_path
+    # Let us create records without files for testing purposes.
+    app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
 
     return settings.__dict__ | app_config
 

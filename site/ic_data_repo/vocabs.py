@@ -7,6 +7,7 @@ import time
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
+from csv import DictReader
 from dataclasses import dataclass
 from datetime import datetime
 from logging import Logger
@@ -245,6 +246,18 @@ def _get_invenio_path() -> str:
     return path
 
 
+def _convert_award_datetime(date: str):
+    """Convert ICIS date format strings to datetimes.
+
+    Where a date is not provided (i.e. empty string) return datetime.min on the basis
+    that it will be excluded by the date filtering.
+    """
+    try:
+        return datetime.strptime(date, "%d-%b-%y")
+    except ValueError:
+        return datetime.min
+
+
 def import_imperial_contributors_to_invenio(
     client: GraphServiceClient,
     logger: Logger = _get_default_logger(),
@@ -444,12 +457,49 @@ def extract_xml_data(results) -> list[Award]:
     return awards
 
 
+def _process_icis_csv(filepath: Path):
+    with open(filepath) as f:
+        all_data = list(DictReader(f))
+
+    uniq_awards: dict[str, dict[str, str]] = {}
+    for row in all_data:
+        uniq_awards.setdefault(row["AwardNumber"], row)
+
+    date_filtered_awards = [
+        val
+        for val in uniq_awards.values()
+        if _convert_award_datetime(val["AwardEndDate"]) > _AWARD_ENDDATE_CUTOFF
+    ]
+
+    awards = []
+    for row in date_filtered_awards:
+        if not (funder_org_id := _get_funder_org_id(row)):
+            continue
+        awards.append(
+            Award(
+                imperial_id=row["AwardNumber"],
+                funder_id=row["Award Funder Reference"],
+                title=row["AwardShortTitle"],
+                funder_org_id=funder_org_id,
+            )
+        )
+    return awards
+
+
 def import_imperial_awards_to_invenio(
     award_data_file: Path, logger: Logger = _get_default_logger()
 ):
     """Import Imperial awards data into the awards vocabulary."""
+    awards = _process_icis_csv(award_data_file)
+
+    _add_entries_to_vocab("awards", awards, logger)
+
+
+def import_imperial_awards_from_symplectic(logger: Logger = _get_default_logger()):
+    """Import Imperial awards data into the awards vocabulary."""
     award_data = fetch_all_results(max_results=100)
     awards = extract_xml_data(award_data)
+
     _add_entries_to_vocab("awards", awards, logger)
 
 

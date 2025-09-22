@@ -331,8 +331,8 @@ def _get_funder_org_id(row: dict[str, str]) -> dict[str, str] | None:
 
 def fetch_all_results(max_results, logger: Logger = _get_default_logger()):
     """Fetch and combine all results up to max_results."""
-    API_URL = current_app.config("SYMPLECTIC_API_URL")
-    SUBSCRIPTION_KEY = current_app.config("SYMPLECTIC_API_SUBSCRIPTION_KEY")
+    API_URL = current_app.config["SYMPLECTIC_API_URL"]
+    SUBSCRIPTION_KEY = current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"]
 
     session = requests.Session()
     all_results = []
@@ -384,17 +384,21 @@ def fetch_all_results(max_results, logger: Logger = _get_default_logger()):
             )
             if next_page is not None:
                 next_href = next_page.get("href")
-                old_base = "https://testsymplectic.imperial.ac.uk:8091/secure-api/v6.13"
-                url = next_href.replace(old_base, API_URL)
+                if next_href is not None:
+                    old_base = (
+                        "https://testsymplectic.imperial.ac.uk:8091/secure-api/v6.13"
+                    )
+                    url = next_href.replace(old_base, API_URL)
+                else:
+                    logger.info("No href in next page")
+                    url = None
             else:
                 logger.info("No next page")
                 break
         else:
             logger.warning("No pagination found")
             break
-
         time.sleep(2)  # Rate limit
-
     return all_results
 
 

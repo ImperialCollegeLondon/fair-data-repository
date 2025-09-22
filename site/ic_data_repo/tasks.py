@@ -17,7 +17,11 @@ from .symplectic_interface import (
     NoAwardsFoundError,
     SymplecticClient,
 )
-from .vocabs import import_imperial_contributors_to_invenio, import_to_vocabulary
+from .vocabs import (
+    import_imperial_awards_from_symplectic,
+    import_imperial_contributors_to_invenio,
+    import_to_vocabulary,
+)
 
 # Define a mapping for relation_type to type_id more can be added as needed
 relation_type_to_type_id = {
@@ -147,3 +151,11 @@ def import_full_affilations_vocab():
         ],
     }
     import_to_vocabulary(datastream_config, allow_errors=False)
+
+
+@shared_task
+def update_imperial_awards_from_symplectic() -> None:
+    """Import awards from Symplectic into the awards vocabulary."""
+    if not current_app.config.get("SYMPLECTIC_ENABLED", False):
+        return
+    import_imperial_awards_from_symplectic(current_app.logger)

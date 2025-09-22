@@ -329,7 +329,7 @@ def _get_funder_org_id(row: dict[str, str]) -> dict[str, str] | None:
         return None
 
 
-def fetch_all_results(max_results):
+def fetch_all_results(max_results, logger: Logger = _get_default_logger()):
     """Fetch and combine all results up to max_results."""
     API_URL = current_app.config("SYMPLECTIC_API_URL")
     SUBSCRIPTION_KEY = current_app.config("SYMPLECTIC_API_SUBSCRIPTION_KEY")
@@ -341,18 +341,18 @@ def fetch_all_results(max_results):
     headers = {"subscription-key": SUBSCRIPTION_KEY, "content-type": "text/xml"}
 
     while url and total_results < max_results:
-        print(f"Fetching: {url}")
+        logger.info(f"Fetching: {url}")
         try:
             response = session.get(url, headers=headers, timeout=30)
             response.raise_for_status()
         except requests.RequestException as e:
-            print(f"Request failed: {e}")
+            logger.error(f"Request failed: {e}")
             break
 
         try:
             root = ET.fromstring(response.text)
         except ET.ParseError as e:
-            print(f"Failed to parse XML: {e}")
+            logger.error(f"Failed to parse XML: {e}")
             break
 
         # Extract results
@@ -360,7 +360,7 @@ def fetch_all_results(max_results):
             ".//{http://www.symplectic.co.uk/publications/api}result-list"
         )
         if result_list is None:
-            print("No result-list found")
+            logger.warning("No result-list found")
             break
 
         results = result_list.findall(
@@ -372,7 +372,7 @@ def fetch_all_results(max_results):
             all_results.append(ET.tostring(r, encoding="unicode"))
             total_results += 1
 
-        print(f"Appended {len(results)} results, total so far: {total_results}")
+        logger.info(f"Appended {len(results)} results, total so far: {total_results}")
 
         # Get next URL
         pagination = root.find(
@@ -387,10 +387,10 @@ def fetch_all_results(max_results):
                 old_base = "https://testsymplectic.imperial.ac.uk:8091/secure-api/v6.13"
                 url = next_href.replace(old_base, API_URL)
             else:
-                print("No next page")
+                logger.info("No next page")
                 break
         else:
-            print("No pagination found")
+            logger.warning("No pagination found")
             break
 
         time.sleep(2)  # Rate limit

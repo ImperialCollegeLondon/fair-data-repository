@@ -98,7 +98,7 @@ _ICIS_FUNDER_ROR_MAP = {
 """A mapping between funder names as recorded in ICIS and ROR identifiers."""
 
 
-NS = {"api": "http://www.symplectic.co.uk/publications/api"}
+API_NAMESPACE = {"api": "http://www.symplectic.co.uk/publications/api"}
 
 
 def _get_default_logger() -> Logger:
@@ -246,18 +246,6 @@ def _get_invenio_path() -> str:
     return path
 
 
-def _convert_award_datetime(date: str):
-    """Convert ICIS date format strings to datetimes.
-
-    Where a date is not provided (i.e. empty string) return datetime.min on the basis
-    that it will be excluded by the date filtering.
-    """
-    try:
-        return datetime.strptime(date, "%d-%b-%y")
-    except ValueError:
-        return datetime.min
-
-
 def import_imperial_contributors_to_invenio(
     client: GraphServiceClient,
     logger: Logger = _get_default_logger(),
@@ -309,6 +297,18 @@ def _add_entries_to_vocab(
         raise RuntimeError(f"invenio process exited with code {process.returncode}")
 
 
+def _convert_award_datetime(date: str):
+    """Convert ICIS date format strings to datetimes.
+
+    Where a date is not provided (i.e. empty string) return datetime.min on the basis
+    that it will be excluded by the date filtering.
+    """
+    try:
+        return datetime.strptime(date, "%d-%b-%y")
+    except ValueError:
+        return datetime.min
+
+
 def _get_funder_org_id(row: dict[str, str]) -> dict[str, str] | None:
     """Get a funder ROR from a row of ICIS data.
 
@@ -329,45 +329,54 @@ def _get_funder_org_id(row: dict[str, str]) -> dict[str, str] | None:
         return None
 
 
-def fetch_all_results(max_results, logger: Logger = _get_default_logger()):
-    """Fetch and combine all results up to max_results."""
+def fetch_all_results(logger: Logger = _get_default_logger()):
+    """Fetch and combine all results up to the total count from the API response."""
+    if not current_app.config["SYMPLECTIC_ENABLED"]:
+        return
     API_URL = current_app.config["SYMPLECTIC_API_URL"]
     SUBSCRIPTION_KEY = current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"]
 
     session = requests.Session()
     all_results = []
-    url = API_URL
     total_results = 0
+    max_results = None  # Will be set from the first response
     headers = {"subscription-key": SUBSCRIPTION_KEY, "content-type": "text/xml"}
 
-    while url and total_results < max_results:
-        logger.info(f"Fetching: {url}")
-        try:
-            response = session.get(url, headers=headers, timeout=30)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            logger.error(f"Request failed: {e}")
-            break
+    while API_URL and (max_results is None or total_results < max_results):
+        logger.info(f"Fetching: {API_URL}")
 
-        try:
-            root = ET.fromstring(response.text)
-        except ET.ParseError as e:
-            logger.error(f"Failed to parse XML: {e}")
-            break
+        # Allow exceptions to propagate so the job fails and alerts fire
+        response = session.get(API_URL, headers=headers, timeout=30)
+        response.raise_for_status()
+
+        root = ET.fromstring(response.text)
+
+        if max_results is None:
+            pagination = root.find(
+                ".//{http://www.symplectic.co.uk/publications/api}pagination"
+            )
+            if pagination is not None:
+                results_count = pagination.get("results-count")
+                if results_count:
+                    max_results = int(results_count)
+                    logger.info(f"Total results to fetch: {max_results}")
+                else:
+                    raise RuntimeError("No results-count found in pagination")
+            else:
+                raise RuntimeError("No pagination element found in response")
 
         # Extract results
         result_list = root.find(
             ".//{http://www.symplectic.co.uk/publications/api}result-list"
         )
         if result_list is None:
-            logger.warning("No result-list found")
-            break
+            raise RuntimeError("No result-list element found in response")
 
         results = result_list.findall(
             ".//{http://www.symplectic.co.uk/publications/api}result"
         )
         for r in results:
-            if total_results >= max_results:
+            if max_results is not None and total_results >= max_results:
                 break
             all_results.append(ET.tostring(r, encoding="unicode"))
             total_results += 1
@@ -385,20 +394,22 @@ def fetch_all_results(max_results, logger: Logger = _get_default_logger()):
             if next_page is not None:
                 next_href = next_page.get("href")
                 if next_href is not None:
-                    old_base = (
-                        "https://testsymplectic.imperial.ac.uk:8091/secure-api/v6.13"
+                    old_base = current_app.config.get(
+                        "SYMPLECTIC_API_OLD_BASE_URL",
+                        "https://testsymplectic.imperial.ac.uk:8091/secure-api/v6.13",
                     )
-                    url = next_href.replace(old_base, API_URL)
+                    API_URL = next_href.replace(old_base, API_URL)
                 else:
                     logger.info("No href in next page")
-                    url = None
+                    API_URL = None
             else:
                 logger.info("No next page")
                 break
         else:
-            logger.warning("No pagination found")
-            break
+            raise RuntimeError("No pagination element found when resolving next page")
+
         time.sleep(2)  # Rate limit
+
     return all_results
 
 
@@ -406,12 +417,12 @@ def extract_xml_data(results) -> list[Award]:
     """Extract awards from Symplectic results and return a list of Award dataclasses."""
 
     def _format_date(field: ET.Element) -> str:
-        date = field.find(".//api:date", NS)
+        date = field.find(".//api:date", API_NAMESPACE)
         if date is None:
             return ""
-        day = date.findtext("api:day", default="", namespaces=NS)
-        month = date.findtext("api:month", default="", namespaces=NS)
-        year = date.findtext("api:year", default="", namespaces=NS)
+        day = date.findtext("api:day", default="", namespaces=API_NAMESPACE)
+        month = date.findtext("api:month", default="", namespaces=API_NAMESPACE)
+        year = date.findtext("api:year", default="", namespaces=API_NAMESPACE)
         return (
             f"{year}-{month.zfill(2)}-{day.zfill(2)}" if year and month and day else ""
         )
@@ -429,15 +440,17 @@ def extract_xml_data(results) -> list[Award]:
     for result_xml in results:
         root = ET.fromstring(result_xml)
         fields: dict[str, str] = {}
-        native = root.find(".//api:native", NS)
+        native = root.find(".//api:native", API_NAMESPACE)
         if native is not None:
-            for field in native.findall(".//api:field", NS):
+            for field in native.findall(".//api:field", API_NAMESPACE):
                 name = field.get("name")
                 if name in required_keys:
                     if field.get("type") == "date":
                         fields[name] = _format_date(field)
                     else:
-                        text = field.findtext(".//api:text", default="", namespaces=NS)
+                        text = field.findtext(
+                            ".//api:text", default="", namespaces=API_NAMESPACE
+                        )
                         fields[name] = text.strip()
 
         if not all(fields.get(key, "").strip() for key in required_keys):
@@ -501,7 +514,7 @@ def import_imperial_awards_to_invenio(
 
 def import_imperial_awards_from_symplectic(logger: Logger = _get_default_logger()):
     """Import Imperial awards data into the awards vocabulary."""
-    award_data = fetch_all_results(max_results=100)
+    award_data = fetch_all_results(logger)
     awards = extract_xml_data(award_data)
 
     _add_entries_to_vocab("awards", awards, logger)

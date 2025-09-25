@@ -2,7 +2,7 @@
 
 from flask_principal import ActionNeed
 from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
-from invenio_records_permissions.generators import Generator
+from invenio_records_permissions.generators import Generator, SystemProcess
 
 ALLOWED_JOB_FAMILIES = [
     "Academic & Research",
@@ -36,7 +36,7 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     Implements additional restrictions on depositing datasets.
     """
 
-    can_create = [AbleToDeposit()]
+    can_create = [AbleToDeposit(), SystemProcess()]
 
 
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:

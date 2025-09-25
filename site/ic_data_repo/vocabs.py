@@ -463,7 +463,7 @@ def _parse_response_and_set_max_results(
 
 def _get_next_url(
     root: ET.Element, current_url: str, API_URL: str, logger: Logger
-) -> str | None:
+) -> str:
     pagination = root.find(
         ".//{http://www.symplectic.co.uk/publications/api}pagination"
     )

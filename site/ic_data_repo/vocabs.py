@@ -525,7 +525,7 @@ def extract_xml_data(results) -> list[Award]:
         "institution-reference",
         "funder-name",
         "funder-type",
-        "end-date",  # Removed start-date, only capturing end-date
+        "end-date",
     ]
 
     for result_xml in results:

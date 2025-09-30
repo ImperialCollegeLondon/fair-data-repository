@@ -477,8 +477,6 @@ def _get_next_url(
         raise RuntimeError("No next page element found")
 
     next_href = next_page.get("href")
-    if not next_href:
-        raise RuntimeError("No href in next page element")
 
     nxt = urlparse(next_href)
     if nxt.scheme and nxt.netloc:
@@ -505,7 +503,7 @@ def _get_next_url(
         return urljoin(current_url, next_href)
 
 
-def extract_xml_data(results) -> list[Award]:
+def extract_api_xml_response(results) -> list[Award]:
     """Extract awards from Symplectic results and return a list of Award dataclasses."""
 
     def _format_date(field: ET.Element) -> str:
@@ -547,13 +545,6 @@ def extract_xml_data(results) -> list[Award]:
         if not all(fields.get(key, "").strip() for key in required_keys):
             continue
 
-        try:
-            end_date = datetime.strptime(fields["end-date"], "%Y-%m-%d")
-            if end_date <= _AWARD_ENDDATE_CUTOFF:
-                continue
-        except ValueError:
-            continue
-
         shim_row = {"Funder": fields["funder-name"], "SPONSOR": fields["funder-name"]}
         funder_org = _get_funder_org_id(shim_row)
         if not funder_org:
@@ -579,7 +570,7 @@ def import_imperial_awards_from_symplectic(logger: Logger = _get_default_logger(
         logger.info("First raw XML result (truncated):")
         logger.info(award_data[0][:800])
 
-    awards = extract_xml_data(award_data)
+    awards = extract_api_xml_response(award_data)
 
     if awards:
         logger.info("First parsed award:")

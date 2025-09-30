@@ -493,25 +493,12 @@ def _get_next_url(
 
 def extract_api_xml_response(results) -> list[Award]:
     """Extract awards from Symplectic results and return a list of Award dataclasses."""
-
-    def _format_date(field: ET.Element) -> str:
-        date = field.find(".//api:date", API_NAMESPACE)
-        if date is None:
-            return ""
-        day = date.findtext("api:day", default="", namespaces=API_NAMESPACE)
-        month = date.findtext("api:month", default="", namespaces=API_NAMESPACE)
-        year = date.findtext("api:year", default="", namespaces=API_NAMESPACE)
-        return (
-            f"{year}-{month.zfill(2)}-{day.zfill(2)}" if year and month and day else ""
-        )
-
     awards: list[Award] = []
     required_keys = [
         "title",
         "institution-reference",
         "funder-name",
         "funder-type",
-        "end-date",
     ]
 
     for result_xml in results:
@@ -522,13 +509,10 @@ def extract_api_xml_response(results) -> list[Award]:
             for field in native.findall(".//api:field", API_NAMESPACE):
                 name = field.get("name")
                 if name in required_keys:
-                    if field.get("type") == "date":
-                        fields[name] = _format_date(field)
-                    else:
-                        text = field.findtext(
-                            ".//api:text", default="", namespaces=API_NAMESPACE
-                        )
-                        fields[name] = text.strip()
+                    text = field.findtext(
+                        ".//api:text", default="", namespaces=API_NAMESPACE
+                    )
+                    fields[name] = text.strip()
 
         if not all(fields.get(key, "").strip() for key in required_keys):
             continue

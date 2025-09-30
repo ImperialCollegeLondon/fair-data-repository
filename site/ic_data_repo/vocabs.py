@@ -14,7 +14,7 @@ from logging import Logger
 from pathlib import Path
 from shutil import which
 from typing import Any
-from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
 
 import requests
 import yaml
@@ -100,6 +100,7 @@ _ICIS_FUNDER_ROR_MAP = {
 
 
 API_NAMESPACE = {"api": "http://www.symplectic.co.uk/publications/api"}
+SYMPLECTIC_XPATH = "{" + "http://www.symplectic.co.uk/publications/api" + "}"
 
 
 def _get_default_logger() -> Logger:
@@ -404,7 +405,7 @@ def fetch_all_results(logger: Logger = _get_default_logger()):
     total_results = 0
     max_results = None
     headers = {"subscription-key": SUBSCRIPTION_KEY, "content-type": "text/xml"}
-    url = f"{API_URL}/grants?detail=full&per-page=25"
+    url: str | None = f"{API_URL}/grants?detail=full&per-page=25"
 
     while url and (max_results is None or total_results < max_results):
         logger.info(f"Fetching: {url}")
@@ -419,14 +420,10 @@ def fetch_all_results(logger: Logger = _get_default_logger()):
             break
 
         # Extract results
-        result_list = root.find(
-            ".//{http://www.symplectic.co.uk/publications/api}result-list"
-        )
+        result_list = root.find(f".//{SYMPLECTIC_XPATH}result-list")
         if result_list is None:
             raise RuntimeError("No result-list element found in response")
-        results = result_list.findall(
-            ".//{http://www.symplectic.co.uk/publications/api}result"
-        )
+        results = result_list.findall(f".//{SYMPLECTIC_XPATH}result")
 
         # Append results
         for r in results:
@@ -446,9 +443,7 @@ def _parse_response_and_set_max_results(
     root: ET.Element, max_results: int | None, logger: Logger
 ) -> tuple[ET.Element, int | None]:
     if max_results is None:
-        pagination = root.find(
-            ".//{http://www.symplectic.co.uk/publications/api}pagination"
-        )
+        pagination = root.find(f".//{SYMPLECTIC_XPATH}pagination")
         if pagination is not None:
             results_count = pagination.get("results-count")
             if results_count:
@@ -463,16 +458,12 @@ def _parse_response_and_set_max_results(
 
 def _get_next_url(
     root: ET.Element, current_url: str, API_URL: str, logger: Logger
-) -> str:
-    pagination = root.find(
-        ".//{http://www.symplectic.co.uk/publications/api}pagination"
-    )
+) -> str | None:
+    pagination = root.find(f".//{SYMPLECTIC_XPATH}pagination")
     if pagination is None:
         raise RuntimeError("No pagination element found when resolving next page")
 
-    next_page = pagination.find(
-        './/{http://www.symplectic.co.uk/publications/api}page[@position="next"]'
-    )
+    next_page = pagination.find(f'.//{SYMPLECTIC_XPATH}page[@position="next"]')
     if next_page is None:
         return None
 
@@ -482,14 +473,10 @@ def _get_next_url(
 
     nxt = urlparse(next_href)
     if nxt.scheme and nxt.netloc:
-        # Absolute href: extract old base and replace with new
         parsed_api = urlparse(API_URL)
         path_parts = nxt.path.split("/")
-        if len(path_parts) >= 3:
-            old_base_path = "/" + "/".join(path_parts[1:3])
-            new_path = nxt.path.replace(old_base_path, parsed_api.path)
-        else:
-            new_path = nxt.path
+        old_base_path = "/" + "/".join(path_parts[1:3])
+        new_path = nxt.path.replace(old_base_path, parsed_api.path)
         return urlunparse(
             (
                 parsed_api.scheme,
@@ -501,8 +488,7 @@ def _get_next_url(
             )
         )
     else:
-        # Relative href: resolve against current url
-        return urljoin(current_url, next_href)
+        return None
 
 
 def extract_api_xml_response(results) -> list[Award]:

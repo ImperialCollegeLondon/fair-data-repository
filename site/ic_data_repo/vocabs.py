@@ -3,6 +3,8 @@
 import asyncio
 import logging
 import subprocess as sp
+import time
+import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from csv import DictReader
@@ -12,7 +14,9 @@ from logging import Logger
 from pathlib import Path
 from shutil import which
 from typing import Any
+from urllib.parse import urlparse, urlunparse
 
+import requests
 import yaml
 from flask import current_app
 from invenio_vocabularies.datastreams.factories import DataStreamFactory
@@ -93,6 +97,10 @@ _ICIS_FUNDER_ROR_MAP = {
     "The Faraday Institution": "05dt4bt98",
 }
 """A mapping between funder names as recorded in ICIS and ROR identifiers."""
+
+
+API_NAMESPACE = {"api": "http://www.symplectic.co.uk/publications/api"}
+SYMPLECTIC_XPATH = "{http://www.symplectic.co.uk/publications/api}"
 
 
 def _get_default_logger() -> Logger:
@@ -357,6 +365,7 @@ def import_imperial_awards_to_invenio(
 ):
     """Import Imperial awards data into the awards vocabulary."""
     awards = _process_icis_csv(award_data_file)
+
     _add_entries_to_vocab("awards", awards, logger)
 
 
@@ -382,3 +391,161 @@ def import_to_vocabulary(datastream_config: dict[str, Any], allow_errors: bool =
             "Unexpected errors encountered whilst importing vocabulary. "
             "See log for details."
         )
+
+
+def fetch_all_results(logger: Logger = _get_default_logger()):
+    """Fetch and combine all results up to the total count from the API response."""
+    if not current_app.config["SYMPLECTIC_ENABLED"]:
+        return
+    API_URL = current_app.config["SYMPLECTIC_API_URL"]
+    SUBSCRIPTION_KEY = current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"]
+
+    session = requests.Session()
+    all_results = []
+    total_results = 0
+    max_results = None
+    headers = {"subscription-key": SUBSCRIPTION_KEY, "content-type": "text/xml"}
+    url: str | None = f"{API_URL}/grants?detail=full&per-page=25"
+
+    while url and (max_results is None or total_results < max_results):
+        logger.info(f"Fetching: {url}")
+        response = session.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        root = ET.fromstring(response.text)
+
+        root, max_results = _parse_response_and_set_max_results(
+            root, max_results, logger
+        )
+        if max_results is None:
+            break
+
+        # Extract results
+        result_list = root.find(f".//{SYMPLECTIC_XPATH}result-list")
+        if result_list is None:
+            raise RuntimeError("No result-list element found in response")
+        results = result_list.findall(f".//{SYMPLECTIC_XPATH}result")
+
+        # Append results
+        for r in results:
+            if max_results is not None and total_results >= max_results:
+                break
+            all_results.append(ET.tostring(r, encoding="unicode"))
+            total_results += 1
+
+        url = _get_next_url(root, url, API_URL, logger)
+
+        time.sleep(2)  # Rate limit
+
+    return all_results
+
+
+def _parse_response_and_set_max_results(
+    root: ET.Element, max_results: int | None, logger: Logger
+) -> tuple[ET.Element, int | None]:
+    if max_results is None:
+        pagination = root.find(f".//{SYMPLECTIC_XPATH}pagination")
+        if pagination is not None:
+            results_count = pagination.get("results-count")
+            if results_count:
+                max_results = int(results_count)
+                logger.info(f"Total results to fetch: {max_results}")
+            else:
+                raise RuntimeError("No results-count found in pagination")
+        else:
+            raise RuntimeError("No pagination element found in response")
+    return root, max_results
+
+
+def _get_next_url(
+    root: ET.Element, current_url: str, API_URL: str, logger: Logger
+) -> str | None:
+    pagination = root.find(f".//{SYMPLECTIC_XPATH}pagination")
+    if pagination is None:
+        raise RuntimeError("No pagination element found when resolving next page")
+
+    next_page = pagination.find(f'.//{SYMPLECTIC_XPATH}page[@position="next"]')
+    if next_page is None:
+        return None
+
+    next_href = next_page.get("href")
+    if not next_href:
+        return None
+
+    nxt = urlparse(next_href)
+    if nxt.scheme and nxt.netloc:
+        parsed_api = urlparse(API_URL)
+        path_parts = nxt.path.split("/")
+        old_base_path = "/" + "/".join(path_parts[1:3])
+        new_path = nxt.path.replace(old_base_path, parsed_api.path)
+        return urlunparse(
+            (
+                parsed_api.scheme,
+                parsed_api.netloc,
+                new_path,
+                nxt.params,
+                nxt.query,
+                nxt.fragment,
+            )
+        )
+    else:
+        return None
+
+
+def extract_api_xml_response(results) -> list[Award]:
+    """Extract awards from Symplectic results and return a list of Award dataclasses."""
+    awards: list[Award] = []
+    required_keys = [
+        "title",
+        "institution-reference",
+        "funder-name",
+        "funder-type",
+    ]
+
+    for result_xml in results:
+        root = ET.fromstring(result_xml)
+        fields: dict[str, str] = {}
+        native = root.find(".//api:native", API_NAMESPACE)
+        if native is not None:
+            for field in native.findall(".//api:field", API_NAMESPACE):
+                name = field.get("name")
+                if name in required_keys:
+                    text = field.findtext(
+                        ".//api:text", default="", namespaces=API_NAMESPACE
+                    )
+                    fields[name] = text.strip()
+
+        if not all(fields.get(key, "").strip() for key in required_keys):
+            continue
+
+        shim_row = {"Funder": fields["funder-name"], "SPONSOR": fields["funder-name"]}
+        funder_org = _get_funder_org_id(shim_row)
+        if not funder_org:
+            continue
+
+        awards.append(
+            Award(
+                imperial_id=fields["institution-reference"],
+                funder_id=fields["funder-name"],
+                title=fields["title"],
+                funder_org_id=funder_org,
+            )
+        )
+
+    return awards
+
+
+def import_imperial_awards_from_symplectic(logger: Logger = _get_default_logger()):
+    """Import Imperial awards data into the awards vocabulary."""
+    award_data = fetch_all_results(logger) or []
+
+    if award_data:
+        logger.info("First raw XML result (truncated):")
+        logger.info(award_data[0][:800])
+
+    awards = extract_api_xml_response(award_data)
+
+    if awards:
+        logger.info("First parsed award:")
+        logger.info(str(awards[0].as_invenio_record()))
+
+    _add_entries_to_vocab("awards", awards, logger)

@@ -474,9 +474,11 @@ def _get_next_url(
         './/{http://www.symplectic.co.uk/publications/api}page[@position="next"]'
     )
     if next_page is None:
-        raise RuntimeError("No next page element found")
+        return None
 
     next_href = next_page.get("href")
+    if not next_href:
+        return None
 
     nxt = urlparse(next_href)
     if nxt.scheme and nxt.netloc:

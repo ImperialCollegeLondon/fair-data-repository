@@ -100,7 +100,7 @@ _ICIS_FUNDER_ROR_MAP = {
 
 
 API_NAMESPACE = {"api": "http://www.symplectic.co.uk/publications/api"}
-SYMPLECTIC_XPATH = "{" + "http://www.symplectic.co.uk/publications/api" + "}"
+SYMPLECTIC_XPATH = "{http://www.symplectic.co.uk/publications/api}"
 
 
 def _get_default_logger() -> Logger:

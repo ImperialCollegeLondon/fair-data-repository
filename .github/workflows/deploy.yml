@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.environment_name }}-deploy
     environment: ${{ inputs.environment_name }} # determines values of secrets and env vars
     steps:
       - name: checkout the Helm charts to deploy our published instance
@@ -38,19 +38,6 @@ jobs:
           repository: ImperialCollegeLondon/helm-invenio
           path: helm-invenio
           ref: ${{ vars.HELM_CHART_REF }}
-
-      - name: Login to Azure to deploy our chart
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - name: Gets K8s context
-        uses: azure/aks-set-context@v4
-        with:
-          resource-group: ${{ vars.RESOURCE_GROUP }}
-          cluster-name: ${{ vars.CLUSTER_NAME }}
-        id: login
       - name: Run helm
         run: |
           helm dependency build ${{ vars.CHART_PATH }}

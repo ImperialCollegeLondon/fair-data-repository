@@ -18,7 +18,7 @@ on:
         required: true
         type: string
       image_digest:
-        description: The tag of the Docker image to deploy
+        description: The digest of the image to deploy
         required: true
         type: string
 

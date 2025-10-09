@@ -20,6 +20,13 @@ const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText: "The main individuals or institutions involved in creating the data set.",
   includeRole: false,
 });
+const LegalDisclaimer = () => (
+  <>
+    <p>
+      By publishing, you agree to our <a href="https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/imperial-policy/">data deposit agreement</a>.
+    </p>
+  </>
+);
 
 const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText:
@@ -46,6 +53,7 @@ const parameters = {
       ),
     },
   ],
+  afterContent: () => <LegalDisclaimer />,
 };
 const SubmitReviewModalComponent = parametrize(SubmitReviewModal, parameters);
 

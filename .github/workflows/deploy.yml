@@ -7,7 +7,7 @@ on:
         description: The name of the environment to deploy to
         required: true
         type: string
-      image_tag_with_sha:
+      image_digest:
         description: The tag of the Docker image to deploy
         required: true
         type: string
@@ -17,7 +17,7 @@ on:
         description: The name of the environment to deploy to
         required: true
         type: string
-      image_tag_with_sha:
+      image_digest:
         description: The tag of the Docker image to deploy
         required: true
         type: string
@@ -45,22 +45,21 @@ jobs:
           -f ${{ vars.CHART_OVERRIDE_PATH }} \
           -n invenio --install --create-namespace \
           --timeout 15m \
-          --set invenio.secret_key="${{ secrets.INVENIO_SECRET_KEY }}" \
-          --set invenio.security_login_salt="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
-          --set invenio.csrf_secret_salt="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \
+          --set invenio.extra_secrets.icl_secrets.data.INVENIO_SECRET_KEY="${{ secrets.INVENIO_SECRET_KEY }}" \
+          --set invenio.extra_secrets.icl_secrets.data.INVENIO_SECURITY_LOGIN_SALT="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
+          --set invenio.extra_secrets.icl_secrets.data.INVENIO_CSRF_SECRET_SALT="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \
           --set invenio.extraConfig.ICL_OAUTH_CLIENT_ID=${{ vars.ICL_OAUTH_CLIENT_ID }} \
-          --set invenio.extra_secrets.icl_secrets.values.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
+          --set invenio.extra_secrets.icl_secrets.data.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
           --set invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL=${{ vars.ICL_OAUTH_WELL_KNOWN_URL }} \
-          --set rabbitmq.auth.password="${{ secrets.RABBITMQ_AUTH_PASSWORD }}" \
+          --set invenio.extra_secrets.rabbitmq_secrets.data.RABBITMQ_PASSWORD="${{ secrets.RABBITMQ_AUTH_PASSWORD }}" \
           --set invenio.hostname=${{ vars.HOSTNAME }} \
-          --set web.image=${{ inputs.image_tag_with_sha }} \
-          --set worker.image=${{ inputs.image_tag_with_sha }} \
+          --set image.digest=${{ inputs.image_digest }} \
           --set invenio.datacite.password="${{ secrets.DATACITE_PASSWORD }}" \
           --set invenio.datacite.username=${{ vars.DATACITE_USERNAME }} \
-          --set invenio.extraConfig.INVENIO_DATACITE_PREFIX=${{ vars.DATACITE_PREFIX }} \
-          --set-string invenio.extraConfig.INVENIO_DATACITE_TEST_MODE=True \
+          --set invenio.datacite.prefix=${{ vars.DATACITE_PREFIX }} \
+          --set-string invenio.datacite.testMode=${{ vars.DATACITE_TEST_MODE }} \
           --set invenio.extraConfig.INVENIO_MAIL_USERNAME=${{ vars.EMAIL_USERNAME }} \
-          --set invenio.extra_secrets.icl_secrets.values.INVENIO_MAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
+          --set invenio.extra_secrets.icl_secrets.data.INVENIO_MAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
           --set persistence.size=${{ vars.FILES_STORAGE_SIZE }} \
           --set-string invenio.extraConfig.INVENIO_MAIL_USE_TLS=True \
           --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=${{ vars.EMAIL_USERNAME }} \
@@ -73,4 +72,4 @@ jobs:
           --set-string workerBeat.resources.limits.cpu=${{ vars.WORKER_LIMITS_CPU }} \
           --set workerBeat.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }} \
           --set postgresqlExternal.hostname=${{ vars.POSTGRES_HOSTNAME }} \
-          --set postgresqlExternal.password="${{ secrets.POSTGRES_PASSWORD }}"
+          --set invenio.extra_secrets.database_secrets.data.POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"

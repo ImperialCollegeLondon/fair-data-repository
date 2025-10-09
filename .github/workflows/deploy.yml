@@ -73,6 +73,5 @@ jobs:
           --set workerBeat.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }} \
           --set postgresqlExternal.hostname=${{ vars.POSTGRES_HOSTNAME }} \
           --set invenio.extra_secrets.database_secrets.data.POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
-          --set postgres.image.repository=bitnamilegacy/postgresql \
-          --set postgres.volumePermissions.image.repository=bitnamilegacy/os-shell \
-          --set postgres.metrics.image.repository=bitnamilegacy/postgres-exporter
+          --set rabbitmq.image.repository=bitnamilegacy/postgresql \
+          --set rabbitmq.volumePermissions.image.repository=bitnamilegacy/os-shell

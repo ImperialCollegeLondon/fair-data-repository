@@ -74,4 +74,14 @@ jobs:
           --set postgresqlExternal.hostname=${{ vars.POSTGRES_HOSTNAME }} \
           --set invenio.extra_secrets.database_secrets.data.POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
           --set rabbitmq.image.repository=bitnamilegacy/rabbitmq \
-          --set rabbitmq.volumePermissions.image.repository=bitnamilegacy/os-shell
+          --set rabbitmq.volumePermissions.image.repository=bitnamilegacy/os-shell \
+          --set opensearch.image.repository=bitnamilegacy/opensearch \
+          --set opensearch.volumePermissions.image.repository=bitnamilegacy/os-shell \
+          --set opensearch.sysctlImage.repository=bitnamilegacy/os-shell \
+          --set opensearch.dashboards.image.repository=bitnamilegacy/opensearch-dashboards \
+          --set opensearch.snapshots.image.repository=bitnamilegacy/os-shell \
+          --set redis.image.repository=bitnamilegacy/redis \
+          --set redis.sentinel.image.repository=bitnamilegacy/redis-sentinel \
+          --set redis.metrics.image.repository=bitnamilegacy/redis-exporter \
+          --set redis.volumePermissions.image.repository=bitnamilegacy/os-shell \
+          --set redis.sysctl.image.repository=bitnamilegacy/os-shell

@@ -84,4 +84,5 @@ jobs:
           --set redis.sentinel.image.repository=bitnamilegacy/redis-sentinel \
           --set redis.metrics.image.repository=bitnamilegacy/redis-exporter \
           --set redis.volumePermissions.image.repository=bitnamilegacy/os-shell \
-          --set redis.sysctl.image.repository=bitnamilegacy/os-shell
+          --set redis.sysctl.image.repository=bitnamilegacy/os-shell \
+          --set invenio.extraConfig.INVENIO_TRUSTED_HOSTS=${{ vars.HOSTNAME }}

@@ -1,7 +1,7 @@
 """Site Metadata service components."""
 
 from flask import current_app
-from invenio_records_resources.services import ServiceComponent
+from invenio_records_resources.services.records.components import ServiceComponent
 from opensearchpy import OpenSearch
 
 from .errors import MetadataFileNotFoundError

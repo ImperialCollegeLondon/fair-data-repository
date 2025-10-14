@@ -1,9 +1,9 @@
 """Site Metadata service result items."""
 
-from invenio_records_resources.services.base import ServiceResult
+from invenio_records_resources.services.base import ServiceItemResult
 
 
-class MetadataValidationResult(ServiceResult):
+class MetadataValidationResult(ServiceItemResult):
     """Metadata validation result item."""
 
     def __init__(self, identity, record_id, fmt, file_key, valid, errors=None):

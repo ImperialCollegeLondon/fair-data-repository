@@ -3,6 +3,9 @@
 from flask_principal import ActionNeed
 from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
 from invenio_records_permissions.generators import Generator, SystemProcess
+from invenio_records_resources.services.files.generators import IfTransferType
+
+from .link_only_transfer import LINK_ONLY_TRANSFER_TYPE
 
 ALLOWED_JOB_FAMILIES = [
     "Academic & Research",
@@ -29,6 +32,18 @@ class AbleToDeposit(Generator):
         return [deposit_action]
 
 
+deposit_link_only_action = ActionNeed("deposit-link-only-action")
+"""Action representing the ability to deposit link-only records."""
+
+
+class AbleToDepositLinkOnly(Generator):
+    """Permission generator for link-only dataset deposit."""
+
+    def needs(self, **kwargs):
+        """The needs associated with the link-only deposit permission."""
+        return [deposit_link_only_action]
+
+
 class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     """The permission policy for the repository.
 
@@ -37,6 +52,16 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     """
 
     can_create = [AbleToDeposit(), SystemProcess()]
+
+    can_draft_create_files = RDMRecordPermissionPolicy.can_draft_create_files + [
+        IfTransferType(
+            LINK_ONLY_TRANSFER_TYPE,
+            [
+                AbleToDepositLinkOnly(),
+                SystemProcess(),
+            ],
+        )
+    ]
 
 
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:

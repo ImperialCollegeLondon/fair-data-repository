@@ -108,6 +108,7 @@ To access its content, please download it and open it locally.') }}
     {% for file in files %}
       {% if not file.access.hidden %}
         {%- set is_remote_file = file.transfer.type == transfer_types.REMOTE %}
+        {%- set is_link_only_file = file.transfer.type == "X" %}
         {% if is_preview %}
           {%- set file_url_download = url_for(download_endpoint, pid_value=pid, filename=file.key, download=1, preview=1) %}
           {%- set file_url_preview = url_for(preview_endpoint, pid_value=pid, filename=file.key, preview=1, include_deleted=include_deleted_value) %}
@@ -120,7 +121,11 @@ To access its content, please download it and open it locally.') }}
         <tr>
           <td class="ten wide">
             <div>
+              {%- if is_link_only_file %}
+              {{ file.key }}
+              {%- else %}
               <a href="{{ file_url_download }}">{{ file.key }}</a>
+              {%- endif %}
             </div>
             {%- if not is_remote_file %}
             <small class="ui text-muted font-tiny">{{ file.checksum or _("Checksum not yet calculated.") }}
@@ -133,7 +138,8 @@ To access its content, please download it and open it locally.') }}
           <td>{%- if is_remote_file %}{{_("N/A (external)")}}{%- else -%}{{ file.size|filesizeformat(binary=binary_sizes) }}{%- endif %}</td>
           <td class="right aligned">
             <span>
-              {% if with_preview and file_type|lower is previewable and not is_remote_file %}
+              {%- if not is_link_only_file %}
+                {% if with_preview and file_type|lower is previewable and not is_remote_file %}
                 <a role="button" class="ui compact mini button preview-link" href="{{ file_url_preview }}" target="preview-iframe" data-file-key="{{file.key}}">
                   <i class="eye icon" aria-hidden="true"></i>{{_("Preview")}}
                 </a>
@@ -141,6 +147,7 @@ To access its content, please download it and open it locally.') }}
               <a role="button" class="ui compact mini button" href="{{ file_url_download }}">
                 <i class="download icon" aria-hidden="true"></i>{{_('Download')}}
               </a>
+              {%- endif %}
             </span>
           </td>
         </tr>

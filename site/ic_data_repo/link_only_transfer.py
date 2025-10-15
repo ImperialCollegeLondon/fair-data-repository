@@ -1,7 +1,7 @@
 """Link-only file transfer implementation."""
 
 from invenio_records_resources.services.files.schema import BaseTransferSchema
-from invenio_records_resources.services.files.transfer import Transfer
+from invenio_records_resources.services.files.transfer import Transfer, TransferStatus
 from marshmallow import ValidationError, fields, validates
 
 LINK_ONLY_TRANSFER_TYPE = "X"
@@ -26,12 +26,14 @@ class LinkOnlyTransfer(Transfer):
             if v is not None and v < 0:
                 raise ValidationError("size must be >= 0")
 
+    @property
+    def status(self):
+        """link-only is always "completed" as there is no transfer to do."""
+        return TransferStatus.COMPLETED
+
     def create(self, *, identity, uow, data, **kwargs):
         """Register file entry and persist link metadata."""
         f = self.file_service.file_manager.create_file_record(self.record, self.key)
-
-        # attach transfer marker + your public metadata
-        f.transfer = {"type": self.transfer_type}
 
         # stash the target URL somewhere retrievable by read_content()
         # Two common options:
@@ -42,7 +44,9 @@ class LinkOnlyTransfer(Transfer):
             "size": data.get("size"),
             "checksum": data.get("checksum"),
         }
-        uow.register(f.model)  # schedule DB write
+
+        # schedule DB write
+        uow.register(f.model)
 
         return f
 

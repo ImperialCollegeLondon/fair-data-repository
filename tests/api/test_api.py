@@ -3,6 +3,8 @@
 from datetime import date
 
 import pytest
+from ic_data_repo.permissions import deposit_link_only_action
+from invenio_access.permissions import ActionUsers
 
 
 @pytest.fixture
@@ -22,6 +24,22 @@ def metadata():
             },
         ],
     }
+
+
+@pytest.fixture
+def link_only_file():
+    """File metadata for a link-only transfer."""
+    return [
+        {
+            "key": "example.txt",
+            "size": 1234,
+            "checksum": "md5:9e107d9d372bb6826bd81d3542a419d6",
+            "transfer": {
+                "type": "X",  # Link-only transfer type
+                "url": "http://example.com/file.txt",
+            },
+        },
+    ]
 
 
 @pytest.fixture
@@ -183,3 +201,64 @@ def test_new_record_version(
         headers=api_headers,
     )
     assert record_v2_published.status_code == 202
+
+
+def test_link_only_file_transfer(
+    client,
+    location,
+    vocabularies,
+    user_depositor,
+    db,
+    api_headers,
+    metadata,
+    link_only_file,
+):
+    """Test the metadata fields used in the link-only file transfer type."""
+    record = client.post("/records", json={"metadata": metadata}, headers=api_headers)
+    assert record.status_code == 201
+    record_id = record.json["id"]
+
+    # Grant permission to the user.
+    db.session.add(
+        ActionUsers.allow(deposit_link_only_action, user_id=user_depositor.id)
+    )
+
+    # Adding a link-only file.
+    response = client.post(
+        f"/records/{record_id}/draft/files",
+        json=link_only_file,
+        headers=api_headers,
+    )
+    assert response.status_code == 201
+
+    # Test link-only file metadata.
+    file_metadata = response.json["entries"][0]
+    assert file_metadata["key"] == "example.txt"
+    assert file_metadata["size"] == 1234
+    assert file_metadata["checksum"] == "md5:9e107d9d372bb6826bd81d3542a419d6"
+    assert file_metadata["transfer"]["type"] == "X"
+    assert file_metadata["transfer"]["url"] == "http://example.com/file.txt"
+
+
+def test_link_only_file_transfer_without_permission(
+    client,
+    location,
+    vocabularies,
+    user_depositor,
+    db,
+    api_headers,
+    metadata,
+    link_only_file,
+):
+    """Test that link-only file transfer cannot be used without permission."""
+    record = client.post("/records", json={"metadata": metadata}, headers=api_headers)
+    assert record.status_code == 201
+    record_id = record.json["id"]
+
+    # Try adding a link-only file without permission.
+    response = client.post(
+        f"/records/{record_id}/draft/files",
+        json=link_only_file,
+        headers=api_headers,
+    )
+    assert response.status_code == 403

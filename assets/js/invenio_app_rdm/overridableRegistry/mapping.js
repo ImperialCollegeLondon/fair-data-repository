@@ -4,6 +4,7 @@
 // Invenio App RDM is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
+import React from "react";
 import { Component } from "react";
 import { HiddenField } from "../../ic_data_repo/HiddenField";
 import { OptionalRoleCreatibutorsField } from "../../ic_data_repo/OptionalRoleCreatibutors";
@@ -17,13 +18,18 @@ import { i18next } from "@translations/invenio_app_rdm/i18next";
 import { SubmitReviewModal } from "@js/invenio_rdm_records";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
-  helpText: "The main individuals or institutions involved in creating the data set.",
+  helpText:
+    "The main individuals or institutions involved in creating the data set.",
   includeRole: false,
 });
-const LegalDisclaimer = () => (
+const DataDepositAgreement = () => (
   <>
     <p>
-      By publishing, you agree to our <a href="https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/imperial-policy/">data deposit agreement</a>.
+      By publishing, you agree to our{" "}
+      <a href="{{ config.get('DATA_DEPOSIT_AGREEMENT_URL') }}">
+        data deposit agreement
+      </a>
+      .
     </p>
   </>
 );
@@ -49,11 +55,11 @@ const parameters = {
     {
       fieldPath: "acceptDepositAgreement",
       text: i18next.t(
-        "This deposit meets the requirements of the Data Deposit Agreement.",
+        "This deposit meets the requirements of the Data Deposit Agreement. Please see the link below for more information."
       ),
     },
   ],
-  afterContent: () => <LegalDisclaimer />,
+  afterContent: () => <DataDepositAgreement />,
 };
 const SubmitReviewModalComponent = parametrize(SubmitReviewModal, parameters);
 

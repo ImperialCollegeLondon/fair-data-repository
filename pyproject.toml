@@ -31,6 +31,7 @@ module = [
        "invenio_assets.*",
        "invenio_communities.*",
        "invenio_db.*",
+       "invenio_files_rest.*",
        "invenio_i18n.*",
        "invenio_notifications.*",
        "invenio_oauth2server.*",

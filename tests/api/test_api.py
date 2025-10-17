@@ -237,7 +237,14 @@ def test_link_only_file_transfer(
     assert file_metadata["size"] == 1234
     assert file_metadata["checksum"] == "md5:9e107d9d372bb6826bd81d3542a419d6"
     assert file_metadata["transfer"]["type"] == "X"
-    assert file_metadata["transfer"]["url"] == "http://example.com/file.txt"
+
+    # Test URL privacy.
+    assert "url" not in file_metadata["transfer"]
+    content_link = response.json["entries"][0]["links"]["content"]
+    content_link = content_link.replace("https://127.0.0.1/api", "")
+    response = client.get(content_link, headers=api_headers)
+    assert response.status_code == 302
+    assert response.headers["Location"] == "http://example.com/file.txt"
 
 
 def test_link_only_file_transfer_without_permission(

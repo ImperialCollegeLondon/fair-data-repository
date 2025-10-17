@@ -56,10 +56,24 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     can_draft_create_files = RDMRecordPermissionPolicy.can_draft_create_files + [
         IfTransferType(
             LINK_ONLY_TRANSFER_TYPE,
-            [
-                AbleToDepositLinkOnly(),
-                SystemProcess(),
-            ],
+            [AbleToDepositLinkOnly()],
+        )
+    ]
+
+    can_draft_get_content_files = (
+        RDMRecordPermissionPolicy.can_draft_get_content_files
+        + [
+            IfTransferType(
+                LINK_ONLY_TRANSFER_TYPE,
+                [AbleToDepositLinkOnly()],
+            )
+        ]
+    )
+
+    can_get_content_files = RDMRecordPermissionPolicy.can_get_content_files + [
+        IfTransferType(
+            LINK_ONLY_TRANSFER_TYPE,
+            [AbleToDepositLinkOnly()],
         )
     ]
 

@@ -22,17 +22,27 @@ const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
     "The main individuals or institutions involved in creating the data set.",
   includeRole: false,
 });
-const DataDepositAgreement = () => (
+const DataDepositAgreement = ({ url }) => (
   <>
     <p>
       By publishing, you agree to our{" "}
-      <a href="{{ config.get('DATA_DEPOSIT_AGREEMENT_URL') }}">
+      <a href={url || "#"} target="_blank" rel="noopener noreferrer">
         data deposit agreement
       </a>
       .
     </p>
   </>
 );
+// Helper to read the URL from the hidden input (value is JSON-encoded)
+const getDepositAgreementURL = () => {
+  const el = document.querySelector('input[name="data_deposit_agreement_url"]');
+  if (!el) return "";
+  try {
+    return JSON.parse(el.value) || "";
+  } catch {
+    return el.value || "";
+  }
+};
 
 const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText:
@@ -59,7 +69,7 @@ const parameters = {
       ),
     },
   ],
-  afterContent: () => <DataDepositAgreement />,
+  afterContent: () => <DataDepositAgreement url={getDepositAgreementURL()} />,
 };
 const SubmitReviewModalComponent = parametrize(SubmitReviewModal, parameters);
 

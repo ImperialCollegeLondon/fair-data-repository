@@ -8,6 +8,10 @@ from ic_data_repo.site_metadata.resources.config import SiteMetadataResourceConf
 from ic_data_repo.site_metadata.resources.resource import SiteMetadataResource
 from ic_data_repo.site_metadata.services.components import MetadataIndexComponent
 from ic_data_repo.site_metadata.services.config import SiteMetadataServiceConfig
+from ic_data_repo.site_metadata.services.schema import (
+    JSONMetadataSchema,
+    MarshmallowValidator,
+)
 from ic_data_repo.site_metadata.services.service import SiteMetadataService
 from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
 from ic_data_repo.symplectic.resources.resource import SymplecticResource
@@ -208,6 +212,14 @@ class SiteMetadataExt:
         cfg = SiteMetadataServiceConfig.build(app)
         cfg.records_service = current_rdm_records.records_service
         cfg.site_metadata_attr = app.config["IC_SITE_METADATA_ATTR"]
+
+        if not getattr(cfg, "supported_formats", None):
+            cfg.supported_formats = {}
+        if "json" not in cfg.supported_formats:
+            cfg.supported_formats["json"] = {
+                "validator": MarshmallowValidator(JSONMetadataSchema()),
+                "index_name": "site-metadata-json",
+            }
 
         runtime_formats = app.config.get("IC_SITE_METADATA_FORMATS")
         if runtime_formats:

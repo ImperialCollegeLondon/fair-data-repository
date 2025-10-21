@@ -32,8 +32,8 @@ def client(app):
     mock_result = MagicMock(spec=MetadataValidationResult)
     mock_result.to_dict.return_value = {
         "record_id": "abc123",
-        "format": "jsonld",
-        "file_key": "metadata-jsonld.json",
+        "format": "json",
+        "file_key": "metadata-json.json",
         "valid": True,
         "errors": [],
     }
@@ -101,11 +101,10 @@ def test_upload_validate_success(client):
 
     # Create test data
     record_id = "abc123"
-    format_type = "jsonld"
+    format_type = "json"
 
-    # Valid JSON-LD content
     test_content = json.dumps(
-        {"@context": "https://schema.org/", "@type": "Dataset", "name": "Test Dataset"}
+        {"name": "Test Dataset", "description": "A dataset"}
     ).encode("utf-8")
 
     # Create an in-memory file-like object
@@ -140,18 +139,15 @@ def test_upload_validate_missing_file(client):
     """Test metadata upload endpoint with missing file."""
     test_client, mock_service = client
 
-    # Create test data
     record_id = "abc123"
-    format_type = "jsonld"
+    format_type = "json"
 
-    # Make the request without a file
     response = test_client.post(
         f"/records/{record_id}/metadata/{format_type}",
         data={},
         content_type="multipart/form-data",
     )
 
-    # Check response
     assert response.status_code == 400
     assert b"Missing file field" in response.data
     mock_service.upload_and_validate.assert_not_called()
@@ -164,86 +160,70 @@ def test_upload_validate_unsupported_format(client):
     # Configure mock to raise UnsupportedFormatError
     mock_service.upload_and_validate.side_effect = UnsupportedFormatError("csv")
 
-    # Create test data
     record_id = "abc123"
     format_type = "csv"  # Unsupported format
-
-    # Create an empty file
     test_file = io.BytesIO(b"test content")
 
-    # Make the request
     response = test_client.post(
         f"/records/{record_id}/metadata/{format_type}",
         data={"file": (test_file, "metadata.csv")},
         content_type="multipart/form-data",
     )
 
-    # Check response
     assert response.status_code == 400
     response_data = json.loads(response.data)
     assert "Unsupported metadata format" in response_data.get("description", "")
 
 
 def test_upload_validate_invalid_content(client):
-    """Test metadata upload with invalid content."""
+    """Test metadata upload with invalid content for Marshmallow schema."""
     test_client, mock_service = client
 
     # Configure mock to raise MetadataValidationError
     mock_service.upload_and_validate.side_effect = MetadataValidationError(
-        "jsonld", ["Required field '@type' is missing"]
+        "json", ["'name' is required"]
     )
 
-    # Create test data
     record_id = "abc123"
-    format_type = "jsonld"
+    format_type = "json"
 
-    # Invalid JSON-LD content (missing required @type)
-    test_content = json.dumps(
-        {"@context": "https://schema.org/", "name": "Test Dataset"}
-    ).encode("utf-8")
-
-    # Create an in-memory file-like object
+    # Invalid JSON content (missing required 'name')
+    test_content = json.dumps({"description": "No name"}).encode("utf-8")
     test_file = io.BytesIO(test_content)
 
-    # Make the request
     response = test_client.post(
         f"/records/{record_id}/metadata/{format_type}",
         data={"file": (test_file, "metadata.json")},
         content_type="multipart/form-data",
     )
 
-    # Check response
     assert response.status_code == 400
     response_data = json.loads(response.data)
     assert "validation failed" in response_data.get("description", "").lower()
 
 
-def test_upload_validate_with_json_schema_validation():
-    """Test the JSON schema validation functionality directly."""
-    from ic_data_repo.site_metadata.services.schema import JSONSchemaValidator
-
-    # Create a simple schema validator
-    validator = JSONSchemaValidator(
-        {
-            "type": "object",
-            "properties": {"@type": {"type": "string"}},
-            "required": ["@type"],
-        }
+def test_marshmallow_validator_direct():
+    """Test the Marshmallow-based validator directly."""
+    from ic_data_repo.site_metadata.services.schema import (
+        JSONMetadataSchema,
+        MarshmallowValidator,
     )
 
+    validator = MarshmallowValidator(JSONMetadataSchema())
+
     # Valid data
-    valid_data = json.dumps({"@type": "Dataset"}).encode("utf-8")
-    result = validator(valid_data)
-    assert result == {"@type": "Dataset"}
+    valid = json.dumps({"name": "Dataset A"}).encode("utf-8")
+    loaded = validator(valid)
+    assert loaded["name"] == "Dataset A"
 
     # Invalid data - missing required field
-    invalid_data = json.dumps({"name": "Dataset"}).encode("utf-8")
+    invalid = json.dumps({"description": "X"}).encode("utf-8")
     with pytest.raises(ValueError) as excinfo:
-        validator(invalid_data)
-    assert "'@type' is a required property" in str(excinfo.value)
+        validator(invalid)
+    assert "name" in str(excinfo.value).lower()
 
     # Invalid JSON
     invalid_json = b"{not valid json"
     with pytest.raises(ValueError) as excinfo:
         validator(invalid_json)
-    assert "Invalid JSON" in str(excinfo.value)
+    assert "invalid json" in str(excinfo.value).lower()

@@ -8,9 +8,10 @@ class SiteMetadataResourceConfig(ResourceConfig):
     """Site Metadata resource configuration."""
 
     blueprint_name = "site-metadata"
-    url_prefix = "/records/<pid_value>/metadata"
+    url_prefix = "/records"
     routes = {
-        "upload_validate": "/<fmt>",
+        # Full path: /records/<pid_value>/metadata/<fmt>
+        "upload_validate": "/<pid_value>/metadata/<fmt>",
     }
     response_handlers = {
         "application/json": ResponseHandler(JSONSerializer()),

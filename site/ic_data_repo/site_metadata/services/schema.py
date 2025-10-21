@@ -2,29 +2,39 @@
 
 import json
 
-import jsonschema
+from marshmallow import Schema
+from marshmallow import ValidationError as MarshmallowValidationError
+from marshmallow import fields
 
 
-class JSONSchemaValidator:
-    """JSON schema validator callable."""
+class MarshmallowValidator:
+    """Marshmallow-based validator callable."""
 
-    def __init__(self, schema):
+    def __init__(self, schema: Schema):
         """Constructor."""
-        if jsonschema is None:
-            raise RuntimeError("jsonschema must be installed for JSON validation")
         self.schema = schema
 
     def __call__(self, raw: bytes):
-        """Validate the raw bytes and return the parsed data."""
+        """Validate the raw bytes and return the parsed/loaded data."""
         try:
             data = json.loads(raw.decode("utf-8"))
         except Exception as ex:
             raise ValueError(f"Invalid JSON: {ex}")
+
         try:
-            jsonschema.validate(data, self.schema)
-        except jsonschema.ValidationError as ve:
-            raise ValueError(ve.message)
-        return data
+            return self.schema.load(data)
+        except MarshmallowValidationError as ve:
+            # Convert to ValueError for service error normalization
+            raise ValueError(ve.messages or str(ve))
+
+
+class JSONMetadataSchema(Schema):
+    """Example site JSON metadata schema."""
+
+    name = fields.String(required=True)
+    description = fields.String()
+    version = fields.String()
+    type = fields.String()
 
 
 def build_validators(spec):

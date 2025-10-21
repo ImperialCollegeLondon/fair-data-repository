@@ -4,7 +4,7 @@ from invenio_records_resources.services import ServiceConfig
 
 from .permissions import SiteMetadataPermissionPolicy
 from .result_items import MetadataValidationResult
-from .schema import JSONSchemaValidator
+from .schema import JSONMetadataSchema, JSONSchemaValidator, MarshmallowValidator
 
 
 class SiteMetadataServiceConfig(ServiceConfig):
@@ -19,6 +19,7 @@ class SiteMetadataServiceConfig(ServiceConfig):
     site_metadata_attr = "site_metadata"
 
     supported_formats = {
+        # Existing JSON-LD validation via jsonschema
         "jsonld": {
             "validator": JSONSchemaValidator(
                 {
@@ -31,5 +32,10 @@ class SiteMetadataServiceConfig(ServiceConfig):
                 }
             ),
             "index_name": "site-metadata-jsonld",
-        }
+        },
+        # NEW: Plain JSON validation via Marshmallow
+        "json": {
+            "validator": MarshmallowValidator(JSONMetadataSchema()),
+            "index_name": "site-metadata-json",
+        },
     }

@@ -48,7 +48,7 @@ class MetadataIndexComponent(ServiceComponent):
                 "record_id": str(record.id),
                 "format": fmt,
                 "file_key": file_key,
-                "metadata": parsed,
+                "metadata": parsed,  # parsed JSON or JSON-LD dict
             }
             client.index(
                 index=spec["index_name"],

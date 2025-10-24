@@ -4,7 +4,6 @@
 // Invenio App RDM is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
-
 import React from "react";
 import { Component } from "react";
 import { HiddenField } from "../../ic_data_repo/HiddenField";
@@ -44,11 +43,7 @@ const getDepositAgreementURL = () => {
   } catch {
     value = el.value || "";
   }
-  // sanitize: only allow http(s) URLs
-  if (isSafeUrl(value)) {
-    return value;
-  }
-  return "#";
+  return value;
 };
 
 const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {

@@ -117,7 +117,15 @@ def app_config(opensearch_container, redis_container, rabbitmq_container, app_co
     # Let us create records without files for testing purposes.
     app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
 
-    return settings.__dict__ | app_config
+    return (
+        settings.__dict__
+        | app_config
+        | {
+            "SYMPLECTIC_API_URL": "",
+            "SYMPLECTIC_API_SUBSCRIPTION_KEY": "",
+            "SYMLECTIC_ENABLED": True,
+        }
+    )
 
 
 @pytest.fixture(scope="module")

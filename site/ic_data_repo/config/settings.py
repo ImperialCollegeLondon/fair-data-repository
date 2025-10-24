@@ -261,3 +261,16 @@ ENABLE_SYPLECTIC_SEARCH = False
 APP_RDM_DEPOSIT_FORM_TEMPLATE = "ic_data_repo/deposit.html"
 POLICY_DOCUMENTS_URL = "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/imperial-policy/"  # noqa: E501
 DATA_DEPOSIT_AGREEMENT_URL = "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/data-deposit-agreement/"  # noqa: E501
+
+
+TOTAL_RECORD_STORAGE_LIMIT_BYTES = 10e9
+PER_FILE_STORAGE_LIMIT_BYTES = 3.4e9
+
+APP_RDM_DEPOSIT_FORM_QUOTA = {
+    "maxStorage": TOTAL_RECORD_STORAGE_LIMIT_BYTES,
+    "maxFiles": 100,
+}
+RDM_FILES_DEFAULT_QUOTA_SIZE = TOTAL_RECORD_STORAGE_LIMIT_BYTES
+RDM_FILES_DEFAULT_MAX_FILE_SIZE = PER_FILE_STORAGE_LIMIT_BYTES
+FILES_REST_DEFAULT_QUOTA_SIZE = TOTAL_RECORD_STORAGE_LIMIT_BYTES
+FILES_REST_DEFAULT_MAX_FILE_SIZE = PER_FILE_STORAGE_LIMIT_BYTES

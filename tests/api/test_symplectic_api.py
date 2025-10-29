@@ -52,3 +52,11 @@ def test_related_publications_endpoint(user_client):
     assert "results" in response_data
     assert "count" in response_data
     assert response_data["count"] == 2
+
+
+def test_related_publications_invalid_search_type(user_client):
+    """Test that an invalid search type returns a 500 error."""
+    resp = user_client.get(
+        "/symplectic/related-publications?search_query=x&search_type=not-supported"
+    )
+    assert resp.status_code == 500

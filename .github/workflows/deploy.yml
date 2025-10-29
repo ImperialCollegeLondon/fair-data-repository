@@ -87,4 +87,5 @@ jobs:
           --set redis.sysctl.image.repository=bitnamilegacy/os-shell \
           --set invenio.extraConfig.INVENIO_TRUSTED_HOSTS=${{ vars.HOSTNAME }} \
           --set invenio.extra_secrets.icl_secrets.data.SYMPLECTIC_API_SUBSCRIPTION_KEY="${{ secrets.SYMPLECTIC_API_SUBSCRIPTION_KEY }}" \
-          --set invenio.extraConfig.SYMPLECTIC_API_URL="${{ vars.SYMPLETIC_API_URL }}"
+          --set invenio.extraConfig.SYMPLECTIC_API_URL="${{ vars.SYMPLETIC_API_URL }}" \
+          --set invenio.extraConfig.SYMPLECTIC_API_AUTH_HEADER="${{ vars.SYMPLETIC_API_AUTH_HEADER }}"

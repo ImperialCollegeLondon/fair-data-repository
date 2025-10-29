@@ -1,16 +1,50 @@
 """Test cases for the Symplectic API resource."""
 
+from unittest.mock import MagicMock, patch  # added
+
 
 def test_related_publications_endpoint(user_client):
     """Test that the related publications endpoint calls the service."""
-    # test_client, mock_service = client
+    # Title-keywords search
+    search_query = "test"
+    search_type = "title-keywords"
+    with patch("requests.get") as mock_get:
+        mock_response = MagicMock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.content = b"""
+        <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+            <api:object id="12345" category="publication">
+                <api:record>
+                    <api:native>
+                        <api:field name="title" type="text">
+                            <api:text>Test Title</api:text>
+                        </api:field>
+                        <api:field name="doi" type="text">
+                            <api:text>10.1234/test-doi</api:text>
+                        </api:field>
+                    </api:native>
+                </api:record>
+            </api:object>
+            <api:object id="67890" category="publication">
+                <api:record>
+                    <api:native>
+                        <api:field name="title" type="text">
+                            <api:text>Another Test Title</api:text>
+                        </api:field>
+                        <api:field name="doi" type="text">
+                            <api:text>10.5678/another-doi</api:text>
+                        </api:field>
+                    </api:native>
+                </api:record>
+            </api:object>
+        </api:response>
+        """
+        mock_response.text = mock_response.content.decode("utf-8")
+        mock_get.return_value = mock_response
 
-    # DOI search
-    search_query = "10.1021/jp506459v"
-    search_type = "doi"
-    response = user_client.get(
-        f"/symplectic/related-publications?search_query={search_query}&search_type={search_type}"  # noqa: E501
-    )
+        response = user_client.get(
+            f"/symplectic/related-publications?search_query={search_query}&search_type={search_type}"  # noqa E501
+        )
 
     assert response.status_code == 200
 
@@ -18,16 +52,3 @@ def test_related_publications_endpoint(user_client):
     assert "results" in response_data
     assert "count" in response_data
     assert response_data["count"] == 2
-
-    # # Title keyword search
-    # mock_service.fetch_related_publications.reset_mock()
-    # title_query = "catalysis"
-    # response2 = test_client.get(
-    #     f"/symplectic/related-publications?search_query={title_query}&search_type=title_keyword"  # noqa: E501
-    # )
-    # assert response2.status_code == 200
-    # mock_service.fetch_related_publications.assert_called_once()
-    # args2, _ = mock_service.fetch_related_publications.call_args
-    # assert len(args2) == 3
-    # assert args2[1] == title_query
-    # assert args2[2] == "title_keyword"

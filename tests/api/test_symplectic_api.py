@@ -102,3 +102,22 @@ def test_related_publications_invalid_search_type(user_client):
     assert response.status_code == 400
     response_data = response.get_json()
     assert "message" in response_data
+
+
+def test_returning_error_from_symplectic(user_client, mock_symplectic_response):
+    """Test that an error from Symplectic API is handled properly."""
+    search_query = "test"
+    search_type = "title-keywords"
+
+    with patch("requests.get") as mock_get:
+        mock_get.return_value = mock_symplectic_response(
+            xml_content=b"<api:error>Invalid request</api:error>", status_code=500
+        )
+
+        response = user_client.get(
+            f"/symplectic/related-publications?search_query={search_query}&search_type={search_type}"  # noqa: E501
+        )
+
+    assert response.status_code == 500
+    response_data = response.get_json()
+    assert "message" in response_data

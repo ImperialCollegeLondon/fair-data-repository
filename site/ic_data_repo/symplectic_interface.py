@@ -42,6 +42,9 @@ class SymplecticClient:
         self.headers = {
             "Content-Type": "text/xml",
             auth_header_name: self.api_key,
+            # set custom User-Agent as in deployment the azure web application
+            # firewall covering the Symplectic APIM doesn't like the requests one
+            "User-Agent": "Helix",
         }
 
     def add_doi_subtree(self, parent_element, doi_type, doi):

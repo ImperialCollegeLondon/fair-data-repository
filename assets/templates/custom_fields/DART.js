@@ -22,7 +22,7 @@ export class DART extends Component {
           required={ID?.required || true}
         />
         <div style={{ margin: "0.5rem 0", color: "#666" }}>
-          <p>
+          <label class="helptext">
             Please enter your DART ID. For information about DART{" "}
             <a
               href="https://www.imperial.ac.uk/admin-services/secretariat/policies-and-guidance/data-assessments/"
@@ -31,7 +31,7 @@ export class DART extends Component {
             >
               read here.
             </a>
-          </p>
+          </label>
         </div>
       </Form.Field>
     );

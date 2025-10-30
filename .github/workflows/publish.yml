@@ -5,13 +5,12 @@ on:
     branches:
       - main
       - develop
-      - wtest
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     outputs:
-      image_tag_with_sha: ${{ steps.export-data.outputs.image_tag_with_sha }}
+      image_digest: ${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
@@ -54,6 +53,6 @@ jobs:
     needs: build-and-publish
     uses: ./.github/workflows/deploy.yml
     with:
-      image_tag_with_sha: ${{needs.build-and-publish.outputs.image_tag_with_sha}}
+      image_digest: ${{needs.build-and-publish.outputs.image_digest}}
       environment_name: ${{ github.ref_name }}
     secrets: inherit

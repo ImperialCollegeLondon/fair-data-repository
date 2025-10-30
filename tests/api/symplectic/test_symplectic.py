@@ -87,6 +87,7 @@ def test_client_initialization(client):
     assert client.headers == {
         "Content-Type": "text/xml",
         "Subscription-Key": DUMMY_SUBSCRIPTION_KEY,
+        "User-Agent": "Helix",
     }
 
 

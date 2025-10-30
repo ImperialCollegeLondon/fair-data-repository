@@ -14,28 +14,26 @@ export class ConditionalDeleteButtonComponent extends Component {
   render() {
     const { declined } = this.props;
     return (
-      <>
-        <Card>
-          {declined && (
-            <Card.Content>
-              <Grid verticalAlign="middle">
-                <Grid.Row centered className="pt-5 pb-5 negative">
-                  <Grid.Column width={16} textAlign="center">
-                    <span>Declined</span>
-                    <Popup
-                      trigger={<Icon className="ml-10" name="info circle" />}
-                      content="This deposit has been declined for inclusion and may be deleted."
-                    />
-                  </Grid.Column>
-                </Grid.Row>
-              </Grid>
-            </Card.Content>
-          )}
+      <Card>
+        {declined && (
           <Card.Content>
-            <DeleteButton fluid />
+            <Grid verticalAlign="middle">
+              <Grid.Row centered className="pt-5 pb-5 negative">
+                <Grid.Column width={16} textAlign="center">
+                  <span>Declined</span>
+                  <Popup
+                    trigger={<Icon className="ml-10" name="info circle" />}
+                    content="This deposit has been declined for inclusion and may be deleted."
+                  />
+                </Grid.Column>
+              </Grid.Row>
+            </Grid>
           </Card.Content>
-        </Card>
-      </>
+        )}
+        <Card.Content>
+          <DeleteButton fluid />
+        </Card.Content>
+      </Card>
     );
   }
 }

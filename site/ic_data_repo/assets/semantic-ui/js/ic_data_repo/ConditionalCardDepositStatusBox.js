@@ -23,7 +23,7 @@ export function ConditionalCardDepositStatusBox({
   permissions,
   groupsEnabled,
 }) {
-  if (record.status == DepositStatus.DECLINED) {
+  if (record.status === DepositStatus.DECLINED) {
     return null;
   }
   return (

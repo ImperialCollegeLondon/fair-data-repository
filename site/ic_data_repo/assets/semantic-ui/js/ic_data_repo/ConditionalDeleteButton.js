@@ -43,7 +43,7 @@ ConditionalDeleteButtonComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  declined: state.deposit.record.status == DepositStatus.DECLINED,
+  declined: state.deposit.record.status === DepositStatus.DECLINED,
 });
 
 export const ConditionalDeleteButton = connect(mapStateToProps)(

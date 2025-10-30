@@ -30,7 +30,7 @@ ConditionalAccessRightFieldComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  declined: state.deposit.record.status == DepositStatus.DECLINED,
+  declined: state.deposit.record.status === DepositStatus.DECLINED,
 });
 
 export const ConditionalAccessRightField = connect(mapStateToProps)(

@@ -32,5 +32,7 @@ jobs:
         run: pip install pipenv invenio-cli
       - name: setup project dependencies
         run: invenio-cli install python
+      - name: setup symlink
+        run: invenio-cli install symlink
       - name: build assets
         run: invenio-cli assets build

@@ -22,28 +22,51 @@ const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
     "The main individuals or institutions involved in creating the data set.",
   includeRole: false,
 });
-const DataDepositAgreement = ({ url }) => (
-  <>
-    <p>
-      By publishing, you agree to our{" "}
-      <a href={url || "#"} target="_blank" rel="noopener noreferrer">
-        data deposit agreement
-      </a>
-      .
-    </p>
-  </>
-);
-// Helper to read the URL from the hidden input (value is JSON-encoded)
+const DataDepositAgreement = ({ url }) => {
+  const safeUrl = validateHttpUrl(url);
+  return (
+    <>
+      <p>
+        By publishing, you agree to our{" "}
+        {safeUrl ? (
+          <a href={safeUrl} target="_blank" rel="noopener noreferrer nofollow">
+            data deposit agreement
+          </a>
+        ) : (
+          "data deposit agreement"
+        )}
+        .
+      </p>
+    </>
+  );
+};
+
+// Strict allowlist validator for http/https URLs
+const validateHttpUrl = (value) => {
+  if (typeof value !== "string") return "";
+  const s = value.trim();
+  if (!s) return "";
+  try {
+    const u = new URL(s, window.location.origin);
+    const proto = (u.protocol || "").toLowerCase();
+    return proto === "http:" || proto === "https:" ? u.toString() : "";
+  } catch {
+    return "";
+  }
+};
+
+// Helper to read the URL from the hidden input (value may be JSON-encoded)
 const getDepositAgreementURL = () => {
   const el = document.querySelector('input[name="data_deposit_agreement_url"]');
   if (!el) return "";
-  let value;
+  let raw = el.value;
   try {
-    value = JSON.parse(el.value) || "";
+    const parsed = JSON.parse(el.value);
+    raw = typeof parsed === "string" ? parsed : "";
   } catch {
-    value = el.value || "";
+    // non-JSON string is fine; use as-is
   }
-  return value;
+  return validateHttpUrl(raw);
 };
 
 const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {

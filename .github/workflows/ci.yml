@@ -30,5 +30,7 @@ jobs:
           python-version: "3.12"
       - name: install pipenv and invenio-cli
         run: pip install pipenv invenio-cli
+      - name: setup project dependencies
+        run: invenio-cli install python
       - name: build assets
         run: invenio-cli assets build

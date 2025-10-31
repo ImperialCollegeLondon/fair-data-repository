@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: install invenio-cli
-        run: pip install invenio-cli
+      - name: install pipenv and invenio-cli
+        run: pip install pipenv invenio-cli
       - name: build assets
         run: invenio-cli assets build

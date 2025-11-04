@@ -15,6 +15,9 @@ import { FundingField } from "../../ic_data_repo/Funding/FundingField";
 import { RelatedWorksField } from "../../ic_data_repo/RelatedWorksField";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
 import { SubmitReviewModal } from "@js/invenio_rdm_records";
+import { ConditionalCardDepositStatusBox } from "../../ic_data_repo/ConditionalCardDepositStatusBox";
+import { ConditionalDeleteButton } from "../../ic_data_repo/ConditionalDeleteButton";
+import { ConditionalAccessRightField } from "../../ic_data_repo/ConditionalAccessRightField";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText: "The main individuals or institutions involved in creating the data set.",
@@ -66,4 +69,8 @@ export const overriddenComponents = {
   "ReactInvenioDeposit.MetadataAccess.layout": NullElement,
   "InvenioRdmRecords.SubmitReviewModal.container": SubmitReviewModalComponent,
   "InvenioAppRdm.Deposit.CopyrightsField.container": HiddenField,
+  "InvenioAppRdm.Deposit.CardDepositStatusBox.container":
+    ConditionalCardDepositStatusBox,
+  "InvenioAppRdm.Deposit.CardDeleteButton.container": ConditionalDeleteButton,
+  "InvenioAppRdm.Deposit.AccessRightField.container": ConditionalAccessRightField,
 };

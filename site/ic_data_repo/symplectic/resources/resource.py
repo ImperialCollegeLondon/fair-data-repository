@@ -25,7 +25,14 @@ class SymplecticResource(Resource):
                 code=500,
                 description="Symplectic API error.",
             )
-        )
+        ),
+        ma.exceptions.ValidationError: create_error_handler(
+            lambda e: HTTPJSONException(
+                code=400,
+                description="Invalid request parameters.",
+                errors=e.messages,
+            )
+        ),
     }
 
     def __init__(self, config, service):
@@ -43,7 +50,12 @@ class SymplecticResource(Resource):
     @request_parser(
         {
             "search_query": ma.fields.String(required=True),
-            "search_type": ma.fields.String(required=True),
+            "search_type": ma.fields.String(
+                required=True,
+                validate=ma.validate.OneOf(
+                    ["title-keywords", "first-author-name"]
+                ),  # Add valid search types
+            ),
         },
         location="args",
     )

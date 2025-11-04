@@ -4,6 +4,8 @@ on:
     branches:
       - main
       - develop
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -21,3 +23,15 @@ jobs:
         run: invenio-cli install symlink
       - name: run tests
         run: pipenv run pytest -p no:warnings
+  check_assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pipenv"
+      - name: install pipenv and invenio-cli
+        run: pip install pipenv invenio-cli
+      - name: install dependencies and build assets
+        run: invenio-cli install

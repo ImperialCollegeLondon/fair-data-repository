@@ -35,13 +35,16 @@ class SymplecticClient:
     NAMESPACE_URI = NAMESPACE_URI
     api_qname = partial(etree.QName, NAMESPACE_URI)
 
-    def __init__(self, api_url, api_key):
+    def __init__(self, api_url, api_key, auth_header_name="Subscription-Key"):
         """Initialize the Symplectic client."""
         self.api_url = api_url
         self.api_key = api_key
         self.headers = {
             "Content-Type": "text/xml",
-            "Subscription-Key": self.api_key,
+            auth_header_name: self.api_key,
+            # set custom User-Agent as in deployment the azure web application
+            # firewall covering the Symplectic APIM doesn't like the requests one
+            "User-Agent": "Helix",
         }
 
     def add_doi_subtree(self, parent_element, doi_type, doi):

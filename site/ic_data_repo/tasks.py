@@ -84,6 +84,7 @@ def export_record_to_symplectic(record) -> None:
     client = SymplecticClient(
         current_app.config["SYMPLECTIC_API_URL"],
         current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"],
+        current_app.config["SYMPLECTIC_API_AUTH_HEADER"],
     )
     object_id = client.create_record(record, current_app.config["DATACITE_PREFIX"])
 

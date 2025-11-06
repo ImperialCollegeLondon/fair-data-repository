@@ -209,8 +209,9 @@ class SiteMetadataExt:
 
     def init_service(self, app):
         """Initialize service."""
-        cfg = SiteMetadataServiceConfig.build(app)
-        cfg.records_service = current_rdm_records.records_service
+        cfg = SiteMetadataServiceConfig()
+
+        cfg._get_records_service = lambda: current_rdm_records.records_service
         cfg.site_metadata_attr = app.config["IC_SITE_METADATA_ATTR"]
 
         if not getattr(cfg, "supported_formats", None):
@@ -225,9 +226,13 @@ class SiteMetadataExt:
         if runtime_formats:
             cfg.supported_formats.update(runtime_formats)
 
-        rdm_cfg = app.config["RDM_RECORDS_SERVICE_CONFIG"]
-        if MetadataIndexComponent not in rdm_cfg.components:
-            rdm_cfg.components.append(MetadataIndexComponent)
+        @app.before_request
+        def register_component():
+            rdm_cfg = current_rdm_records.records_service.config
+            if MetadataIndexComponent not in rdm_cfg.components:
+                rdm_cfg.components.append(MetadataIndexComponent)
+            # Remove this handler after first execution
+            app.before_request_funcs[None].remove(register_component)
 
         self.service = SiteMetadataService(cfg)
 

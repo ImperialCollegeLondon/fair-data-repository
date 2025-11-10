@@ -38,21 +38,27 @@ class SiteMetadataResource(Resource):
         ]
 
     @response_handler()
-    def upload_validate(self, pid_value, fmt):
-        """Upload and validate metadata file.
+    def upload_validate(self):
+        """Upload and validate metadata file for a record."""
+        # Extract URL parameters from view_args
+        pid_value = request.view_args.get("pid_value")
+        fmt = request.view_args.get("fmt")
 
-        Supports per-format validators, including:
-        - 'json' via Marshmallow (see supported_formats in service config)
-        - 'jsonld' via JSON Schema
-        """
+        # Get the uploaded file
         if "file" not in request.files:
-            return {"message": "Missing file field 'file'."}, 400
-        f = request.files["file"]
+            raise HTTPJSONException(
+                code=400,
+                description="No file provided in request.",
+            )
+
+        file = request.files["file"]
+
+        # Call the service
         result = self.service.upload_and_validate(
-            g.identity,
-            pid_value,
-            fmt,
-            f.stream,
-            f.filename,
+            identity=g.identity,
+            pid_value=pid_value,
+            fmt=fmt,
+            file=file,
         )
+
         return result.to_dict(), 200

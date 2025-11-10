@@ -261,6 +261,7 @@ OAUTHCLIENT_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 ENABLE_SYPLECTIC_SEARCH = False
 APP_RDM_DEPOSIT_FORM_TEMPLATE = "ic_data_repo/deposit.html"
 POLICY_DOCUMENTS_URL = "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/imperial-policy/"  # noqa: E501
+DATA_DEPOSIT_AGREEMENT_URL = "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/data-deposit-agreement/"  # noqa: E501
 
 
 TOTAL_RECORD_STORAGE_LIMIT_BYTES = 10e9

@@ -4,6 +4,7 @@
 // Invenio App RDM is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
+import React from "react";
 import { Component } from "react";
 import { HiddenField } from "../../ic_data_repo/HiddenField";
 import { OptionalRoleCreatibutorsField } from "../../ic_data_repo/OptionalRoleCreatibutors";
@@ -20,9 +21,56 @@ import { ConditionalDeleteButton } from "../../ic_data_repo/ConditionalDeleteBut
 import { ConditionalAccessRightField } from "../../ic_data_repo/ConditionalAccessRightField";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
-  helpText: "The main individuals or institutions involved in creating the data set.",
+  helpText:
+    "The main individuals or institutions involved in creating the data set.",
   includeRole: false,
 });
+const DataDepositAgreement = ({ url }) => {
+  const safeUrl = validateHttpUrl(url);
+  return (
+    <>
+      <p>
+        By publishing, you agree to our{" "}
+        {safeUrl ? (
+          <a href={safeUrl} target="_blank" rel="noopener noreferrer nofollow">
+            data deposit agreement
+          </a>
+        ) : (
+          "data deposit agreement"
+        )}
+        .
+      </p>
+    </>
+  );
+};
+
+// Strict allowlist validator for http/https URLs
+const validateHttpUrl = (value) => {
+  if (typeof value !== "string") return "";
+  const s = value.trim();
+  if (!s) return "";
+  try {
+    const u = new URL(s, window.location.origin);
+    const proto = (u.protocol || "").toLowerCase();
+    return proto === "http:" || proto === "https:" ? u.toString() : "";
+  } catch {
+    return "";
+  }
+};
+
+// Helper to read the URL from the hidden input (value may be JSON-encoded)
+const getDepositAgreementURL = () => {
+  const el = document.querySelector('input[name="data_deposit_agreement_url"]');
+  if (!el) return "";
+  let raw = el.value;
+  try {
+    const parsed = JSON.parse(el.value);
+    raw = typeof parsed === "string" ? parsed : "";
+  } catch {
+    // non-JSON string is fine; use as-is
+  }
+  return validateHttpUrl(raw);
+};
 
 const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText:
@@ -45,10 +93,11 @@ const parameters = {
     {
       fieldPath: "acceptDepositAgreement",
       text: i18next.t(
-        "This deposit meets the requirements of the Data Deposit Agreement.",
+        "This deposit meets the requirements of the Data Deposit Agreement. Please see the link below for more information."
       ),
     },
   ],
+  afterContent: () => <DataDepositAgreement url={getDepositAgreementURL()} />,
 };
 const SubmitReviewModalComponent = parametrize(SubmitReviewModal, parameters);
 

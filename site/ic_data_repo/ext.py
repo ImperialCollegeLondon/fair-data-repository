@@ -6,7 +6,6 @@ from flask import g
 from flask_login import user_logged_in
 from ic_data_repo.site_metadata.resources.config import SiteMetadataResourceConfig
 from ic_data_repo.site_metadata.resources.resource import SiteMetadataResource
-from ic_data_repo.site_metadata.services.components import MetadataIndexComponent
 from ic_data_repo.site_metadata.services.config import SiteMetadataServiceConfig
 from ic_data_repo.site_metadata.services.schema import (
     JSONMetadataSchema,
@@ -225,14 +224,6 @@ class SiteMetadataExt:
         runtime_formats = app.config.get("IC_SITE_METADATA_FORMATS")
         if runtime_formats:
             cfg.supported_formats.update(runtime_formats)
-
-        @app.before_request
-        def register_component():
-            rdm_cfg = current_rdm_records.records_service.config
-            if MetadataIndexComponent not in rdm_cfg.components:
-                rdm_cfg.components.append(MetadataIndexComponent)
-            # Remove this handler after first execution
-            app.before_request_funcs[None].remove(register_component)
 
         self.service = SiteMetadataService(cfg)
 

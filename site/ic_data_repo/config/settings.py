@@ -22,6 +22,7 @@ from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import SymplecticComponent
+from ..site_metadata.services.components import MetadataIndexComponent
 from .custom_fields import *  # noqa: F401,F403
 from .utils import get_user_form_default
 
@@ -245,7 +246,10 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
-RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [SymplecticComponent]
+RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [
+    SymplecticComponent,
+    MetadataIndexComponent,
+]
 
 VOCABULARIES_DATASTREAM_WRITERS["affiliations-service"] = AffiliationsWriter
 VOCABULARIES_DATASTREAM_READERS["stream-yaml"] = StreamingYamlSequenceReader

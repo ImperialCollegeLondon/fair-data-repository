@@ -19,6 +19,21 @@ class SiteMetadataService(Service):
         """Require permission for action."""
         self.require_permission(action, identity, **kwargs)
 
+    def index(self, identity, record):
+        """Index metadata files for a published record.
+
+        This method is called by the RDMMetadataIndexComponent
+        when a record is published.
+
+        Args:
+            identity: The identity performing the action
+            record: The published record with metadata files
+        """
+        # Call the index method on all components
+        for component in self.components:
+            if hasattr(component, "index"):
+                component.index(identity, record=record)
+
     @unit_of_work()
     def upload_and_validate(
         self, identity, record_id, fmt, file_stream, filename, uow=None

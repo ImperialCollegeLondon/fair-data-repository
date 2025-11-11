@@ -2,6 +2,7 @@
 
 from invenio_records_resources.services import ServiceConfig
 
+from .components import MetadataIndexComponent
 from .permissions import SiteMetadataPermissionPolicy
 from .result_items import MetadataValidationResult
 from .schema import JSONMetadataSchema, MarshmallowValidator
@@ -12,6 +13,9 @@ class SiteMetadataServiceConfig(ServiceConfig):
 
     permission_policy_cls = SiteMetadataPermissionPolicy
     result_item_cls = MetadataValidationResult
+
+    # Add the metadata indexing component
+    components = [MetadataIndexComponent]
 
     # Inject the record (draft) service externally (e.g. rdm-records)
     _get_records_service = None

@@ -8,10 +8,14 @@ from .errors import MetadataFileNotFoundError
 
 
 class MetadataIndexComponent(ServiceComponent):
-    """On publish: read attached metadata file, parse again, index."""
+    """Component for SiteMetadataService: handles indexing of metadata files."""
 
-    def publish(self, identity, record=None, **kwargs):
-        """Index metadata on publish."""
+    def index(self, identity, record=None, **kwargs):
+        """Index metadata files for a published record.
+
+        This method is intended to be called by the RDMRecordService
+        via the RDMMetadataIndexComponent.
+        """
         service = self.service
         cfg = service.config
         attr = cfg.site_metadata_attr

@@ -4,6 +4,26 @@ from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import pytest
+from werkzeug.datastructures import FileStorage
+
+
+@pytest.fixture
+def metadata():
+    """Fixture to provide test metadata for records."""
+    return {
+        "title": "Test Record",
+        "publication_date": "2023-01-01",
+        "resource_type": {"id": "dataset"},
+        "creators": [
+            {
+                "person_or_org": {
+                    "type": "personal",
+                    "family_name": "Doe",
+                    "given_name": "John",
+                }
+            }
+        ],
+    }
 
 
 @pytest.fixture
@@ -14,7 +34,11 @@ def mock_json_metadata_file():
         if content is None:
             content = b'{"name": "Test Dataset", "description": "A test dataset", "version": "1.0", "type": "dataset"}'  # noqa: E501
 
-        return BytesIO(content)
+        return FileStorage(
+            stream=BytesIO(content),
+            filename="metadata.json",
+            content_type="application/json",
+        )
 
     return _create_file
 
@@ -37,10 +61,9 @@ def test_upload_validate_json_metadata(client, api_headers, mock_json_metadata_f
         }
         mock_upload.return_value = mock_result
 
-        # Remove Content-Type from headers to let Flask set it for multipart
         headers = {k: v for k, v in api_headers.items() if k != "Content-Type"}
 
-        data = {"file": (mock_json_metadata_file(), "metadata.json")}
+        data = {"file": mock_json_metadata_file()}
         response = client.post(
             f"/records/{pid_value}/metadata/{fmt}",
             data=data,

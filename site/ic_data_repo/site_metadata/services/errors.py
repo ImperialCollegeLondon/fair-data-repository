@@ -6,7 +6,7 @@ class SiteMetadataError(Exception):
 
 
 class UnsupportedFormatError(SiteMetadataError):
-    """Unsupported metadata format error."""
+    """Exception raised when an unsupported metadata format is requested."""
 
     def __init__(self, fmt):
         """Constructor."""
@@ -22,10 +22,11 @@ class MetadataValidationError(SiteMetadataError):
         super().__init__(f"Validation failed for '{fmt}'")
         self.fmt = fmt
         self.errors = errors
+        super().__init__(f"Metadata validation failed for format '{fmt}': {errors}")
 
 
 class MetadataFileNotFoundError(SiteMetadataError):
-    """Metadata file not found error."""
+    """Exception raised when a metadata file is not found."""
 
     def __init__(self, file_key):
         """Constructor."""

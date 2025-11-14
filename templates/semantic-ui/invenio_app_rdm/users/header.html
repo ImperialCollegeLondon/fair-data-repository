@@ -22,7 +22,7 @@ License; see LICENSE file for more details. #}
         </div>
         {% if active_dashboard_menu_item == "uploads" %}
             {% if_user_can "create" %}
-            <a class="ui tiny button positive left labeled icon m-0" href="/uploads/new?community=icl">
+            <a class="ui tiny button positive left labeled icon m-0" href="/uploads/new">
                 <i class="upload icon" aria-hidden="true"></i>
                 {{ _('New upload') }}
             {% end_if_user_can %}

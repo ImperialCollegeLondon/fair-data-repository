@@ -182,3 +182,8 @@
   name: The Faraday Institution
   title:
     en: The Faraday Institution
+- country: GB
+  id: industry
+  name: Industry
+  title:
+    en: Industry

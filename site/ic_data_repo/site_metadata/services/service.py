@@ -17,7 +17,7 @@ class SiteMetadataService(Service):
 
     def _require(self, action, identity, **kwargs):
         """Require permission for action."""
-        self.require_permission(action, identity, **kwargs)
+        self.require_permission(identity, action, **kwargs)
 
     def index(self, identity, record):
         """Index metadata files for a published record.
@@ -35,9 +35,7 @@ class SiteMetadataService(Service):
                 component.index(identity, record=record)
 
     @unit_of_work()
-    def upload_and_validate(
-        self, identity, record_id, fmt, file_stream, filename, uow=None
-    ):
+    def upload_and_validate(self, identity, record_id, fmt, file, uow=None):
         """Upload and validate metadata file for a draft record."""
         self._require("upload_validate", identity, record_id=record_id, format=fmt)
 
@@ -48,7 +46,7 @@ class SiteMetadataService(Service):
         draft_item = records_service.read_draft(identity, record_id)
         draft = draft_item._record
 
-        file_key = f"metadata-{fmt}{self._infer_ext(filename)}"
+        file_key = f"metadata-{fmt}{self._infer_ext(file.name)}"
         files = draft.files
         if file_key in files:
             obj = files.get(file_key).object_version
@@ -57,7 +55,7 @@ class SiteMetadataService(Service):
 
         # Store file content
         with obj.file.storage().open("wb") as fp:
-            chunk = file_stream.read()
+            chunk = file.stream.read()
             fp.write(chunk)
 
         # Validate

@@ -56,7 +56,7 @@ class SiteMetadataResource(Resource):
         # Call the service
         result = self.service.upload_and_validate(
             identity=g.identity,
-            pid_value=pid_value,
+            record_id=pid_value,
             fmt=fmt,
             file=file,
         )

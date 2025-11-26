@@ -3,6 +3,8 @@
 from io import BytesIO
 
 import pytest
+from invenio_access.permissions import system_identity
+from invenio_rdm_records.proxies import current_rdm_records_service
 from werkzeug.datastructures import FileStorage
 
 
@@ -63,4 +65,11 @@ def test_upload_validate_json_metadata(
     assert response_data["format"] == fmt
     assert response_data["valid"] is True
     assert response_data["errors"] == []
-    assert response_data["file_key"] == "metadata-json.json"
+    assert response_data["file_key"] == "metadata.json"
+
+    result = current_rdm_records_service.draft_files.list_files(
+        system_identity, pid_value
+    )
+    files = list(result.entries)
+    assert len(files) == 1
+    assert "metadata.json" == files[0]["key"]

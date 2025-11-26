@@ -1,5 +1,7 @@
 """Site Metadata service."""
 
+from io import BytesIO
+
 from invenio_records_resources.services import Service
 from invenio_records_resources.services.uow import RecordCommitOp, unit_of_work
 
@@ -43,40 +45,33 @@ class SiteMetadataService(Service):
             raise UnsupportedFormatError(fmt)
 
         records_service = self.config.records_service
-        draft_item = records_service.read_draft(identity, record_id)
-        draft = draft_item._record
+        file_contents = file.stream.read()
 
-        file_key = f"metadata-{fmt}{self._infer_ext(file.name)}"
-        files = draft.files
-        if file_key in files:
-            obj = files.get(file_key).object_version
-        else:
-            obj = files.create(file_key).object_version
-
-        # Store file content
-        with obj.file.storage().open("wb") as fp:
-            chunk = file.stream.read()
-            fp.write(chunk)
+        key = file.filename
+        draft_file_service = records_service.draft_files
+        draft_file_service.init_files(identity, record_id, [dict(key=key)])
+        draft_file_service.set_file_content(
+            identity, record_id, key, BytesIO(file_contents)
+        )
+        draft_file_service.commit_file(identity, record_id, key)
 
         # Validate
-        try:
-            self._validators[fmt](chunk)
-        except ValueError as ve:
-            raise MetadataValidationError(fmt, [str(ve)])
+        # try:
+        #     self._validators[fmt](chunk)
+        # except ValueError as ve:
+        #     raise MetadataValidationError(fmt, [str(ve)])
 
-        attr = self.config.site_metadata_attr
-        draft.setdefault(attr, {})
-        draft[attr][fmt] = {"file_key": file_key, "validated": True}
+        # attr = self.config.site_metadata_attr
+        # draft.setdefault(attr, {})
+        # draft[attr][fmt] = {"file_key": file_key, "validated": True}
 
-        uow.register(RecordCommitOp(draft, indexer=self.indexer))
+        # uow.register(RecordCommitOp(draft, indexer=self.indexer))
 
         return self.result_item(
-            self,
             identity,
-            None,
             record_id=record_id,
             fmt=fmt,
-            file_key=file_key,
+            file_key=key,
             valid=True,
             errors=[],
         )

@@ -73,3 +73,27 @@ def test_upload_validate_json_metadata(
     files = list(result.entries)
     assert len(files) == 1
     assert "metadata.json" == files[0]["key"]
+
+
+def test_upload_unsupported_format(
+    client, api_headers, mock_json_metadata_file, create_test_record, location
+):
+    """Test uploading metadata with an unsupported format."""
+    pid_value = create_test_record
+    fmt = "xml"  # Assuming 'xml' is not supported
+
+    # Remove Content-Type header for multipart/form-data
+    headers = {k: v for k, v in api_headers.items() if k != "Content-Type"}
+
+    metadata = b"<metadata><name>Test Dataset</name><description>A test dataset</description><version>1.0</version><type>dataset</type></metadata>"  # noqa: E501
+    data = {"file": (BytesIO(metadata), "metadata.xml", "multipart/form-data")}
+
+    response = client.post(
+        f"/records/{pid_value}/metadata/{fmt}",
+        data=data,
+        headers=headers,
+    )
+
+    assert response.status_code == 400
+    response_data = response.get_json()
+    assert "Unsupported metadata format" in response_data["message"]

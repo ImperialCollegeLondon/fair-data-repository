@@ -88,6 +88,11 @@ RUN chgrp -R 0 ${WORKING_DIR} && \
 COPY site ./site
 COPY Pipfile Pipfile.lock ./
 RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --extra-pip-args="--no-cache-dir"
+ENV VIRTUAL_ENV_PATH=${WORKING_DIR}/src/.venv
+ENV PATH="$VIRTUAL_ENV_PATH/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONNOUSERSITE=1
 
 COPY ./docker/uwsgi/ ${INVENIO_INSTANCE_PATH}
 COPY ./invenio.cfg ${INVENIO_INSTANCE_PATH}
@@ -98,12 +103,8 @@ COPY ./ .
 
 RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
     cp -r ./assets/. ${INVENIO_INSTANCE_PATH}/assets/ && \
-    /opt/invenio/src/.venv/bin/invenio collect --verbose  && \
-    /opt/invenio/src/.venv/bin/invenio webpack buildall && \
+    invenio collect --verbose  && \
+    invenio webpack buildall && \
     npm cache clean --force
 
 RUN chown -R invenio test_data/ ${INVENIO_INSTANCE_PATH}/app_data/
-COPY ./docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-
-RUN chmod +x /usr/local/bin/entrypoint.sh
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

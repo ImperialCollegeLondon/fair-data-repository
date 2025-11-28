@@ -3,9 +3,9 @@
 from io import BytesIO
 
 from invenio_records_resources.services import Service
-from invenio_records_resources.services.uow import RecordCommitOp, unit_of_work
+from invenio_records_resources.services.uow import unit_of_work
 
-from .errors import MetadataValidationError, UnsupportedFormatError
+from .errors import UnsupportedFormatError
 from .schema import build_validators
 
 
@@ -55,17 +55,17 @@ class SiteMetadataService(Service):
         )
         draft_file_service.commit_file(identity, record_id, key)
 
-        # Validate
-        # try:
-        #     self._validators[fmt](chunk)
-        # except ValueError as ve:
-        #     raise MetadataValidationError(fmt, [str(ve)])
-
-        # attr = self.config.site_metadata_attr
-        # draft.setdefault(attr, {})
-        # draft[attr][fmt] = {"file_key": file_key, "validated": True}
-
-        # uow.register(RecordCommitOp(draft, indexer=self.indexer))
+        try:
+            self._validators[fmt](file_contents)
+        except ValueError as e:
+            return self.result_item(
+                identity,
+                record_id=record_id,
+                fmt=fmt,
+                file_key=key,
+                valid=False,
+                errors=[str(e)],
+            )
 
         return self.result_item(
             identity,

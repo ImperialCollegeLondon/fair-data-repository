@@ -78,16 +78,16 @@ MIT License; see LICENSE file for more details. #} {%- block footer_top %}
           <div class="ui right aligned footer__info">
             <h3 class="sr-only">Site Information</h3>
             <ul class="footer__meta">
-              <li><a href="/">Support</a></li>
+              <li><a href="mailto:{{ config.get('SUPPORT_CONTACT_EMAIL') }}">Support</a></li>
               <li>
                 <a
-                  href="https://www.imperial.ac.uk/about-the-site/accessibility/helix/"
+                  href="{{ config.get('ACCESSIBILITY_STATEMENT_URL') }}"
                   >Accessibility</a
                 >
               </li>
               <li>
                 <a
-                  href="https://www.imperial.ac.uk/about-the-site/use-of-cookies/"
+                  href="{{ config.get('COOKIE_STATEMENT_URL') }}"
                   >Use of cookies</a
                 >
               </li>

@@ -51,7 +51,7 @@ def test_upload_validate_json_metadata(
     headers = {k: v for k, v in api_headers.items() if k != "Content-Type"}
 
     metadata = b'{"name": "Test Dataset", "description": "A test dataset", "version": "1.0", "type": "dataset"}'  # noqa: E501
-    data = {"file": (BytesIO(metadata), "metadata.json", "multipart/form-data")}
+    data = {"file": (BytesIO(metadata), "metadata.json")}
 
     response = client.post(
         f"/records/{pid_value}/metadata/{fmt}",
@@ -75,18 +75,55 @@ def test_upload_validate_json_metadata(
     assert "metadata.json" == files[0]["key"]
 
 
+def test_upload_invalid_json_metadata(
+    client, api_headers, create_test_record, location
+):
+    """Test uploading invalid JSON metadata returns validation errors."""
+    pid_value = create_test_record
+    fmt = "json"
+
+    headers = {k: v for k, v in api_headers.items() if k != "Content-Type"}
+
+    invalid_metadata = b'{"name": "Test Dataset", invalid json}'
+
+    data = {"file": (BytesIO(invalid_metadata), "metadata.json")}
+
+    response = client.post(
+        f"/records/{pid_value}/metadata/{fmt}",
+        data=data,
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    response_data = response.get_json()
+    assert response_data["record_id"] == pid_value
+    assert response_data["format"] == fmt
+    assert response_data["valid"] is False
+    assert isinstance(response_data["errors"], list)
+    assert len(response_data["errors"]) > 0
+    assert response_data["file_key"] == "metadata.json"
+
+    # File should still be attached even if validation fails
+    result = current_rdm_records_service.draft_files.list_files(
+        system_identity, pid_value
+    )
+    files = list(result.entries)
+    assert len(files) == 1
+    assert files[0]["key"] == "metadata.json"
+
+
 def test_upload_unsupported_format(
     client, api_headers, mock_json_metadata_file, create_test_record, location
 ):
     """Test uploading metadata with an unsupported format."""
     pid_value = create_test_record
-    fmt = "xml"  # Assuming 'xml' is not supported
+    fmt = "xml"
 
     # Remove Content-Type header for multipart/form-data
     headers = {k: v for k, v in api_headers.items() if k != "Content-Type"}
 
-    metadata = b"<metadata><name>Test Dataset</name><description>A test dataset</description><version>1.0</version><type>dataset</type></metadata>"  # noqa: E501
-    data = {"file": (BytesIO(metadata), "metadata.xml", "multipart/form-data")}
+    metadata = b"<metadata><name>Test Dataset</name></metadata>"
+    data = {"file": (BytesIO(metadata), "metadata.xml")}
 
     response = client.post(
         f"/records/{pid_value}/metadata/{fmt}",

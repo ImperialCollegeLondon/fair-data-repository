@@ -19,6 +19,7 @@ import { SubmitReviewModal } from "@js/invenio_rdm_records";
 import { ConditionalCardDepositStatusBox } from "../../ic_data_repo/ConditionalCardDepositStatusBox";
 import { ConditionalDeleteButton } from "../../ic_data_repo/ConditionalDeleteButton";
 import { ConditionalAccessRightField } from "../../ic_data_repo/ConditionalAccessRightField";
+import { FileListContainer } from "../../ic_data_repo/FileListContainer";
 
 const CreatorsField = parametrize(OptionalRoleCreatibutorsField, {
   helpText:
@@ -122,4 +123,5 @@ export const overriddenComponents = {
     ConditionalCardDepositStatusBox,
   "InvenioAppRdm.Deposit.CardDeleteButton.container": ConditionalDeleteButton,
   "InvenioAppRdm.Deposit.AccessRightField.container": ConditionalAccessRightField,
+  "ReactInvenioDeposit.FileUploaderToolbar.FileList.container": FileListContainer,
 };

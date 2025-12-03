@@ -12,4 +12,3 @@
 !assets
 !test_data
 test_data/10.14469_hpc_*
-!docker/entrypoint.sh

@@ -59,7 +59,7 @@ jobs:
           --set invenio.datacite.prefix=${{ vars.DATACITE_PREFIX }} \
           --set-string invenio.datacite.testMode=${{ vars.DATACITE_TEST_MODE }} \
           --set-string 'invenio.extraConfig.INVENIO_MAIL_USERNAME=${{ vars.EMAIL_USERNAME }}' \
-          --set invenio.extra_secrets.icl_secrets.data.INVENIO_MAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
+          --set-string 'invenio.extra_secrets.icl_secrets.data.INVENIO_MAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}' \
           --set persistence.size=${{ vars.FILES_STORAGE_SIZE }} \
           --set-string invenio.extraConfig.INVENIO_MAIL_USE_TLS=True \
           --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=${{ vars.EMAIL_USERNAME }} \

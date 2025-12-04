@@ -2,11 +2,6 @@
 .ui.basic.buttons .button,
 .ui.basic.button {
     background-color: @defaultButtonBackgroundColor;
-    &:not(.search),
-    &:not(#skip-to-main){
-        border-style: solid !important;
-        border-width: 1px !important;
-    }
     border-color: @defaultButtonBorderColor;
     color: @defaultButtonTextColor;
     &:hover {
@@ -93,31 +88,38 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	color: @black;
-	background: @whiteSmoke;
+	color: @white;
+	background: @black;
 	border: none;
 	font-weight: 400;
 	text-decoration: underline;
 	text-decoration-thickness: 1px;
-	transform: translateY(-100%);
+	transform: translateY(-110%);
 	transition: transform 0.25s ease-out;
 	z-index: 100;
 
-	&:focus {
+	&:focus,
+	&:hover {
 		position: absolute;
 		left: 0px;
 		transform: none;
-		background: @whiteSmoke;
+		background: @primaryColor;
+		color: @white;
 		outline: 0;
 	}
 }
 
-.ui.button.search {
-    border: none;
+.ui.search.button {
+    background-color: @white;
+    border: 1px solid @black;
+}
+
+#frontpage-search-bar > form > button {
+        background-color: black;
+        display: flex;
+        align-items: flex-start;
     &:hover {
-        i.icon.search {
-            color: @white;
-        }
+        background-color: @primaryColor;
     }
 }
 
@@ -137,5 +139,13 @@ div.ui.card.access-right .ui.two.buttons .ui.active.button.positive {
         background-color: @black !important;
         border: 1px @black !important;
         color: @white !important;
+    }
+}
+
+.ui.button.symplectic-btn{
+    height: 75px;
+    margin: .5em .25em 0 0;
+    &:hover {
+        background: @searchButtonColorHover
     }
 }

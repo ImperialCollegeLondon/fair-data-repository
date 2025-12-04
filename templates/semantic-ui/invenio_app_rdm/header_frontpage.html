@@ -7,44 +7,53 @@
     under the terms of the MIT License; see LICENSE file for more details.
 #}
 
-{%- extends config.THEME_HEADER_TEMPLATE %}
-
-{#- Remove search field from top bar on frontpage #}
-{%- block navbar_search %}{% endblock %}
-
-{%- block navbar %}
-{{ super() }}
-
 {%- block frontpage_search %}
-<div id="frontpage-search-bar" class="ui container fluid frontpage-header">
-  <div class="ui container grid rel-mt-2">
-    <div class="row">
-      <div class="sixteen wide column center aligned">
-        {%- block frontpage_title %}
-        <h1 class="ui center aligned header inverted">
-          {{ _(config.THEME_FRONTPAGE_TITLE) }}
-        </h1>
-      </div>
-    </div>
-      {%- endblock frontpage_title %}
-      {%- block frontpage_form %}
-      <div class="row">
-          <div class="sixteen wide mobile four wide computer column"></div>
-          <div class="sixteen wide mobile eight wide computer column center aligned">
-            <form action="{{ url_for('invenio_search_ui.search') }}" class="ui form" role="search">
-              <div class="ui fluid big action input frontpage-header--search">
-                <input type="text" name="q" class="form-control" aria-label="{{ _('Search') }}" placeholder="{{ _('Search') }}">
-                <button type="submit" class="ui icon search button" aria-label="{{ _('Search') }}">
-                  <i class="search icon"></i>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-        <div class="ui divider hidden"></div>
-        {%- endblock frontpage_form %}
-  </div>
-</div>
-{%- endblock frontpage_search %}
 
-{% endblock %}
+    <div class="hero">
+        <div class="ui container frontpage-hero">
+            <div class="ui grid rel-mt-2">
+                <div class="eleven wide computer sixteen wide tablet column tagline-container">
+                    {%- block frontpage_title %}
+                        <h1 class="ui aligned left">
+                            {{ _(config.THEME_FRONTPAGE_TITLE) }}
+                        </h1>
+                        <h2 class="ui aligned left">
+                            {{ _(config.THEME_FRONTPAGE_SUBTITLE) }}
+                        </h2>
+                        </div>
+                        </div>
+                   {%- endblock frontpage_title %}
+        </div>
+    </div>
+    {%- block frontpage_form %}
+        <div class="ui stackable grid container rel-mt-2">
+
+            <div id="frontpage-search-bar"  class="eleven wide computer sixteen wide tablet column search-container">
+                <form action="{{ url_for('invenio_search_ui.search') }}"
+                    class="ui form big left action input frontpage-header--search" role="search">
+                    <h2 class="search--label">Search records</h2>
+                    <input type="text" name="q" class="form-control" aria-label="{{ _('Search') }}"
+                        placeholder="{{ _('Search') }}">
+                    <button type="submit" class="ui icon search button" aria-label="{{ _('Search') }}">
+                        Search <i class="angle right icon"></i>
+                    </button>
+                </form>
+
+            </div>
+            {# Display low privilege information #}
+            {% if_user_can "create" %}
+            {% else %}
+              {% if current_user.is_authenticated %}
+                <div class="eleven wide computer sixteen wide tablet column">
+                <div class="ui container center aligned segment">
+                <p class="ui header">
+                    You have read-only access. To request permission to deposit data, please contact <a href="mailto:{{config.SUPPORT_CONTACT_EMAIL}}">{{config.SUPPORT_CONTACT_EMAIL}}</a>.
+                </p>
+                </div>
+                </div>
+              {%endif%}
+            {% end_if_user_can %}
+
+        </div>
+    {%- endblock frontpage_form %}
+{%- endblock frontpage_search %}

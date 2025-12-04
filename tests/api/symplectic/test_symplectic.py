@@ -1,0 +1,439 @@
+"""Tests for the Symplectic API client."""
+
+from unittest.mock import MagicMock, patch
+
+import pytest
+import requests
+from ic_data_repo.symplectic_interface import (
+    MultipleAwardsFoundError,
+    NoAwardsFoundError,
+    SymplecticClient,
+)
+from lxml import etree
+
+DUMMY_URL = "https://api.symplectic.example.com"
+DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
+DATACITE_PREFIX = "10.5281/"
+
+
+@pytest.fixture
+def client():
+    """Create a Symplectic client instance with mocked environment variables."""
+    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY)
+
+
+@pytest.fixture
+def datacite_prefix():
+    """Provide a dummy datacite prefix for testing."""
+    return DATACITE_PREFIX
+
+
+@pytest.fixture
+def sample_metadata():
+    """Provide sample metadata for testing."""
+    return {
+        "id": "test-12345",
+        "metadata": {
+            "title": "A title",
+            "creators": [
+                {
+                    "person_or_org": {
+                        "first_name": "John",
+                        "type": "personal",
+                        "family_name": "John",
+                    }
+                }
+            ],
+            "publisher": "Imperial College London",
+            "resource_type": {"id": "dataset"},
+            "publication_date": "2025-05-19",
+            "related_identifiers": [
+                {
+                    "scheme": "doi",
+                    "identifier": "10.5281/zenodo.783021",
+                    "relation_type": {"id": "ispublishedin"},
+                }
+            ],
+        },
+    }
+
+
+@pytest.fixture
+def minimal_metadata():
+    """Provide minimal metadata for testing."""
+    return {
+        "id": "test-12345",
+        "metadata": {
+            "title": "A title",
+            "creators": [
+                {
+                    "person_or_org": {
+                        "type": "personal",
+                        "family_name": "John",
+                    }
+                }
+            ],
+            "publisher": "Imperial College London",
+            "resource_type": {"id": "dataset"},
+            "publication_date": "2025-05-19",
+        },
+    }
+
+
+def test_client_initialization(client):
+    """Test that the client initializes with values from env."""
+    assert client.api_url == DUMMY_URL
+    assert client.api_key == DUMMY_SUBSCRIPTION_KEY
+    assert client.headers == {
+        "Content-Type": "text/xml",
+        "Subscription-Key": DUMMY_SUBSCRIPTION_KEY,
+        "User-Agent": "Helix",
+    }
+
+
+def test_add_doi_subtree(client):
+    """Test adding a DOI subtree to an XML element."""
+    parent = etree.Element("test-parent")
+
+    client.add_doi_subtree(parent, "c-validated-doi", "10.12345/test.67890")
+
+    field = parent.find(f"{{{client.NAMESPACE_URI}}}field")
+    assert field is not None
+    assert field.get("name") == "c-validated-doi"
+    assert field.get("type") == "text"
+
+    text = field.find(f"{{{client.NAMESPACE_URI}}}text")
+    assert text is not None
+    assert text.text == "10.12345/test.67890"
+
+    links = field.find(f"{{{client.NAMESPACE_URI}}}links")
+    assert links is not None
+
+    link_elements = links.findall(f"{{{client.NAMESPACE_URI}}}link")
+    assert len(link_elements) == 2
+
+    doi_link = link_elements[0]
+    assert doi_link.get("type") == "doi"
+    assert doi_link.get("href") == "https://doi.org/10.12345/test.67890"
+
+    altmetric_link = link_elements[1]
+    assert altmetric_link.get("type") == "altmetric"
+    assert (
+        altmetric_link.get("href")
+        == "https://www.altmetric.com/details.php?doi=10.12345/test.67890"
+    )
+
+
+def test_generate_record_xml(client, sample_metadata, datacite_prefix):
+    """Test generating XML with minimal metadata."""
+    xml = client.generate_record_xml(sample_metadata, datacite_prefix)
+    native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
+
+    title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
+    assert title_field is not None
+    assert title_field.find(f"{{{client.NAMESPACE_URI}}}text").text == "A title"
+
+    authors_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='authors']")
+    assert authors_field is not None
+    people = authors_field.find(f"{{{client.NAMESPACE_URI}}}people")
+    persons = people.findall(f"{{{client.NAMESPACE_URI}}}person")
+    assert len(persons) == 1
+    assert persons[0].find(f"{{{client.NAMESPACE_URI}}}last-name").text == "John"
+
+    # c-validated-doi from identifiers
+    validated_doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-validated-doi']"
+    )
+    assert validated_doi_field is not None
+    validated_doi_text = validated_doi_field.find(f"{{{client.NAMESPACE_URI}}}text")
+    assert validated_doi_text is not None
+    assert validated_doi_text.text.endswith(sample_metadata["id"])
+
+    # c-related-doi from related_identifiers
+    related_doi_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='c-related-doi']"
+    )
+    assert related_doi_field is not None
+    related_doi_text = related_doi_field.find(f"{{{client.NAMESPACE_URI}}}text")
+    assert related_doi_text is not None
+    assert related_doi_text.text == "10.5281/zenodo.783021"
+
+
+@patch("requests.put")
+def test_create_record_success(mock_put, client, sample_metadata, datacite_prefix):
+    """Test successful record creation by mocking the API response."""
+    mock_put.return_value.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+        <api:object id="12345"/>
+    </api:response>"""
+    client.create_record(sample_metadata, datacite_prefix)
+
+    expected_url = (
+        f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
+    )
+    mock_put.assert_called_once()
+    called_url = mock_put.call_args[0][0]
+    called_headers = mock_put.call_args[1]["headers"]
+    assert called_url == expected_url
+    assert called_headers == client.headers
+
+
+@patch("requests.put")
+def test_create_record_failure(mock_put, client, sample_metadata):
+    """Test record creation failure by mocking an unsuccessful API response."""
+    mock_put().raise_for_status.side_effect = requests.exceptions.HTTPError(
+        "400 Client Error", response=mock_put
+    )
+    mock_put.reset_mock()
+    with pytest.raises(requests.exceptions.HTTPError):
+        client.create_record(sample_metadata, datacite_prefix)
+    expected_url = (
+        f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
+    )
+    mock_put.assert_called_once()
+    called_url = mock_put.call_args[0][0]
+    called_headers = mock_put.call_args[1]["headers"]
+    assert called_url == expected_url
+    assert called_headers == client.headers
+
+
+@patch("requests.put")
+def test_create_record_minimal_metadata(
+    mock_put, client, minimal_metadata, datacite_prefix
+):
+    """Test successful record creation with minimal metadata."""
+    mock_put.return_value.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+        <api:object id="12345"/>
+    </api:response>"""
+    client.create_record(minimal_metadata, datacite_prefix)
+
+    expected_url = (
+        f"{client.api_url}/publication/records/manual/{minimal_metadata['id']}"
+    )
+    mock_put.assert_called_once()
+    called_url = mock_put.call_args[0][0]
+    called_headers = mock_put.call_args[1]["headers"]
+    assert called_url == expected_url
+    assert called_headers == client.headers
+
+
+def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
+    """Test generating XML with truly minimal metadata."""
+    xml = client.generate_record_xml(minimal_metadata, datacite_prefix)
+    native = xml.find(f"{{{client.NAMESPACE_URI}}}native")
+
+    title_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='title']")
+    assert title_field is not None
+    assert title_field.find(f"{{{client.NAMESPACE_URI}}}text").text == "A title"
+
+    authors_field = native.find(f".//{{{client.NAMESPACE_URI}}}field[@name='authors']")
+    assert authors_field is not None
+    people = authors_field.find(f"{{{client.NAMESPACE_URI}}}people")
+    persons = people.findall(f"{{{client.NAMESPACE_URI}}}person")
+    assert len(persons) == 1
+    person = persons[0]
+    assert person.find(f"{{{client.NAMESPACE_URI}}}last-name").text == "John"
+
+    first_names_element = person.find(f"{{{client.NAMESPACE_URI}}}first-names")
+    if first_names_element is not None:
+        assert first_names_element.text is None or first_names_element.text == ""
+
+    pub_date_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='publication-date']"
+    )
+    assert pub_date_field is not None
+    date_element = pub_date_field.find(f"{{{client.NAMESPACE_URI}}}date")
+    assert date_element is not None
+    assert date_element.find(f"{{{client.NAMESPACE_URI}}}day").text == "19"
+    assert date_element.find(f"{{{client.NAMESPACE_URI}}}month").text == "5"
+    assert date_element.find(f"{{{client.NAMESPACE_URI}}}year").text == "2025"
+
+    abstract_field = native.find(
+        f".//{{{client.NAMESPACE_URI}}}field[@name='abstract']"
+    )
+    assert abstract_field is None
+
+
+@patch("requests.get")
+def test_fetch_related_objects(mock_get, client):
+    """Test fetching related objects with a DOI."""
+    mock_response = MagicMock()
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="67890" category="publication"/>
+    </api:response>
+    """
+    mock_response.text = mock_response.content.decode("utf-8")
+    mock_response.raise_for_status.return_value = None
+    mock_get.return_value = mock_response
+
+    test_dois = ["10.5281/zenodo.123456"]
+    related_id = client.fetch_related_objects(test_dois)
+
+    assert related_id == ["67890"]
+    mock_get.assert_called_once()
+    assert "zenodo.123456" in mock_get.call_args[0][0]
+
+
+@patch("requests.post")
+def test_link_related_records(mock_post, client):
+    """Test linking related records."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_post.return_value = mock_response
+
+    from_id = "12345"
+    to_id = "67890"
+    type_id = 1
+    to_object_type = "publication"
+    client.link_related_records(from_id, to_id, type_id, to_object_type)
+
+    mock_post.assert_called_once()
+    called_url = mock_post.call_args[0][0]
+    called_data = mock_post.call_args[1]["data"]
+    assert called_url == f"{client.api_url}/relationships"
+    assert f"{to_object_type}({from_id})" in called_data
+    assert f"{to_object_type}({to_id})" in called_data
+    assert "<type-id>1</type-id>" in called_data
+
+
+@patch("requests.get")
+def test_get_related_awards_success(mock_get, client):
+    """Test fetching a single related award successfully."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="award789" category="grant"/>
+    </api:response>
+    """
+    mock_get.return_value = mock_response
+
+    award_id = "award123"
+    award_type_id = "institution-reference"
+
+    result = client.get_related_awards(award_id, award_type_id)
+
+    assert result == "award789"
+    mock_get.assert_called_once()
+    assert f'query="{award_type_id}"="{award_id}"' in mock_get.call_args[0][0]
+
+
+@patch("requests.get")
+def test_get_related_awards_no_results(mock_get, client):
+    """Test fetching related awards when none are found."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+    </api:response>
+    """
+    mock_get.return_value = mock_response
+
+    award_id = "award123"
+    award_type_id = "institution-reference"
+
+    with pytest.raises(
+        NoAwardsFoundError, match=f"No awards found for {award_type_id}='{award_id}'"
+    ):
+        client.get_related_awards(award_id, award_type_id)
+
+
+@patch("requests.get")
+def test_get_related_awards_multiple_results(mock_get, client):
+    """Test fetching related awards when multiple are found."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+      <api:object id="award123" category="grant"/>
+      <api:object id="award456" category="grant"/>
+    </api:response>
+    """
+    mock_get.return_value = mock_response
+
+    award_id = "award123"
+    award_type_id = "institution-reference"
+
+    with pytest.raises(MultipleAwardsFoundError, match="Multiple awards for"):
+        client.get_related_awards(award_id, award_type_id)
+
+
+@patch("requests.get")
+def test_search_symplectic(mock_get, client):
+    """Test searching Symplectic for records matching DOI and title keyword."""
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    # Added third object without a DOI (should be excluded)
+    mock_response.content = b"""
+    <api:response xmlns:api="http://www.symplectic.co.uk/publications/api">
+        <api:object id="12345" category="publication">
+            <api:record>
+                <api:native>
+                    <api:field name="title" type="text">
+                        <api:text>Test Title</api:text>
+                    </api:field>
+                    <api:field name="doi" type="text">
+                        <api:text>10.1234/test-doi</api:text>
+                    </api:field>
+                </api:native>
+            </api:record>
+        </api:object>
+        <api:object id="67890" category="publication">
+            <api:record>
+                <api:native>
+                    <api:field name="title" type="text">
+                        <api:text>Another Test Title</api:text>
+                    </api:field>
+                    <api:field name="doi" type="text">
+                        <api:text>10.5678/another-doi</api:text>
+                    </api:field>
+                </api:native>
+            </api:record>
+        </api:object>
+        <api:object id="99999" category="publication">
+            <api:record>
+                <api:native>
+                    <api:field name="title" type="text">
+                        <api:text>Title Without DOI</api:text>
+                    </api:field>
+                </api:native>
+            </api:record>
+        </api:object>
+    </api:response>
+    """
+    mock_get.return_value = mock_response
+
+    # DOI search (new search_type: "doi")
+    doi_query = "10.1234/test-doi"
+    results = client.search_symplectic(doi_query, "title-keywords")
+
+    # Only two results because the third lacks a DOI
+    assert len(results) == 2
+    assert results[0] == {
+        "id": "12345",
+        "title": "Test Title",
+        "doi": "10.1234/test-doi",
+    }
+    assert results[1] == {
+        "id": "67890",
+        "title": "Another Test Title",
+        "doi": "10.5678/another-doi",
+    }
+
+    mock_get.assert_called_once()
+    called_url = mock_get.call_args[0][0]
+    assert f'query=title-keywords="{doi_query}"' in called_url
+    assert called_url.startswith(client.api_url)
+
+    # Title keyword search (new search_type: "title_keyword")
+    mock_get.reset_mock()
+    mock_get.return_value = mock_response
+    title_query = "cancer genomics"
+    results_title = client.search_symplectic(title_query, "first-author-name")
+    assert len(results_title) == 2
+    mock_get.assert_called_once()
+    called_url = mock_get.call_args[0][0]
+    assert f'query=first-author-name="{title_query}"' in called_url
+    assert called_url.startswith(client.api_url)

@@ -1,6 +1,9 @@
 # VS Code configuration files
 .vscode/
 
+# Intellij config files
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -77,6 +80,7 @@ data/.minio.sys
 
 # Celery
 celerybeat-schedule
+celerybeat-schedule.db
 
 # test datasets
 test_data/10.14469_hpc_*

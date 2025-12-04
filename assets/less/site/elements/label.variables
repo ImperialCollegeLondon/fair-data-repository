@@ -27,7 +27,7 @@
 
 @warningLabelColor: @warningColor;
 @warningBorderLabelColor: @warningColor;
-@warningTextLabelColor: @invertedTextColor;
+@warningTextLabelColor: @darkTextColor;
 
 
 /*--- Expired ---*/

@@ -9,6 +9,9 @@ subjects:
 names:
   pid-type: names
   data-file: vocabularies/names_empty.yaml
+licenses:
+  pid-type: lic
+  data-file: vocabularies/licenses.csv
 #licenses:
 #  pid-type: lic
 #  data-file: vocabularies/cc_licences.csv
@@ -23,3 +26,6 @@ affiliations:
     - id: ROR
       name: Research Organization Registry
       uri: "https://ror.org/"
+funders:
+  pid-type: fun
+  data-file: vocabularies/funders.yaml

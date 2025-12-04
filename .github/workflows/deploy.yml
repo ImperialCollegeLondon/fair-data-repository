@@ -1,0 +1,91 @@
+name: Deploy to AKS
+
+on:
+  workflow_call: # support calling workflow from another
+    inputs:
+      environment_name:
+        description: The name of the environment to deploy to
+        required: true
+        type: string
+      image_digest:
+        description: The tag of the Docker image to deploy
+        required: true
+        type: string
+  workflow_dispatch: # support manually running the workflow
+    inputs:
+      environment_name:
+        description: The name of the environment to deploy to
+        required: true
+        type: string
+      image_digest:
+        description: The digest of the image to deploy
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    runs-on: ${{ inputs.environment_name }}-deploy
+    environment: ${{ inputs.environment_name }} # determines values of secrets and env vars
+    steps:
+      - name: checkout the Helm charts to deploy our published instance
+        uses: actions/checkout@v4
+        with:
+          repository: ImperialCollegeLondon/helm-invenio
+          path: helm-invenio
+          ref: ${{ vars.HELM_CHART_REF }}
+      - name: Run helm
+        run: |
+          helm dependency build ${{ vars.CHART_PATH }}
+          helm upgrade ${{ vars.RELEASE_NAME }} ${{ vars.CHART_PATH }} \
+          -f ${{ vars.CHART_OVERRIDE_PATH }} \
+          -n invenio --install --create-namespace \
+          --timeout 15m \
+          --set invenio.extra_secrets.icl_secrets.data.INVENIO_SECRET_KEY="${{ secrets.INVENIO_SECRET_KEY }}" \
+          --set invenio.extra_secrets.icl_secrets.data.INVENIO_SECURITY_LOGIN_SALT="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
+          --set invenio.extra_secrets.icl_secrets.data.INVENIO_CSRF_SECRET_SALT="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \
+          --set invenio.extraConfig.ICL_OAUTH_CLIENT_ID=${{ vars.ICL_OAUTH_CLIENT_ID }} \
+          --set invenio.extra_secrets.icl_secrets.data.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
+          --set invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL=${{ vars.ICL_OAUTH_WELL_KNOWN_URL }} \
+          --set invenio.extra_secrets.rabbitmq_secrets.data.RABBITMQ_PASSWORD="${{ secrets.RABBITMQ_AUTH_PASSWORD }}" \
+          --set invenio.hostname=${{ vars.HOSTNAME }} \
+          --set image.digest=${{ inputs.image_digest }} \
+          --set invenio.datacite.password="${{ secrets.DATACITE_PASSWORD }}" \
+          --set invenio.datacite.username=${{ vars.DATACITE_USERNAME }} \
+          --set invenio.datacite.prefix=${{ vars.DATACITE_PREFIX }} \
+          --set-string invenio.datacite.testMode=${{ vars.DATACITE_TEST_MODE }} \
+          --set invenio.extraConfig.INVENIO_MAIL_USERNAME=${{ vars.EMAIL_USERNAME }} \
+          --set invenio.extra_secrets.icl_secrets.data.INVENIO_MAIL_PASSWORD="${{ secrets.EMAIL_PASSWORD }}" \
+          --set persistence.size=${{ vars.FILES_STORAGE_SIZE }} \
+          --set-string invenio.extraConfig.INVENIO_MAIL_USE_TLS=True \
+          --set-string invenio.extraConfig.INVENIO_MAIL_DEFAULT_SENDER=${{ vars.EMAIL_USERNAME }} \
+          --set worker.resources.requests.cpu=${{ vars.WORKER_REQUESTS_CPU }} \
+          --set worker.resources.requests.memory=${{ vars.WORKER_REQUESTS_MEMORY }} \
+          --set-string worker.resources.limits.cpu=${{ vars.WORKER_LIMITS_CPU }} \
+          --set worker.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }} \
+          --set workerBeat.resources.requests.cpu=${{ vars.WORKER_REQUESTS_CPU }} \
+          --set workerBeat.resources.requests.memory=${{ vars.WORKER_REQUESTS_MEMORY }} \
+          --set-string workerBeat.resources.limits.cpu=${{ vars.WORKER_LIMITS_CPU }} \
+          --set workerBeat.resources.limits.memory=${{ vars.WORKER_LIMITS_MEMORY }} \
+          --set postgresqlExternal.hostname=${{ vars.POSTGRES_HOSTNAME }} \
+          --set invenio.extra_secrets.database_secrets.data.POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+          --set rabbitmq.image.repository=bitnamilegacy/rabbitmq \
+          --set rabbitmq.volumePermissions.image.repository=bitnamilegacy/os-shell \
+          --set opensearch.image.repository=bitnamilegacy/opensearch \
+          --set opensearch.volumePermissions.image.repository=bitnamilegacy/os-shell \
+          --set opensearch.sysctlImage.repository=bitnamilegacy/os-shell \
+          --set opensearch.dashboards.image.repository=bitnamilegacy/opensearch-dashboards \
+          --set opensearch.snapshots.image.repository=bitnamilegacy/os-shell \
+          --set redis.image.repository=bitnamilegacy/redis \
+          --set redis.sentinel.image.repository=bitnamilegacy/redis-sentinel \
+          --set redis.metrics.image.repository=bitnamilegacy/redis-exporter \
+          --set redis.volumePermissions.image.repository=bitnamilegacy/os-shell \
+          --set redis.sysctl.image.repository=bitnamilegacy/os-shell \
+          --set invenio.extraConfig.INVENIO_TRUSTED_HOSTS=${{ vars.HOSTNAME }} \
+          --set invenio.extra_secrets.icl_secrets.data.SYMPLECTIC_API_SUBSCRIPTION_KEY="${{ secrets.SYMPLECTIC_API_SUBSCRIPTION_KEY }}" \
+          --set invenio.extraConfig.SYMPLECTIC_API_URL="${{ vars.SYMPLECTIC_API_URL }}" \
+          --set invenio.extraConfig.SYMPLECTIC_API_AUTH_HEADER="${{ vars.SYMPLECTIC_API_AUTH_HEADER }}"

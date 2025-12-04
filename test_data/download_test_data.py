@@ -1,4 +1,4 @@
-"""Script to download realistic test datasets for the Imperial Fair Data Repository.
+"""Script to download realistic test datasets for Helix.
 
 Should be run from the `test_data` directory. Does the following:
 
@@ -33,7 +33,7 @@ DATACITE_API_PATH = "https://api.datacite.org/dois/"
 
 
 if __name__ == "__main__":
-    with open("dois", "r") as f:
+    with open("dois") as f:
         dois = f.read().strip().split("\n")
 
     for doi in dois:

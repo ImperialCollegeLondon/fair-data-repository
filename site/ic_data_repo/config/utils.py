@@ -1,11 +1,14 @@
 """Utilities for settings."""
 
-from typing import Any, List
+from typing import Any
 
 from flask_login import current_user
 
+_ICL_ROR_ID = "041kmwe10"
+"""The ROR identifier for Imperial."""
 
-def get_user_form_default() -> List[dict[str, Any]]:
+
+def get_user_form_default() -> list[dict[str, Any]]:
     """Format the current user profile for the submission form.
 
     The default user profile schema has two string properties;
@@ -13,8 +16,6 @@ def get_user_form_default() -> List[dict[str, Any]]:
     have to come from the SSO.
     https://github.com/inveniosoftware/invenio-accounts/blob/master/invenio_accounts/profiles/schemas.py
     """
-    affiliations = []
-
     try:
         name = current_user.user_profile["full_name"]
         given_name = name.split(", ")[1]
@@ -22,8 +23,12 @@ def get_user_form_default() -> List[dict[str, Any]]:
     except KeyError:
         return []
 
-    if "affiliations" in current_user.user_profile:
-        affiliations.append({"name": current_user.user_profile["affiliations"]})
+    affiliations = []
+    if profile_affiliations := current_user.user_profile.get("affiliations"):
+        if profile_affiliations == "Imperial College London":
+            affiliations.append({"id": _ICL_ROR_ID})
+        else:
+            affiliations.append({"name": current_user.user_profile["affiliations"]})
 
     return [
         {

@@ -1,4 +1,4 @@
-"""Script to upload realistic test datasets for the Imperial FAIR Data repository.
+"""Script to upload realistic test datasets for Helix.
 
 usage: pipenv run python create_test_data_records.py COMMUNITY_ID
 
@@ -47,6 +47,8 @@ FILE_URI_REGEX = re.compile(
 IMPERIAL_COLLEGE_ROR = "041kmwe10"
 """ROR persistent identifier for Imperial College."""
 
+SUPPORTED_LICENSES = ["cc0-1.0", "cc-by-4.0"]
+
 
 def get_filename_from_scheme_uri(uri):
     """Get filename from b64 encoded URI."""
@@ -59,7 +61,7 @@ def get_orcid_from_person_metadata(metadata):
     return metadata["nameIdentifiers"][0]["nameIdentifier"].lstrip("https://orcid.org/")
 
 
-def datacite_to_invenio_schema(datacite):
+def datacite_to_invenio_schema(datacite, dart_id):
     """Convert datacite schema metadata to internal Invenio RDM Record schema."""
     data = datacite["data"]["attributes"]
     creator = data["creators"][0]
@@ -167,18 +169,26 @@ def datacite_to_invenio_schema(datacite):
             ],
             "rights": [
                 {
-                    "id": rights_meta.get("rightsIdentifier", "cc0-1.0").lower(),
+                    "id": (
+                        rights_id
+                        if (
+                            rights_id := rights_meta.get("rightsIdentifier", "").lower()
+                        )
+                        in SUPPORTED_LICENSES
+                        else "cc0-1.0"
+                    ),
                 }
                 for rights_meta in data["rightsList"]
             ],
         },
+        "custom_fields": {"imperial:dart_id": dart_id},
     }
 
 
-def create_draft_record(datacite, identity):
+def create_draft_record(datacite, identity, dart_id):
     """Create a draft RDM Record from `datacite` metadata owned by `identity`."""
     return current_rdm_records_service.create(
-        data=datacite_to_invenio_schema(datacite), identity=identity
+        data=datacite_to_invenio_schema(datacite, dart_id), identity=identity
     )
 
 
@@ -210,7 +220,9 @@ if __name__ == "__main__":
             "You must provide a community identifier as a command line argument."
         )
 
-    paths = Path(".").glob("*/metadata.json")
+    paths = tuple(Path(__file__).parent.glob("*/metadata.json"))
+    if not paths:
+        raise ValueError("Could not find any datasets.")
     fake = Faker()
     app = create_app()
     with app.app_context():
@@ -223,7 +235,7 @@ if __name__ == "__main__":
             with path.open() as f:
                 datacite = json.load(f)
 
-            draft = create_draft_record(datacite, system_identity)
+            draft = create_draft_record(datacite, system_identity, fake.numerify())
 
             add_files_to_draft(draft, datacite, system_identity, path.parent)
 

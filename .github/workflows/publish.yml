@@ -9,6 +9,8 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    outputs:
+      image_digest: ${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
@@ -23,20 +25,34 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
           tags: ${{steps.meta.outputs.tags }}
-      - name: Get image frontend metadata
-        id: frontend-meta
-        uses: docker/metadata-action@v4
+      - name: Export data for deployment
+        id: export-data
+        run: |
+          echo "image_tag_with_sha=ghcr.io/${REPOSITORY,,}@${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
+        env:
+          REPOSITORY: ${{ github.repository }}
+      - name: Scan backend Docker image with Trivy
+        uses: aquasecurity/trivy-action@0.31.0
         with:
-          images: ghcr.io/${{ github.repository }}
-          tags: type=raw,value=frontend-${{ github.ref_name }}
-      - name: Build and push frontend Docker image
-        uses: docker/build-push-action@v4
+          image-ref: ${{steps.export-data.outputs.image_tag_with_sha}}
+          format: "table"
+          exit-code: 0 # Do not fail the build on vulnerabilities
+          output: trivy-backend.txt
+      - name: Upload Trivy backend scan report
+        uses: actions/upload-artifact@v4
         with:
-          context: ./docker/nginx
-          push: true
-          tags: ${{steps.frontend-meta.outputs.tags }}
+          name: trivy-backend-report
+          path: trivy-backend.txt
+  deploy:
+    needs: build-and-publish
+    uses: ./.github/workflows/deploy.yml
+    with:
+      image_digest: ${{needs.build-and-publish.outputs.image_digest}}
+      environment_name: ${{ github.ref_name }}
+    secrets: inherit

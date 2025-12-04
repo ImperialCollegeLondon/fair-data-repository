@@ -45,16 +45,16 @@ jobs:
           -f ${{ vars.CHART_OVERRIDE_PATH }} \
           -n invenio --install --create-namespace \
           --timeout 15m \
-          --set invenio.extra_secrets.icl_secrets.data.INVENIO_SECRET_KEY="${{ secrets.INVENIO_SECRET_KEY }}" \
-          --set invenio.extra_secrets.icl_secrets.data.INVENIO_SECURITY_LOGIN_SALT="${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}" \
-          --set invenio.extra_secrets.icl_secrets.data.INVENIO_CSRF_SECRET_SALT="${{ secrets.INVENIO_CSRF_SECRET_SALT }}" \
+          --set 'invenio.extra_secrets.icl_secrets.data.INVENIO_SECRET_KEY=${{ secrets.INVENIO_SECRET_KEY }}' \
+          --set 'invenio.extra_secrets.icl_secrets.data.INVENIO_SECURITY_LOGIN_SALT=${{ secrets.INVENIO_SECURITY_LOGIN_SALT }}' \
+          --set 'invenio.extra_secrets.icl_secrets.data.INVENIO_CSRF_SECRET_SALT=${{ secrets.INVENIO_CSRF_SECRET_SALT }}' \
           --set invenio.extraConfig.ICL_OAUTH_CLIENT_ID=${{ vars.ICL_OAUTH_CLIENT_ID }} \
-          --set invenio.extra_secrets.icl_secrets.data.ICL_OAUTH_CLIENT_SECRET="${{ secrets.ICL_OAUTH_CLIENT_SECRET }}" \
+          --set 'invenio.extra_secrets.icl_secrets.data.ICL_OAUTH_CLIENT_SECRET=${{ secrets.ICL_OAUTH_CLIENT_SECRET }}' \
           --set invenio.extraConfig.ICL_OAUTH_WELL_KNOWN_URL=${{ vars.ICL_OAUTH_WELL_KNOWN_URL }} \
-          --set invenio.extra_secrets.rabbitmq_secrets.data.RABBITMQ_PASSWORD="${{ secrets.RABBITMQ_AUTH_PASSWORD }}" \
+          --set 'invenio.extra_secrets.rabbitmq_secrets.data.RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_AUTH_PASSWORD }}' \
           --set invenio.hostname=${{ vars.HOSTNAME }} \
           --set image.digest=${{ inputs.image_digest }} \
-          --set invenio.datacite.password="${{ secrets.DATACITE_PASSWORD }}" \
+          --set 'invenio.datacite.password=${{ secrets.DATACITE_PASSWORD }}' \
           --set invenio.datacite.username=${{ vars.DATACITE_USERNAME }} \
           --set invenio.datacite.prefix=${{ vars.DATACITE_PREFIX }} \
           --set-string invenio.datacite.testMode=${{ vars.DATACITE_TEST_MODE }} \

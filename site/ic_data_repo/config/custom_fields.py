@@ -23,7 +23,7 @@ RDM_CUSTOM_FIELDS = [
         name="imperial:dart_id",
         field_args={
             "validate": validate.Length(min=1, max=100),
-            "required": True,
+            "required": False,
             "error_messages": {
                 "required": "DART ID is required.",
                 "invalid": "Invalid DART ID.",
@@ -69,6 +69,7 @@ RDM_CUSTOM_FIELDS_UI = [
                     search=False,
                     multiple=False,  # True for selecting multiple values
                     clearable=True,
+                    required=False,
                 ),
             ),
         ],

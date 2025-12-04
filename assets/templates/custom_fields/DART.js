@@ -5,21 +5,15 @@ import { Form } from "semantic-ui-react";
 
 export class DART extends Component {
   render() {
-    const {
-      fieldPath,
-      icon,
-      description,
-      label,
-      ID,
-    } = this.props;
+    const { fieldPath, icon, description, label, ID } = this.props;
 
     return (
-      <Form.Field style={{ margin: "1rem 0" }} required>
+      <Form.Field style={{ margin: "1rem 0" }}>
         <Input
           fieldPath={`${fieldPath}`}
           label={ID?.label || "DART ID"}
           placeholder={ID?.placeholder || "Enter DART ID"}
-          required={ID?.required || true}
+          required={false}
         />
         <div style={{ margin: "0.5rem 0", color: "#666" }}>
           <label class="helptext">

@@ -178,6 +178,14 @@ invenio-cli services start
 pipenv run pytest
 ```
 
+### End-to-end UI tests
+
+- Start services and server:
+    - `invenio-cli services start`
+    - `invenio-cli run`
+- Run Selenium e2e:
+    - `pipenv run pytest tests/e2e -q`
+
 All development work should be supported by an appropriate set of tests. Best practices
 around testing are expected to evolve as the project develops.
 

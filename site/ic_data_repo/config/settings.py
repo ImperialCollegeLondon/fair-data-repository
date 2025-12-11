@@ -245,7 +245,9 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
-RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [SymplecticComponent]
+RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [
+    SymplecticComponent,
+]
 
 VOCABULARIES_DATASTREAM_WRITERS["affiliations-service"] = AffiliationsWriter
 VOCABULARIES_DATASTREAM_READERS["stream-yaml"] = StreamingYamlSequenceReader

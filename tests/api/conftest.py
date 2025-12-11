@@ -31,3 +31,22 @@ def api_headers(db, user_depositor):
         "Authorization": f"Bearer {token.access_token}",
         "Content-Type": "application/json",
     }
+
+
+@pytest.fixture
+def metadata():
+    """Simple record metadata."""
+    return {
+        "title": "Test Record",
+        "description": "This is a test record.",
+        "creators": [
+            {
+                "person_or_org": {
+                    "type": "personal",
+                    "given_name": "Neo",
+                    "family_name": "Anderson",
+                },
+                "role": "the one",
+            },
+        ],
+    }

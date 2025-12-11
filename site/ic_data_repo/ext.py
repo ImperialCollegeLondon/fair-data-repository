@@ -4,6 +4,14 @@ import asyncio
 
 from flask import g
 from flask_login import user_logged_in
+from ic_data_repo.site_metadata.resources.config import SiteMetadataResourceConfig
+from ic_data_repo.site_metadata.resources.resource import SiteMetadataResource
+from ic_data_repo.site_metadata.services.config import SiteMetadataServiceConfig
+from ic_data_repo.site_metadata.services.schema import (
+    JSONMetadataSchema,
+    MarshmallowValidator,
+)
+from ic_data_repo.site_metadata.services.service import SiteMetadataService
 from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
 from ic_data_repo.symplectic.resources.resource import SymplecticResource
 from ic_data_repo.symplectic.services.config import SymplecticServiceConfig
@@ -173,4 +181,54 @@ class SymplecticExt:
         self.resource = SymplecticResource(resource_config, self.service)
 
         # Register blueprint
+        app.register_blueprint(self.resource.as_blueprint())
+
+
+class SiteMetadataExt:
+    """Extension for per-format metadata upload/validation and publish-time indexing."""
+
+    def __init__(self, app=None):
+        """Initialize the Site Metadata extension."""
+        self.service = None
+        self.resource = None
+        if app:
+            self.init_app(app)
+
+    def init_app(self, app):
+        """Initialize the extension with the Flask app."""
+        self.init_config(app)
+        self.init_service(app)
+        self.init_resource(app)
+        app.extensions["site-metadata"] = self
+
+    def init_config(self, app):
+        """Initialize configuration for the Site Metadata extension."""
+        app.config.setdefault("IC_SITE_METADATA_ATTR", "site_metadata")
+        app.config.setdefault("IC_SITE_METADATA_FORMATS", None)
+
+    def init_service(self, app):
+        """Initialize service."""
+        cfg = SiteMetadataServiceConfig()
+
+        cfg._get_records_service = lambda: current_rdm_records.records_service
+        cfg.site_metadata_attr = app.config["IC_SITE_METADATA_ATTR"]
+
+        if not getattr(cfg, "supported_formats", None):
+            cfg.supported_formats = {}
+        if "json" not in cfg.supported_formats:
+            cfg.supported_formats["json"] = {
+                "validator": MarshmallowValidator(JSONMetadataSchema()),
+                "index_name": "site-metadata-json",
+            }
+
+        runtime_formats = app.config.get("IC_SITE_METADATA_FORMATS")
+        if runtime_formats:
+            cfg.supported_formats.update(runtime_formats)
+
+        self.service = SiteMetadataService(cfg)
+
+    def init_resource(self, app):
+        """Initialize resource."""
+        res_cfg = SiteMetadataResourceConfig()
+        self.resource = SiteMetadataResource(res_cfg, self.service)
         app.register_blueprint(self.resource.as_blueprint())

@@ -19,6 +19,7 @@ mkdocstrings-python = "*"
 pytest = "<8"
 testcontainers = "*"
 pika = "*"
+urllib3 = ">=2.6.0" # to avoid CVE-2025-66471
 
 [packages]
 ic-data-repo = {editable=true, path="./site"}

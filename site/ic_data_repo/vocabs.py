@@ -322,7 +322,7 @@ def _get_funder_org_id(row: dict[str, str]) -> dict[str, str] | None:
     funder = row["Funder"]
     sponsor = row["SPONSOR"]
     if funder == "Industry":
-        return dict(name=funder)
+        return dict(id=funder.lower())
     if funder != sponsor:
         return None
     try:

@@ -254,7 +254,9 @@ VOCABULARIES_DATASTREAM_READERS["stream-yaml"] = StreamingYamlSequenceReader
 
 # Email addresses
 # ---------------
-SUPPORT_CONTACT_EMAIL = os.getenv("SUPPORT_CONTACT_EMAIL")
+SUPPORT_CONTACT_EMAIL = os.getenv(
+    "SUPPORT_CONTACT_EMAIL", "rdm-enquiries@imperial.ac.uk"
+)
 
 USERPROFILES_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 ACCOUNTS_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
@@ -262,12 +264,26 @@ OAUTHCLIENT_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 
 ENABLE_SYPLECTIC_SEARCH = False
 APP_RDM_DEPOSIT_FORM_TEMPLATE = "ic_data_repo/deposit.html"
-POLICY_DOCUMENTS_URL = "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/imperial-policy/"  # noqa: E501
-DATA_DEPOSIT_AGREEMENT_URL = "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/data-deposit-agreement/"  # noqa: E501
-
+POLICY_DOCUMENTS_URL = os.getenv(
+    "POLICY_DOCUMENTS_URL",
+    "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/archival-and-preservation/",  # noqa: E501
+)
+DATA_DEPOSIT_AGREEMENT_URL = os.getenv(
+    "DATA_DEPOSIT_AGREEMENT_URL",
+    "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/archival-and-preservation/data-deposit-agreement/",  # noqa: E501
+)
+ACCESSIBILITY_STATEMENT_URL = os.getenv(
+    "ACCESSIBILITY_STATEMENT_URL",
+    "https://www.imperial.ac.uk/about-the-site/accessibility/helix/",
+)
+COOKIE_STATEMENT_URL = "https://www.imperial.ac.uk/about-the-site/use-of-cookies/"
+USER_GUIDE_URL = os.getenv(
+    "USER_GUIDE_URL",
+    "https://www.imperial.ac.uk/media/imperial-college/research-and-innovation/scholarly-communication/public/Helix_Step-by-Step_Deposit_Guide.pdf",  # noqa: E501
+)
 
 TOTAL_RECORD_STORAGE_LIMIT_BYTES = 10e9
-PER_FILE_STORAGE_LIMIT_BYTES = 3.4e9
+PER_FILE_STORAGE_LIMIT_BYTES = 3.5e9
 
 APP_RDM_DEPOSIT_FORM_QUOTA = {
     "maxStorage": TOTAL_RECORD_STORAGE_LIMIT_BYTES,

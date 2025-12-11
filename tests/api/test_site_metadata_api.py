@@ -5,28 +5,10 @@ from io import BytesIO
 import pytest
 from invenio_access.permissions import system_identity
 from invenio_rdm_records.proxies import current_rdm_records_service
-from werkzeug.datastructures import FileStorage
 
 
 @pytest.fixture
-def mock_json_metadata_file():
-    """Fixture to create a mock JSON metadata file."""
-
-    def _create_file(content=None):
-        if content is None:
-            content = b'{"name": "Test Dataset", "description": "A test dataset", "version": "1.0", "type": "dataset"}'  # noqa: E501
-
-        return FileStorage(
-            stream=BytesIO(content),
-            filename="metadata.json",
-            content_type="application/json",
-        )
-
-    return _create_file
-
-
-@pytest.fixture
-def create_test_record(client, api_headers, metadata, location, vocabularies):
+def test_record(client, api_headers, metadata, location, vocabularies):
     """Fixture to create a test record and return its PID."""
     response = client.post(
         "/records",
@@ -40,11 +22,9 @@ def create_test_record(client, api_headers, metadata, location, vocabularies):
     return pid_value
 
 
-def test_upload_validate_json_metadata(
-    client, api_headers, mock_json_metadata_file, create_test_record, location
-):
+def test_upload_validate_json_metadata(client, api_headers, test_record, location):
     """Test uploading and validating JSON metadata."""
-    pid_value = create_test_record
+    pid_value = test_record
     fmt = "json"
 
     # Remove Content-Type header for multipart/form-data
@@ -75,11 +55,9 @@ def test_upload_validate_json_metadata(
     assert "metadata.json" == files[0]["key"]
 
 
-def test_upload_invalid_json_metadata(
-    client, api_headers, create_test_record, location
-):
+def test_upload_invalid_json_metadata(client, api_headers, test_record, location):
     """Test uploading invalid JSON metadata returns validation errors."""
-    pid_value = create_test_record
+    pid_value = test_record
     fmt = "json"
 
     headers = {k: v for k, v in api_headers.items() if k != "Content-Type"}
@@ -112,11 +90,9 @@ def test_upload_invalid_json_metadata(
     assert files[0]["key"] == "metadata.json"
 
 
-def test_upload_unsupported_format(
-    client, api_headers, mock_json_metadata_file, create_test_record, location
-):
+def test_upload_unsupported_format(client, api_headers, test_record, location):
     """Test uploading metadata with an unsupported format."""
-    pid_value = create_test_record
+    pid_value = test_record
     fmt = "xml"
 
     # Remove Content-Type header for multipart/form-data

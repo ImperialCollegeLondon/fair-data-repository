@@ -29,3 +29,6 @@ affiliations:
 funders:
   pid-type: fun
   data-file: vocabularies/funders.yaml
+resourcetypes:
+  pid-type: rsrct
+  data-file: vocabularies/resource_types.yaml

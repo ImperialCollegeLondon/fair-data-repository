@@ -277,7 +277,7 @@ ACCESSIBILITY_STATEMENT_URL = os.getenv(
 COOKIE_STATEMENT_URL = "https://www.imperial.ac.uk/about-the-site/use-of-cookies/"
 USER_GUIDE_URL = os.getenv(
     "USER_GUIDE_URL",
-    "https://www.imperial.ac.uk/media/imperial-college/research-and-innovation/scholarly-communication/public/Helix_Step-by-Step_Deposit_Guide.pdf",  # noqa: E501
+    "https://www.imperial.ac.uk/media/imperial-college/research-and-innovation/scholarly-communication/public/Helix_Step-by-Step_Deposit_Guide-(2).pdf",  # noqa: E501
 )
 
 TOTAL_RECORD_STORAGE_LIMIT_BYTES = 10e9

@@ -55,7 +55,7 @@ RDM_CUSTOM_FIELDS_UI = [
         ],
     },
     {
-        "section": "Data Asset Registration Tool - DART",
+        "section": "Data Activity Risk-assessment Tool - DART",
         "fields": [
             dict(
                 field="imperial:dart_id",

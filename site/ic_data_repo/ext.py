@@ -129,7 +129,7 @@ class ImperialExtension:
             # determine if user should be able to deposit based on their attributes
             if can_user_deposit(
                 role_type=extension_attributes.extension_attribute6,
-                job_family=extension_attributes.extension_attribute10,
+                job_family=extension_attributes.extension_attribute14,
             ):
                 with db.session.begin_nested():
                     db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))

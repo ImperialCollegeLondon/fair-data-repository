@@ -19,7 +19,7 @@ export class DART extends Component {
           <label class="helptext">
             Please enter your DART ID. For information about DART{" "}
             <a
-              href="https://www.imperial.ac.uk/admin-services/secretariat/policies-and-guidance/data-assessments/"
+              href="https://www.imperial.ac.uk/admin-services/governance/policies-and-guidance/data-assessments/"
               target="_blank"
               rel="noopener noreferrer"
             >

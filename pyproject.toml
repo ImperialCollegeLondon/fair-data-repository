@@ -47,3 +47,6 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--mypy --ignore=site/setup.py --ignore-glob=test_data/*.py"
+markers = [
+    "e2e: End-to-end UI tests",
+]

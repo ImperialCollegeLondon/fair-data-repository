@@ -5,6 +5,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
+pytestmark = pytest.mark.e2e
+
 BASE_URL = "https://127.0.0.1:5000"
 
 

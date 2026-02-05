@@ -34,17 +34,20 @@ jobs:
         run: pipenv run invenio-cli services setup --no-demo-data
 
       - name: Start dev server
-        run: pipenv run invenio-cli run
+        run: |
+          pipenv run invenio-cli run > app.log 2>&1 &
+          echo $! > app.pid
 
       - name: Wait for services to be ready
         run: |
           for i in {1..90}; do
-            if curl -sSf http://localhost:5000/ > /dev/null; then
+            if curl -sSkf https://localhost:5000/ > /dev/null; then
               exit 0;
             fi
             sleep 3;
           done
           echo "Services did not start in time" >&2
+          tail -n 200 app.log || true
           exit 1
 
       - name: Install test deps
@@ -55,7 +58,7 @@ jobs:
       - name: Run Selenium e2e
         env:
           MOZ_HEADLESS: 1
-        run: pytest -m e2e tests/e2e -q
+        run: pipenv run pytest -m e2e tests/e2e -q
 
       - name: Upload app logs on failure
         if: failure()

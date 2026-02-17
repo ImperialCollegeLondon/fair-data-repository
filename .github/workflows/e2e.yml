@@ -1,5 +1,8 @@
 name: End-to-End Tests
 
+permsissions:
+  contents: read
+
 on:
   push:
     branches: [e2e-ui-tests]

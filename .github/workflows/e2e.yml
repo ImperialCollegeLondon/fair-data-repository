@@ -56,7 +56,7 @@ jobs:
       - name: Run Selenium e2e
         env:
           MOZ_HEADLESS: 1
-        run: pipenv run pytest -m e2e tests/e2e -q
+        run: pipenv run pytest -m e2e tests/e2e
 
       - name: Upload app logs on failure
         if: failure()

@@ -184,7 +184,7 @@ pipenv run pytest
     - `invenio-cli services start`
     - `invenio-cli run`
 - Run Selenium e2e:
-    - `pipenv run pytest tests/e2e -q`
+    - `pipenv run pytest tests/e2e`
 
 All development work should be supported by an appropriate set of tests. Best practices
 around testing are expected to evolve as the project develops.

@@ -1,6 +1,6 @@
 name: End-to-End Tests
 
-permsissions:
+permissions:
   contents: read
 
 on:

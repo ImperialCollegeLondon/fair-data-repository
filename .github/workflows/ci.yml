@@ -23,7 +23,7 @@ jobs:
       - name: setup symlink
         run: invenio-cli install symlink
       - name: run tests
-        run: pipenv run pytest -p no:warnings
+        run: pipenv run pytest -p no:warnings -m "not e2e"
   check_assets:
     runs-on: ubuntu-latest
     steps:

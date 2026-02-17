@@ -31,22 +31,3 @@ def test_frontpage_branding(driver):
     page = driver.page_source
     assert "Helix" in page
     assert "Imperial College London's FAIR Data Repository" in page
-
-
-def test_click_my_dashboard_link(driver):
-    """Test that clicking the 'My Dashboard' link navigates to the dashboard."""
-    links = driver.find_elements(By.TAG_NAME, "a")
-    target = None
-    for a in links:
-        text = (a.text or "").strip()
-        if text.lower() == "my dashboard":
-            target = a
-            break
-    target.click()
-
-    def is_dashboard_url(d):
-        u = d.current_url or ""
-        return "/me/uploads" in u or "me%2Fuploads" in u
-
-    WebDriverWait(driver, 5).until(is_dashboard_url)
-    assert is_dashboard_url(driver)

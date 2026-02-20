@@ -117,7 +117,7 @@ If you want to restart the setup process from scratch you can use
 In order to log in to the application you will need to create a user account:
 
 ```console
-invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active
+invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active --confirm
 ```
 
 You can also optionally make this user an admin with:

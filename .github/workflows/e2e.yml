@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [e2e-ui-tests]
+    branches: [e2e-user-submission]
   workflow_dispatch:
 
 jobs:
@@ -36,6 +36,7 @@ jobs:
       - name: Start services
         run: pipenv run invenio-cli services setup --no-demo-data
 
+
       - name: Start dev server
         run: |
           pipenv run invenio-cli run > app.log 2>&1 &
@@ -52,6 +53,12 @@ jobs:
           echo "App did not start in time" >&2
           tail -n 200 app.log || true
           exit 1
+
+      - name: Set up e2e submission access
+        run: |
+          pipenv run invenio users create test.user@test.co --password password --active --confirm
+          pipenv run python app_data/create_imperial_community.py
+          pipenv run invenio access allow deposit-action user test.user@test.co
 
       - name: Run Selenium e2e
         env:

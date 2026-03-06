@@ -117,7 +117,7 @@ If you want to restart the setup process from scratch you can use
 In order to log in to the application you will need to create a user account:
 
 ```console
-invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active
+invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active --confirm
 ```
 
 You can also optionally make this user an admin with:
@@ -178,19 +178,41 @@ invenio-cli services start
 pipenv run pytest
 ```
 
-### End-to-end UI tests
-
-- Start services and server:
-    - `invenio-cli services start`
-    - `invenio-cli run`
-- Run Selenium e2e:
-    - `pipenv run pytest tests/e2e`
-
 All development work should be supported by an appropriate set of tests. Best practices
 around testing are expected to evolve as the project develops.
 
 The [pytest-invenio] plugin is provided to support test development. This extends
 [pytest-flask] to provide fixtures and support for testing Invenio.
+
+### End-to-end UI tests
+
+E2E tests live in [`tests/e2e`](../tests/e2e/) and use Selenium with shared fixtures
+from [`tests/e2e/conftest.py`](../tests/e2e/conftest.py).
+
+#### Pytest marker behaviour
+
+E2E tests are explicitly marked with
+[`pytestmark`](../tests/e2e/test_user_submission.py) (`pytest.mark.e2e`).
+
+The `e2e` marker is registered in [pyproject.toml](../pyproject.toml), and default
+pytest options exclude E2E tests (`-m 'not e2e'`). This means:
+
+- `pipenv run pytest` runs non-E2E tests only
+- To run E2E tests, include `-m e2e`
+
+#### Local run steps
+
+1. Start services and application:
+    - `invenio-cli services start`
+    - `invenio-cli run`
+1. Create a community using the helper script:
+    - `pipenv run python app_data/create_imperial_community.py`
+1. Create a user:
+    - `pipenv run invenio users create test.user@test.co --password password --active --confirm`
+        The user will need permission to submit a deposit:
+    - `pipenv run invenio access allow deposit-action user test.user@test.co`
+1. Finally, run the E2E tests:
+    - `pipenv run pytest -m e2e tests/e2e`
 
 ### Backend Development
 

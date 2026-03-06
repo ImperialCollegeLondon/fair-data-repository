@@ -46,16 +46,10 @@ def test_user_submission(driver, tmp_path):
 
     # Wait until submit button is truly enabled (not just present)
     submit_locator = (By.XPATH, "//button[normalize-space()='Submit for review']")
-
-    WebDriverWait(driver, timeout=60).until(
-        lambda d: (
-            (btn := d.find_element(*submit_locator)).is_displayed()
-            and btn.is_enabled()
-            and (btn.get_attribute("disabled") is None)
-        )
+    submit_btn = WebDriverWait(driver, timeout=20).until(
+        EC.element_to_be_clickable(submit_locator)
     )
-
-    driver.find_element(*submit_locator).click()
+    submit_btn.click()
 
     required_checkbox_names = [
         "acceptAccessToRecord",

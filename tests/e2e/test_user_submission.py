@@ -57,13 +57,6 @@ def test_user_submission(driver, tmp_path):
 
     driver.find_element(*submit_locator).click()
 
-    # Wait for Submit for review modal/checklist and tick required checkboxes
-    WebDriverWait(driver, 20).until(
-        EC.visibility_of_element_located(
-            (By.XPATH, "//button[normalize-space()='Submit record for review']")
-        )
-    )
-
     required_checkbox_names = [
         "acceptAccessToRecord",
         "acceptAfterPublishRecord",

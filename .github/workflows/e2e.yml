@@ -4,9 +4,11 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches: [e2e-user-submission]
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - staging
 
 jobs:
   e2e:

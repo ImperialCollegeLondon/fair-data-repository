@@ -77,7 +77,6 @@ jobs:
           path: app.log
 
       - name: Upload e2e screenshots
-        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-screenshots

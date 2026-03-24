@@ -108,7 +108,7 @@ def submission_request_url(driver):
 
 
 @pytest.fixture
-def driver():
+def driver(request):
     """Selenium WebDriver fixture."""
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
@@ -120,4 +120,9 @@ def driver():
     wait.until(lambda _: body.is_displayed())
 
     yield _driver
+
+    test_name = request.node.originalname
+    screenshot_path = ARTIFACTS_DIR / f"{test_name}.png"
+    _driver.get_full_page_screenshot_as_file(str(screenshot_path))
+
     _driver.quit()

@@ -234,6 +234,13 @@ pytest options exclude E2E tests (`-m 'not e2e'`). This means:
 
     - `pipenv run pytest -m e2e tests/e2e`
 
+#### Screenshots and artifacts
+
+E2E tests write screenshots to the `artifacts/` directory (for example one image per
+test, plus key flow snapshots such as submission state changes).
+
+In GitHub Actions these images are uploaded as the `e2e-screenshots` workflow artifact.
+
 ### Backend Development
 
 Using `invenio-cli run` will start the Flask development server and a set of Celery

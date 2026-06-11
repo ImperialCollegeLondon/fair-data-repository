@@ -74,7 +74,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: invenio-cli-app-log
-          path: app.log
+          path: |
+            app.log
+            artifacts/**/*.png
+            artifacts/**/*.html
 
       - name: Upload e2e screenshots
         uses: actions/upload-artifact@v4

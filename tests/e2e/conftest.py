@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 import pytest
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -17,6 +18,51 @@ ARTIFACTS_DIR.mkdir(exist_ok=True)
 DEPOSITOR_EMAIL = "test.user@test.co"
 REVIEWER_EMAIL = "test.superuser@test.co"
 TEST_PASSWORD = "password"
+
+
+def dump_upload_debug(driver, uploaded_filename):
+    """Helper function to dump debug information about the upload page."""
+    prefix = ARTIFACTS_DIR / "upload_failed"
+    driver.get_full_page_screenshot_as_file(str(prefix.with_suffix(".png")))
+    prefix.with_suffix(".html").write_text(driver.page_source, encoding="utf-8")
+
+    submit_buttons = driver.find_elements(
+        By.XPATH, "//button[normalize-space()='Submit for review']"
+    )
+    submit_enabled = submit_buttons[0].is_enabled() if submit_buttons else False
+    submit_disabled_attr = (
+        submit_buttons[0].get_attribute("disabled") if submit_buttons else "missing"
+    )
+
+    row_count = len(
+        driver.find_elements(
+            By.XPATH,
+            f"//tr[.//a[contains(@href, '/draft/files/{uploaded_filename}/content')]]",
+        )
+    )
+    progress_nodes = driver.find_elements(By.CSS_SELECTOR, ".file-upload-progress")
+    progress_dump = [
+        {
+            "class": n.get_attribute("class"),
+            "data_percent": n.get_attribute("data-percent"),
+            "text": n.text.strip(),
+        }
+        for n in progress_nodes
+    ]
+
+    prefix.with_suffix(".txt").write_text(
+        "\n".join(
+            [
+                f"url={driver.current_url}",
+                f"row_count={row_count}",
+                f"submit_button_count={len(submit_buttons)}",
+                f"submit_enabled={submit_enabled}",
+                f"submit_disabled_attr={submit_disabled_attr}",
+                f"progress_nodes={progress_dump}",
+            ]
+        ),
+        encoding="utf-8",
+    )
 
 
 def logout(driver):
@@ -65,11 +111,34 @@ def create_submission_and_get_request_url(driver):
     driver.find_element(By.XPATH, "//button[normalize-space()='Save']").click()
 
     dummy_file_path = (Path(__file__).parent / "fixtures/dummy_file.txt").resolve()
+    uploaded_filename = dummy_file_path.name
+
     file_input = driver.find_element(By.CSS_SELECTOR, "input[type='file']")
     file_input.send_keys(str(dummy_file_path))
 
+    def upload_completed(d):
+        row = d.find_element(
+            By.XPATH,
+            f"//tr[.//a[contains(@href, '/draft/files/{uploaded_filename}/content')]]",
+        )
+        progress = row.find_element(By.CSS_SELECTOR, ".file-upload-progress")
+        percent_attr = (progress.get_attribute("data-percent") or "").strip()
+        percent_text = (
+            progress.find_element(By.CSS_SELECTOR, ".bar .progress").text or ""
+        ).strip()
+        classes = progress.get_attribute("class") or ""
+        is_100 = percent_attr == "100" or percent_text == "100%"
+        has_error = "error" in classes
+        return is_100 and not has_error
+
+    try:
+        WebDriverWait(driver, timeout=60).until(upload_completed)
+    except TimeoutException as exc:
+        dump_upload_debug(driver, uploaded_filename)
+        raise AssertionError("File upload did not reach successful 100% state") from exc
+
     submit_locator = (By.XPATH, "//button[normalize-space()='Submit for review']")
-    submit_btn = WebDriverWait(driver, timeout=10).until(
+    submit_btn = WebDriverWait(driver, timeout=30).until(
         EC.element_to_be_clickable(submit_locator)
     )
     submit_btn.click()

@@ -1,5 +1,6 @@
 """Global test fixtures for end-to-end tests."""
 
+import json
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -56,6 +57,10 @@ def dump_upload_debug(driver, uploaded_filename):
         }
         for n in progress_nodes
     ]
+    upload_trace = driver.execute_script("return window.__uploadTrace || [];")
+    upload_trace_json = json.dumps(
+        upload_trace, ensure_ascii=True, default=str, indent=2
+    )
 
     prefix.with_suffix(".txt").write_text(
         "\n".join(
@@ -67,6 +72,8 @@ def dump_upload_debug(driver, uploaded_filename):
                 f"submit_disabled_attr={submit_disabled_attr}",
                 f"progress_nodes={progress_dump}",
                 f"upload_links={upload_links}",
+                "upload_trace_json_start",
+                upload_trace_json,
             ]
         ),
         encoding="utf-8",
@@ -126,7 +133,86 @@ def create_submission_and_get_request_url(driver):
     dummy_file_path = (Path(__file__).parent / "fixtures/dummy_file.txt").resolve()
     uploaded_filename = dummy_file_path.name
 
-    file_input = driver.find_element(By.CSS_SELECTOR, "input[type='file']")
+    # Install browser-side tracing for file upload requests.
+    driver.execute_script(
+        """
+        (function () {
+          if (window.__uploadTraceInstalled) return;
+          window.__uploadTraceInstalled = true;
+          window.__uploadTrace = [];
+
+          function shouldTrack(url) {
+            return typeof url === "string" && url.indexOf("/draft/files/") !== -1;
+          }
+
+          function nowIso() {
+            try {
+              return new Date().toISOString();
+            } catch (e) {
+              return "";
+            }
+          }
+
+          var origFetch = window.fetch;
+          if (origFetch) {
+            window.fetch = function () {
+              var input = arguments[0];
+              var init = arguments[1] || {};
+              var url = typeof input === "string" ? input : (input && input.url) || "";
+              var method = init.method || "GET";
+              if (!shouldTrack(url)) return origFetch.apply(this, arguments);
+              return origFetch.apply(this, arguments).then(function (res) {
+                window.__uploadTrace.push({
+                  api: "fetch",
+                  ts: nowIso(),
+                  method: method,
+                  url: url,
+                  status: res.status,
+                  ok: res.ok
+                });
+                return res;
+              }).catch(function (err) {
+                window.__uploadTrace.push({
+                  api: "fetch",
+                  ts: nowIso(),
+                  method: method,
+                  url: url,
+                  error: String(err)
+                });
+                throw err;
+              });
+            };
+          }
+
+          var origOpen = XMLHttpRequest.prototype.open;
+          var origSend = XMLHttpRequest.prototype.send;
+          XMLHttpRequest.prototype.open = function (method, url) {
+            this.__traceMethod = method;
+            this.__traceUrl = url;
+            return origOpen.apply(this, arguments);
+          };
+          XMLHttpRequest.prototype.send = function () {
+            var xhr = this;
+            if (shouldTrack(xhr.__traceUrl)) {
+              xhr.addEventListener("loadend", function () {
+                window.__uploadTrace.push({
+                  api: "xhr",
+                  ts: nowIso(),
+                  method: xhr.__traceMethod || "GET",
+                  url: xhr.__traceUrl || "",
+                  status: xhr.status
+                });
+              });
+            }
+            return origSend.apply(this, arguments);
+          };
+        })();
+        """
+    )
+
+    file_input = WebDriverWait(driver, timeout=15).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='file']"))
+    )
     file_input.send_keys(str(dummy_file_path))
 
     def upload_completed(d):
@@ -196,7 +282,9 @@ def driver(request):
     """Selenium WebDriver fixture."""
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
+    options.set_capability("acceptInsecureCerts", True)
     _driver = webdriver.Firefox(options=options)
+    _driver.set_window_size(1920, 1080)
     _driver.get(pytest.base_url)
 
     body = _driver.find_element(By.TAG_NAME, "body")

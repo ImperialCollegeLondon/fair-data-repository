@@ -40,6 +40,13 @@ def dump_upload_debug(driver, uploaded_filename):
             f"//tr[.//a[contains(@href, '/draft/files/{uploaded_filename}/content')]]",
         )
     )
+    upload_links = [
+        el.get_attribute("href")
+        for el in driver.find_elements(
+            By.XPATH,
+            f"//a[contains(@href, '/draft/files/{uploaded_filename}/content')]",
+        )
+    ]
     progress_nodes = driver.find_elements(By.CSS_SELECTOR, ".file-upload-progress")
     progress_dump = [
         {
@@ -59,6 +66,7 @@ def dump_upload_debug(driver, uploaded_filename):
                 f"submit_enabled={submit_enabled}",
                 f"submit_disabled_attr={submit_disabled_attr}",
                 f"progress_nodes={progress_dump}",
+                f"upload_links={upload_links}",
             ]
         ),
         encoding="utf-8",
@@ -110,15 +118,20 @@ def create_submission_and_get_request_url(driver):
     driver.find_element(By.ID, "person_or_org.family_name").send_keys("Test")
     driver.find_element(By.XPATH, "//button[normalize-space()='Save']").click()
 
-    # Wait for the creator modal to fully close before interacting with the file input
-    WebDriverWait(driver, timeout=10).until(
-        EC.invisibility_of_element_located((By.CSS_SELECTOR, ".ui.modal.visible"))
+    # Wait for modal field to disappear (stronger than generic ".ui.modal.visible")
+    WebDriverWait(driver, timeout=15).until(
+        EC.invisibility_of_element_located((By.ID, "person_or_org.family_name"))
     )
 
     dummy_file_path = (Path(__file__).parent / "fixtures/dummy_file.txt").resolve()
     uploaded_filename = dummy_file_path.name
 
-    file_input = driver.find_element(By.CSS_SELECTOR, "input[type='file']")
+    # Use uploader-scoped file input, not first input[type='file'] on the page
+    file_input = WebDriverWait(driver, timeout=15).until(
+        lambda d: d.find_element(
+            By.CSS_SELECTOR, ".file-upload-area input[type='file']:not([disabled])"
+        )
+    )
     file_input.send_keys(str(dummy_file_path))
 
     def upload_completed(d):

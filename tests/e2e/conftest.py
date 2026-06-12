@@ -110,6 +110,11 @@ def create_submission_and_get_request_url(driver):
     driver.find_element(By.ID, "person_or_org.family_name").send_keys("Test")
     driver.find_element(By.XPATH, "//button[normalize-space()='Save']").click()
 
+    # Wait for the creator modal to fully close before interacting with the file input
+    WebDriverWait(driver, timeout=10).until(
+        EC.invisibility_of_element_located((By.CSS_SELECTOR, ".ui.modal.visible"))
+    )
+
     dummy_file_path = (Path(__file__).parent / "fixtures/dummy_file.txt").resolve()
     uploaded_filename = dummy_file_path.name
 

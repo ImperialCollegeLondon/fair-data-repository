@@ -9,6 +9,7 @@ on:
       - main
       - develop
       - staging
+      - e2e-submission-review-decline
 
 jobs:
   e2e:

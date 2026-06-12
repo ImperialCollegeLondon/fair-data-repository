@@ -126,12 +126,7 @@ def create_submission_and_get_request_url(driver):
     dummy_file_path = (Path(__file__).parent / "fixtures/dummy_file.txt").resolve()
     uploaded_filename = dummy_file_path.name
 
-    # Use uploader-scoped file input, not first input[type='file'] on the page
-    file_input = WebDriverWait(driver, timeout=15).until(
-        lambda d: d.find_element(
-            By.CSS_SELECTOR, ".file-upload-area input[type='file']:not([disabled])"
-        )
-    )
+    file_input = driver.find_element(By.CSS_SELECTOR, "input[type='file']")
     file_input.send_keys(str(dummy_file_path))
 
     def upload_completed(d):

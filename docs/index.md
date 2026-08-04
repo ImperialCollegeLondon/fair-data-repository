@@ -16,14 +16,13 @@ project:
     missing.
 - Both `pipenv` and `invenio-cli` are best installed with [pipx]. These need to be
     discoverable on your path.
-- We are currently pinning to Python 3.9 for compatibility to the deployment base image
-    so you'll need this available. `invenio-cli` will be satisfied with anything 3.9 or
-    newer but you need 3.9.
+- We are currently pinning to Python 3.12 for compatibility to the deployment base image
+  so you'll need this available.
 - Cairo and DejaVu are listed in the InvenioRDM Docs but are not checked for by
-    `invenio-cli`. The direct impacts of not having these is unclear but you'd probably
-    get by.
+  `invenio-cli`. The direct impacts of not having these is unclear but you'd probably
+  get by.
 - ImageMagik is checked for by `invenio-cli` but similarly you'd probably get by without
-    it.
+  it.
 
 ## Tooling Overview
 
@@ -32,15 +31,15 @@ summarised below but most operations use `invenio-cli` which wraps the other too
 required and is covered in more detail below.
 
 - `pipenv` is used to manage Python dependencies and the virtual environment used for
-    development.
+  development.
 - `node` and `npm` are used to manage JavaScript dependencies and the build process for
-    the frontend.
+  the frontend.
 - Docker and Docker Compose are used to manage the services required to run the
-    application, namely the database, OpenSearch, Redis and RabbitMQ.
+  application, namely the database, OpenSearch, Redis and RabbitMQ.
 - `invenio` - is the core application of InvenioRDM. Whilst a few operations require
-    invoking it directly it mostly called indirectly via `invenio-cli`. It is installed
-    within the virtual environment managed by `pipenv` so must be invoked via
-    `pipenv run invenio`.
+  invoking it directly it mostly called indirectly via `invenio-cli`. It is installed
+  within the virtual environment managed by `pipenv` so must be invoked via `pipenv run
+  invenio`.
 
 ### `invenio-cli`
 
@@ -49,20 +48,20 @@ development and most operations are performed by invoking it. It's main subcomma
 sumarised below:
 
 - `invenio-cli install` - Installs the project and its dependencies. Creates the virtual
-    environment if necessary, syncs the dependencies with Pipfile.lock, builds the
-    frontend and copies/symlinks the assets to the correct location in the virtual
-    environment.
+  environment if necessary, syncs the dependencies with Pipfile.lock, builds the
+  frontend and copies/symlinks the assets to the correct location in the virtual
+  environment.
 - `invenio-cli services` - Manages the Docker services required to run the application.
-    Can be used to setup, start, stop and teardown the services.
+  Can be used to setup, start, stop and teardown the services.
 - `invenio-cli run` - Starts the Flask development server and a set of Celery workers.
-    Note that in development this should always be used rather than `invenio run` as
-    this passes appropriate configuration.
+  Note that in development this should always be used rather than `invenio run` as this
+  passes appropriate configuration.
 - `invenio-cli packages` - Wraps `pipenv` to manage Python dependencies. Can be used to
-    install, uninstall and update packages.
+  install, uninstall and update packages.
 - `invenio-cli pyshell` - Starts a shell in the virtual environment with an initialised
-    Flask app.
+  Flask app.
 - `invenio-cli assets` - Manages static files and frontend assets. Can be used to build
-    the frontend, watch for changes and clean up.
+  the frontend, watch for changes and clean up.
 
 ## Local Installation
 
@@ -76,24 +75,23 @@ invenio-cli services setup --no-demo-data
 This will:
 
 - Create a virtual environment and install the Python dependencies. `site/ic_data_repo`
-    is installed in editable mode so changes to the source code are immediately
-    available.
+  is installed in editable mode so changes to the source code are immediately available.
 - Install the JavaScript dependencies and build the frontend assets.
 - Copy/symlink the staticfiles and Javascript assets to the correct location in the
-    virtual environment.
+  virtual environment.
 - Start the Docker services required to run the application and ensure they are healthy.
-    This includes the database, OpenSearch, Redis and RabbitMQ.
+  This includes the database, OpenSearch, Redis and RabbitMQ.
 - Create the database schema, initialise the Opensearch indices and various other
-    one-off setup tasks.
+  one-off setup tasks.
 - Populate the database with some default data e.g. default user roles and permissions.
-    The `--no-demo-data` flag is used to prevent the creation of demo data records.
-    Remove it if you want the instance to be populated with example deposit data.
+  The `--no-demo-data` flag is used to prevent the creation of demo data records. Remove
+  it if you want the instance to be populated with example deposit data.
 - Creates a number of Celery tasks to populate the database with controlled vocabulary
-    data. Note that there are no Celery workers running yet to process these tasks so
-    they are just waiting in a queue.
+  data. Note that there are no Celery workers running yet to process these tasks so they
+  are just waiting in a queue.
 
-Note that the above leaves the services running. You can stop them with
-`invenio-cli services stop`. Either way you can then start the Flask server with:
+Note that the above leaves the services running, you can then start the Flask server
+with:
 
 ```console
 invenio-cli run
@@ -117,13 +115,13 @@ If you want to restart the setup process from scratch you can use
 In order to log in to the application you will need to create a user account:
 
 ```console
-invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active --confirm
+pipenv run invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active --confirm
 ```
 
 You can also optionally make this user an admin with:
 
 ```console
-invenio access allow administration-access user DUMMY_EMAIL
+pipenv run invenio access allow superuser-access user DUMMY_EMAIL
 ```
 
 ### Imperial Single Sign-On and Microsoft Graph API Access
@@ -144,6 +142,13 @@ You will not be able to create a new upload (or access the deposit page via the 
 links) until you have created a community to contain the records. This community must
 have the id "icl" but its other properties are unimportant. The easiest way to create a
 community is via the UI at <https://127.0.0.1:5000/communities/new>.
+
+If the logged in user is not a superuser it must also be granted permission to make
+deposits via:
+
+```console
+pipenv run invenio access allow deposit-action user DUMMY_EMAIL
+```
 
 ## Development
 
@@ -293,9 +298,6 @@ The default configuration is suitable for development. A production oriented set
 file is also provided in `ic_data_repo.config.production`.
 
 ## Test Data
-
-!!! note
-    This functionality is not currently working.
 
 Instructions for accessing and working with realistic test data records are provided in
 the [test_data directory].

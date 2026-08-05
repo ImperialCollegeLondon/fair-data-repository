@@ -8,8 +8,16 @@
       
       
       
+      
+      
+        <link rel="next" href="customisation/">
+      
+      
+        
+      
+      
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-8.5.10">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
@@ -17,15 +25,14 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.975780f9.min.css">
-      
-        
-        <link rel="stylesheet" href="assets/stylesheets/palette.2505c338.min.css">
-        
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
       
       
 
+
     
+    
+      
     
     
       
@@ -39,24 +46,17 @@
     
       <link rel="stylesheet" href="assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
-    
   </head>
   
   
-    
-    
-    
-    
-    
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="None" data-md-color-accent="None">
+    <body dir="ltr">
   
-    
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
@@ -76,16 +76,19 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="." title="Imperial College London Fair Data Repository" class="md-header__button md-logo" aria-label="Imperial College London Fair Data Repository" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -105,39 +108,49 @@
     </div>
     
     
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
-      <label class="md-header__button md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
-      </label>
-      <div class="md-search" data-md-component="search" role="dialog">
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
       </nav>
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
           </div>
-          <ol class="md-search-result__list"></ol>
+          <ol class="md-search-result__list" role="presentation"></ol>
         </div>
       </div>
     </div>
   </div>
 </div>
+      
     
     
   </nav>
@@ -162,12 +175,13 @@
                     
 
 
+
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="." title="Imperial College London Fair Data Repository" class="md-nav__button md-logo" aria-label="Imperial College London Fair Data Repository" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
     Imperial College London Fair Data Repository
@@ -177,28 +191,53 @@
     
       
       
-      
-
   
   
     
   
   
+  
     <li class="md-nav__item md-nav__item--active">
       
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
         
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Home
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="." class="md-nav__link md-nav__link--active">
-        Home
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
       </a>
       
         
@@ -218,14 +257,22 @@
       
         <li class="md-nav__item">
   <a href="#requirements" class="md-nav__link">
-    Requirements
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#tooling-overview" class="md-nav__link">
-    Tooling Overview
+    <span class="md-ellipsis">
+      
+        Tooling Overview
+      
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="Tooling Overview">
@@ -233,7 +280,11 @@
         
           <li class="md-nav__item">
   <a href="#invenio-cli" class="md-nav__link">
-    invenio-cli
+    <span class="md-ellipsis">
+      
+        invenio-cli
+      
+    </span>
   </a>
   
 </li>
@@ -245,7 +296,11 @@
       
         <li class="md-nav__item">
   <a href="#local-installation" class="md-nav__link">
-    Local Installation
+    <span class="md-ellipsis">
+      
+        Local Installation
+      
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="Local Installation">
@@ -253,21 +308,33 @@
         
           <li class="md-nav__item">
   <a href="#logging-in" class="md-nav__link">
-    Logging In
+    <span class="md-ellipsis">
+      
+        Logging In
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#imperial-single-sign-on-and-microsoft-graph-api-access" class="md-nav__link">
-    Imperial Single Sign-On and Microsoft Graph API Access
+    <span class="md-ellipsis">
+      
+        Imperial Single Sign-On and Microsoft Graph API Access
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#creating-deposits" class="md-nav__link">
-    Creating deposits
+    <span class="md-ellipsis">
+      
+        Creating deposits
+      
+    </span>
   </a>
   
 </li>
@@ -279,7 +346,11 @@
       
         <li class="md-nav__item">
   <a href="#development" class="md-nav__link">
-    Development
+    <span class="md-ellipsis">
+      
+        Development
+      
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="Development">
@@ -287,42 +358,116 @@
         
           <li class="md-nav__item">
   <a href="#qa" class="md-nav__link">
-    QA
+    <span class="md-ellipsis">
+      
+        QA
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#continuous-integration" class="md-nav__link">
-    Continuous Integration
+    <span class="md-ellipsis">
+      
+        Continuous Integration
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#tests" class="md-nav__link">
-    Tests
+    <span class="md-ellipsis">
+      
+        Tests
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
+  <a href="#end-to-end-ui-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end UI tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="End-to-end UI tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pytest-marker-behaviour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pytest marker behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-run-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local run steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#backend-development" class="md-nav__link">
-    Backend Development
+    <span class="md-ellipsis">
+      
+        Backend Development
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#frontend-development" class="md-nav__link">
-    Frontend Development
+    <span class="md-ellipsis">
+      
+        Frontend Development
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
-    Troubleshooting
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#symplectic-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symplectic Integration
+      
+    </span>
   </a>
   
 </li>
@@ -334,14 +479,22 @@
       
         <li class="md-nav__item">
   <a href="#configuration" class="md-nav__link">
-    Configuration
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#test-data" class="md-nav__link">
-    Test Data
+    <span class="md-ellipsis">
+      
+        Test Data
+      
+    </span>
   </a>
   
 </li>
@@ -356,14 +509,26 @@
     
       
       
-      
-
+  
   
   
   
     <li class="md-nav__item">
       <a href="customisation/" class="md-nav__link">
-        Customisation
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customisation
+  
+
+    
+  </span>
+  
+  
+
       </a>
     </li>
   
@@ -397,14 +562,22 @@
       
         <li class="md-nav__item">
   <a href="#requirements" class="md-nav__link">
-    Requirements
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#tooling-overview" class="md-nav__link">
-    Tooling Overview
+    <span class="md-ellipsis">
+      
+        Tooling Overview
+      
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="Tooling Overview">
@@ -412,7 +585,11 @@
         
           <li class="md-nav__item">
   <a href="#invenio-cli" class="md-nav__link">
-    invenio-cli
+    <span class="md-ellipsis">
+      
+        invenio-cli
+      
+    </span>
   </a>
   
 </li>
@@ -424,7 +601,11 @@
       
         <li class="md-nav__item">
   <a href="#local-installation" class="md-nav__link">
-    Local Installation
+    <span class="md-ellipsis">
+      
+        Local Installation
+      
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="Local Installation">
@@ -432,21 +613,33 @@
         
           <li class="md-nav__item">
   <a href="#logging-in" class="md-nav__link">
-    Logging In
+    <span class="md-ellipsis">
+      
+        Logging In
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#imperial-single-sign-on-and-microsoft-graph-api-access" class="md-nav__link">
-    Imperial Single Sign-On and Microsoft Graph API Access
+    <span class="md-ellipsis">
+      
+        Imperial Single Sign-On and Microsoft Graph API Access
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#creating-deposits" class="md-nav__link">
-    Creating deposits
+    <span class="md-ellipsis">
+      
+        Creating deposits
+      
+    </span>
   </a>
   
 </li>
@@ -458,7 +651,11 @@
       
         <li class="md-nav__item">
   <a href="#development" class="md-nav__link">
-    Development
+    <span class="md-ellipsis">
+      
+        Development
+      
+    </span>
   </a>
   
     <nav class="md-nav" aria-label="Development">
@@ -466,42 +663,116 @@
         
           <li class="md-nav__item">
   <a href="#qa" class="md-nav__link">
-    QA
+    <span class="md-ellipsis">
+      
+        QA
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#continuous-integration" class="md-nav__link">
-    Continuous Integration
+    <span class="md-ellipsis">
+      
+        Continuous Integration
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#tests" class="md-nav__link">
-    Tests
+    <span class="md-ellipsis">
+      
+        Tests
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
+  <a href="#end-to-end-ui-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end UI tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="End-to-end UI tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pytest-marker-behaviour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pytest marker behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-run-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local run steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#backend-development" class="md-nav__link">
-    Backend Development
+    <span class="md-ellipsis">
+      
+        Backend Development
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#frontend-development" class="md-nav__link">
-    Frontend Development
+    <span class="md-ellipsis">
+      
+        Frontend Development
+      
+    </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
-    Troubleshooting
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#symplectic-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symplectic Integration
+      
+    </span>
   </a>
   
 </li>
@@ -513,14 +784,22 @@
       
         <li class="md-nav__item">
   <a href="#configuration" class="md-nav__link">
-    Configuration
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#test-data" class="md-nav__link">
-    Test Data
+    <span class="md-ellipsis">
+      
+        Test Data
+      
+    </span>
   </a>
   
 </li>
@@ -535,9 +814,11 @@
           
           
             <div class="md-content" data-md-component="content">
+              
               <article class="md-content__inner md-typeset">
                 
                   
+
 
 
 <h1 id="getting-started">Getting Started</h1>
@@ -555,9 +836,8 @@ project:</p>
     missing.</li>
 <li>Both <code>pipenv</code> and <code>invenio-cli</code> are best installed with <a href="https://pipx.pypa.io/stable/">pipx</a>. These need to be
     discoverable on your path.</li>
-<li>We are currently pinning to Python 3.9 for compatibility to the deployment base image
-    so you'll need this available. <code>invenio-cli</code> will be satisfied with anything 3.9 or
-    newer but you need 3.9.</li>
+<li>We are currently pinning to Python 3.12 for compatibility to the deployment base image
+    so you'll need this available.</li>
 <li>Cairo and DejaVu are listed in the InvenioRDM Docs but are not checked for by
     <code>invenio-cli</code>. The direct impacts of not having these is unclear but you'd probably
     get by.</li>
@@ -625,8 +905,8 @@ sumarised below:</p>
     data. Note that there are no Celery workers running yet to process these tasks so
     they are just waiting in a queue.</li>
 </ul>
-<p>Note that the above leaves the services running. You can stop them with
-<code>invenio-cli services stop</code>. Either way you can then start the Flask server with:</p>
+<p>Note that the above leaves the services running, you can then start the Flask server
+with:</p>
 <div class="language-console highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="go">invenio-cli run</span>
 </span></code></pre></div>
 <p>This runs the Flask development server and creates a number of Celery workers in the
@@ -641,10 +921,10 @@ warning. Once finished, stop the running Flask server and use
 <code>invenio-cli services destroy</code> remove all the services and data.</p>
 <h3 id="logging-in">Logging In</h3>
 <p>In order to log in to the application you will need to create a user account:</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="go">invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="go">pipenv run invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active --confirm</span>
 </span></code></pre></div>
 <p>You can also optionally make this user an admin with:</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="go">invenio access allow administration-access user DUMMY_EMAIL</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="go">pipenv run invenio access allow superuser-access user DUMMY_EMAIL</span>
 </span></code></pre></div>
 <h3 id="imperial-single-sign-on-and-microsoft-graph-api-access">Imperial Single Sign-On and Microsoft Graph API Access</h3>
 <p>To be able to log in using Imperial SSO use functionality relating to the Microsoft
@@ -661,6 +941,10 @@ the Imperial password safe. Ask Chris C-A for access.</p>
 links) until you have created a community to contain the records. This community must
 have the id "icl" but its other properties are unimportant. The easiest way to create a
 community is via the UI at <a href="https://127.0.0.1:5000/communities/new">https://127.0.0.1:5000/communities/new</a>.</p>
+<p>If the logged in user is not a superuser it must also be granted permission to make
+deposits via:</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="go">pipenv run invenio access allow deposit-action user DUMMY_EMAIL</span>
+</span></code></pre></div>
 <h2 id="development">Development</h2>
 <h3 id="qa">QA</h3>
 <p><a href="https://pre-commit.com/">pre-commit</a> is a tool for running automated checks whenever you make a new commit. If
@@ -681,13 +965,47 @@ and pushes Docker images for the web application and frontend.</p>
 <h3 id="tests">Tests</h3>
 <p>A test suite is provided in the <code>tests</code> directory. Assuming services have already been
 setup, tests can be run with:</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="go">invenio-cli services start</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">pipenv run pytest</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="go">invenio-cli services start</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="go">pipenv run pytest</span>
 </span></code></pre></div>
 <p>All development work should be supported by an appropriate set of tests. Best practices
 around testing are expected to evolve as the project develops.</p>
 <p>The <a href="https://pytest-invenio.readthedocs.io/en/latest/">pytest-invenio</a> plugin is provided to support test development. This extends
 <a href="https://pytest-flask.readthedocs.io/en/latest/">pytest-flask</a> to provide fixtures and support for testing Invenio.</p>
+<h3 id="end-to-end-ui-tests">End-to-end UI tests</h3>
+<p>E2E tests live in <a href="../tests/e2e/"><code>tests/e2e</code></a> and use Selenium with shared fixtures
+from <a href="../tests/e2e/conftest.py"><code>tests/e2e/conftest.py</code></a>.</p>
+<h4 id="pytest-marker-behaviour">Pytest marker behaviour</h4>
+<p>E2E tests are explicitly marked with
+<a href="../tests/e2e/test_user_submission.py"><code>pytestmark</code></a> (<code>pytest.mark.e2e</code>).</p>
+<p>The <code>e2e</code> marker is registered in <a href="../pyproject.toml">pyproject.toml</a>, and default
+pytest options exclude E2E tests (<code>-m 'not e2e'</code>). This means:</p>
+<ul>
+<li><code>pipenv run pytest</code> runs non-E2E tests only</li>
+<li>To run E2E tests, include <code>-m e2e</code></li>
+</ul>
+<h4 id="local-run-steps">Local run steps</h4>
+<ol>
+<li>Start services and application:<ul>
+<li><code>invenio-cli services start</code></li>
+<li><code>invenio-cli run</code></li>
+</ul>
+</li>
+<li>Create a community using the helper script:<ul>
+<li><code>pipenv run python app_data/create_imperial_community.py</code></li>
+</ul>
+</li>
+<li>Create a user:<ul>
+<li><code>pipenv run invenio users create test.user@test.co --password password --active --confirm</code>
+    The user will need permission to submit a deposit:</li>
+<li><code>pipenv run invenio access allow deposit-action user test.user@test.co</code></li>
+</ul>
+</li>
+<li>Finally, run the E2E tests:<ul>
+<li><code>pipenv run pytest -m e2e tests/e2e</code></li>
+</ul>
+</li>
+</ol>
 <h3 id="backend-development">Backend Development</h3>
 <p>Using <code>invenio-cli run</code> will start the Flask development server and a set of Celery
 workers. Debugging is enabled and it the server will automatically reload when changes
@@ -722,6 +1040,27 @@ issues the below information may help with troubleshooting:</p>
     initialised Flask app. This can be useful for debugging issues with the application
     code or inspecting config.</li>
 </ul>
+<h3 id="symplectic-integration">Symplectic Integration</h3>
+<p>Symplectic Elements is a research management system that constructs a graph connecting
+researchers, awards and research outputs (publications, including datasets). While it
+can import metadata from various sources, it lacks native support for InvenioRDM
+repositories.</p>
+<p>The system uses relationships to associate publications with researchers and their roles
+(author, contributor, etc.). These relationships are required for publications to appear
+in a researcher's Symplectic UI and can be declined if incorrect.</p>
+<p>Our integration consists of two main components:</p>
+<ol>
+<li>
+<p><strong>API Client Interface</strong> (<code>SymplecticClient</code>) - Converts InvenioRDM record metadata
+    into Symplectic's required XML format and handles API communication via PUT
+    requests.</p>
+</li>
+<li>
+<p><strong>Service Component Hook</strong> - Automatically triggers the <code>export_record_to_symplectic</code>
+    task when records are published or updated, seamlessly integrating Symplectic
+    export into the publication workflow.</p>
+</li>
+</ol>
 <h2 id="configuration">Configuration</h2>
 <p>This project extends the <a href="https://inveniordm.docs.cern.ch/install/configuration/">configuration approach</a> used by Invenio RDM.</p>
 <p>Inspired by Django the following changes have been made:</p>
@@ -736,12 +1075,15 @@ issues the below information may help with troubleshooting:</p>
 <p>The default configuration is suitable for development. A production oriented settings
 file is also provided in <code>ic_data_repo.config.production</code>.</p>
 <h2 id="test-data">Test Data</h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This functionality is not currently working.</p>
-</div>
 <p>Instructions for accessing and working with realistic test data records are provided in
 the <a href="https://github.com/ImperialCollegeLondon/fair-data-repository/blob/develop/test_data/README.md">test_data directory</a>.</p>
+
+
+
+
+
+
+
 
 
 
@@ -752,32 +1094,12 @@ the <a href="https://github.com/ImperialCollegeLondon/fair-data-repository/blob/
             </div>
           
           
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
         
       </main>
       
         <footer class="md-footer">
-  
-    
-    <nav class="md-footer__inner md-grid" aria-label="Footer" >
-      
-      
-        
-        <a href="customisation/" class="md-footer__link md-footer__link--next" aria-label="Next: Customisation" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              Customisation
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -800,12 +1122,15 @@ the <a href="https://github.com/ImperialCollegeLondon/fair-data-repository/blob/
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.5a2dcb6a.min.js"></script>
       
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": [], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
+    
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
     
   </body>
 </html>

@@ -119,7 +119,6 @@ Reload the changed vocabulary with:
 pipenv run invenio rdm-records add-to-fixture licenses
 ```
 
-
 ### Logging In
 
 In order to log in to the application you will need to create a user account:

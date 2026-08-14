@@ -108,6 +108,8 @@ SITE_UI_URL = "https://127.0.0.1:5000"
 
 SITE_API_URL = "https://127.0.0.1:5000/api"
 
+PUBLIC_LICENSES = ["cc-by-4.0", "cc0-1.0"]
+
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "resource_type": "dataset",
     "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),

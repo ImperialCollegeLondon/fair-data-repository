@@ -111,6 +111,14 @@ warning. Once finished, stop the running Flask server and use
 If you want to restart the setup process from scratch you can use
 `invenio-cli services destroy` remove all the services and data.
 
+### Refreshing vocabularies
+
+Reload the changed vocabulary with:
+
+```console
+pipenv run invenio rdm-records add-to-fixture licenses
+```
+
 ### Logging In
 
 In order to log in to the application you will need to create a user account:

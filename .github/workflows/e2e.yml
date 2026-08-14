@@ -58,9 +58,11 @@ jobs:
 
       - name: Set up e2e submission access
         run: |
-          pipenv run invenio users create test.user@test.co --password password --active --confirm
           pipenv run python app_data/create_imperial_community.py
+          pipenv run invenio users create test.user@test.co --password password --active --confirm
           pipenv run invenio access allow deposit-action user test.user@test.co
+          pipenv run invenio users create test.superuser@test.co --password password --active --confirm
+          pipenv run invenio access allow superuser-access user test.superuser@test.co
 
       - name: Run Selenium e2e
         env:
@@ -73,3 +75,9 @@ jobs:
         with:
           name: invenio-cli-app-log
           path: app.log
+
+      - name: Upload e2e screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: artifacts/**/*.png

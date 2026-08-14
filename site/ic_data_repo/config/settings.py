@@ -104,9 +104,9 @@ INSTANCE_THEME_FILE = "./less/theme.less"
 # See:
 # https://github.com/inveniosoftware/invenio-records-resources/blob/master/invenio_records_resources/config.py
 
-SITE_UI_URL = "https://127.0.0.1"
+SITE_UI_URL = "https://127.0.0.1:5000"
 
-SITE_API_URL = "https://127.0.0.1/api"
+SITE_API_URL = "https://127.0.0.1:5000/api"
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "resource_type": "dataset",

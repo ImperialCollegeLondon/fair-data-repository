@@ -44,16 +44,25 @@ ic-data-repo = {workspace = true}
 [tool.uv.workspace]
 members = ["site"]
 
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203"]
-required-plugins = ["flake8-docstring"]
-docstring-convention = "google"
+[tool.ruff]
+target-version = "py312"
 
-[tool.isort]
-line_length = 88
-multi_line_output = 3
-include_trailing_comma = true
+[tool.ruff.lint]
+select = [
+    "D",   # pydocstyle
+    "E",   # pycodestyle
+    "F",   # Pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "RUF", # ruff
+]
+pydocstyle.convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
+]
 
 [tool.mypy]
 disallow_any_generics = true

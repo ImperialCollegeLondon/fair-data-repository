@@ -1,5 +1,7 @@
 """Permission configuration."""
 
+from typing import ClassVar
+
 from flask_principal import ActionNeed
 from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
 from invenio_records_permissions.generators import Generator, SystemProcess
@@ -36,7 +38,7 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     Implements additional restrictions on depositing datasets.
     """
 
-    can_create = [AbleToDeposit(), SystemProcess()]
+    can_create: ClassVar = [AbleToDeposit(), SystemProcess()]
 
 
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:

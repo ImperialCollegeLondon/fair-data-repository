@@ -4,10 +4,6 @@ import asyncio
 
 from flask import g
 from flask_login import user_logged_in
-from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
-from ic_data_repo.symplectic.resources.resource import SymplecticResource
-from ic_data_repo.symplectic.services.config import SymplecticServiceConfig
-from ic_data_repo.symplectic.services.service import SymplecticService
 from invenio_access.permissions import ActionUsers
 from invenio_db import db
 from invenio_rdm_records.proxies import current_rdm_records
@@ -17,6 +13,11 @@ from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph.generated.models.o_data_errors.o_data_error import ODataError
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 
+from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
+from ic_data_repo.symplectic.resources.resource import SymplecticResource
+from ic_data_repo.symplectic.services.config import SymplecticServiceConfig
+from ic_data_repo.symplectic.services.service import SymplecticService
+
 from .microsoft_graph_api_client import get_client
 from .permissions import can_user_deposit, deposit_action
 
@@ -24,7 +25,7 @@ from .permissions import can_user_deposit, deposit_action
 class IfUserCanTag(Extension):
     """Jinja2 tag to check if a user can do things in templates."""
 
-    tags = {"if_user_can"}
+    tags = {"if_user_can"}  # noqa: RUF012
 
     def parse(self, parser):
         """Parse user permission check tags.

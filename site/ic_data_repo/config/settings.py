@@ -108,7 +108,7 @@ SITE_UI_URL = "https://127.0.0.1"
 
 SITE_API_URL = "https://127.0.0.1/api"
 
-APP_RDM_DEPOSIT_FORM_PUBLIC_LICENSES = ["cc-by-4.0", "cc0-1.0"]
+PUBLIC_LICENSES = ["cc-by-4.0", "cc0-1.0"]
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "resource_type": "dataset",

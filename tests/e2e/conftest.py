@@ -1,15 +1,116 @@
 """Global test fixtures for end-to-end tests."""
 
+from pathlib import Path
+from urllib.parse import urlencode
+
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 pytest.base_url = "https://127.0.0.1:5000"
 
+ARTIFACTS_DIR = Path("artifacts")
+ARTIFACTS_DIR.mkdir(exist_ok=True)
+
+DEPOSITOR_EMAIL = "test.user@test.co"
+REVIEWER_EMAIL = "test.superuser@test.co"
+TEST_PASSWORD = "password"
+
+
+def logout(driver):
+    """Helper function to log out the current user."""
+    driver.get(f"{pytest.base_url}/logout")
+    WebDriverWait(driver, timeout=10).until(
+        lambda d: d.current_url == f"{pytest.base_url}/"
+        and "user-profile-dropdown-btn" not in d.page_source
+        and "Log in" in d.page_source
+    )
+
+
+def login(driver, email, password, next_url="/"):
+    """Helper function to log in a user."""
+    logout(driver)
+
+    login_query = urlencode({"next": next_url})
+    driver.get(f"{pytest.base_url}/login/?{login_query}")
+
+    WebDriverWait(driver, timeout=15).until(
+        EC.visibility_of_element_located((By.ID, "email"))
+    )
+    driver.find_element(By.ID, "email").send_keys(email)
+    driver.find_element(By.ID, "password").send_keys(password)
+    driver.find_element(By.XPATH, "//button[normalize-space()='Log in']").click()
+
+
+def create_submission_and_get_request_url(driver):
+    """Helper function to create a submission and return the request URL."""
+    login(driver, DEPOSITOR_EMAIL, TEST_PASSWORD, next_url="/uploads/new?community=icl")
+
+    WebDriverWait(driver, timeout=10).until(
+        lambda d: d.current_url.endswith("uploads/new?community=icl")
+    )
+
+    driver.find_element(By.ID, "metadata.title").send_keys("Test Submission")
+    driver.find_element(By.ID, "metadata.description").send_keys(
+        "This is a test submission."
+    )
+
+    driver.find_element(By.XPATH, "//button[normalize-space()='Add creator']").click()
+    WebDriverWait(driver, timeout=10).until(
+        lambda d: d.find_element(By.ID, "person_or_org.family_name").is_displayed()
+    )
+    driver.find_element(By.ID, "person_or_org.family_name").send_keys("Test")
+    driver.find_element(By.XPATH, "//button[normalize-space()='Save']").click()
+
+    dummy_file_path = (Path(__file__).parent / "fixtures/dummy_file.txt").resolve()
+    file_input = driver.find_element(By.CSS_SELECTOR, "input[type='file']")
+    file_input.send_keys(str(dummy_file_path))
+
+    submit_locator = (By.XPATH, "//button[normalize-space()='Submit for review']")
+    submit_btn = WebDriverWait(driver, timeout=10).until(
+        EC.element_to_be_clickable(submit_locator)
+    )
+    submit_btn.click()
+
+    required_checkbox_names = [
+        "acceptAccessToRecord",
+        "acceptAfterPublishRecord",
+        "acceptDepositAgreement",
+    ]
+    for name in required_checkbox_names:
+        checkbox = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, f"input[type='checkbox'][name='{name}']")
+            )
+        )
+        if not checkbox.is_selected():
+            driver.execute_script("arguments[0].click();", checkbox)
+
+    final_submit_btn = WebDriverWait(driver, timeout=10).until(
+        EC.element_to_be_clickable(
+            (By.XPATH, "//button[normalize-space()='Submit record for review']")
+        )
+    )
+    final_submit_btn.click()
+
+    driver.get_full_page_screenshot_as_file(
+        str(ARTIFACTS_DIR / "submission_submitted.png")
+    )
+
+    WebDriverWait(driver, timeout=20).until(lambda d: "/requests" in d.current_url)
+    return driver.current_url
+
 
 @pytest.fixture
-def driver():
+def submission_request_url(driver):
+    """Fixture to create a submission and return the request URL."""
+    return create_submission_and_get_request_url(driver)
+
+
+@pytest.fixture
+def driver(request):
     """Selenium WebDriver fixture."""
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
@@ -21,4 +122,9 @@ def driver():
     wait.until(lambda _: body.is_displayed())
 
     yield _driver
+
+    test_name = request.node.originalname
+    screenshot_path = ARTIFACTS_DIR / f"{test_name}.png"
+    _driver.get_full_page_screenshot_as_file(str(screenshot_path))
+
     _driver.quit()

@@ -1,3 +1,49 @@
+[project]
+name = "ic-data-repo-app"
+version = "1.0.0"
+authors = [{name = "Imperial College London", email = "info@invenio.rcs.ic.ac.uk"}]
+license = "MIT"
+requires-python = "~=3.12.0"
+dependencies = [
+    "invenio-app-rdm[opensearch2]~=13.0.0",
+    "ic-data-repo",
+    "lxml",
+    "msgraph-sdk",
+    "pyuwsgi>=2.0",
+    "sqlalchemy-continuum!=1.4.0",
+    "types-lxml",
+    "types-requests",
+    "uwsgi-tools>=1.1.1",
+    "uwsgitop>=0.11",
+    "setuptools<=81",
+]
+
+[dependency-groups]
+dev = [
+    "mkdocs",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
+    "mkdocs-material",
+    "mkdocs-section-index",
+    "mkdocstrings-python",
+    "pika",
+    "pre-commit",
+    "pytest-invenio>=4.0.0,<5.0.0",
+    "pytest-invenio>=4.0.0,<5.0.0",
+    "pytest-mypy",
+    "pytest<8",
+    "selenium",
+    "testcontainers",
+    "urllib3>=2.6.0",
+    "webdriver-manager",
+]
+
+[tool.uv.sources]
+ic-data-repo = {workspace = true}
+
+[tool.uv.workspace]
+members = ["site"]
+
 [tool.flake8]
 max-line-length = 88
 extend-ignore = ["E203"]

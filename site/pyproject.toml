@@ -1,3 +1,27 @@
+[project]
+name = "ic-data-repo"
+description = "ic-data-repo customizations for Invenio RDM."
+license = "MIT"
+version = "1.0.0"
+
+[project.entry-points."invenio_base.blueprints"]
+ic_data_repo_views = "ic_data_repo.views:create_blueprint"
+
+[project.entry-points."invenio_assets.webpack"]
+ic_data_repo_theme = "ic_data_repo.webpack:theme"
+
+[project.entry-points."invenio_celery.tasks"]
+ic_data_repo_tasks = "ic_data_repo.tasks"
+
+[project.entry-points."invenio_base.apps"]
+ic_data_repo = "ic_data_repo.ext:ImperialExtension"
+
+[project.entry-points."invenio_access.actions"]
+deposit_action = "ic_data_repo.permissions:deposit_action"
+
+[project.entry-points."invenio_base.api_apps"]
+ic_data_repo_symplectic = "ic_data_repo.ext:SymplecticExt"
+
 [build-system]
-requires = ["setuptools", "wheel", "babel>2.8"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

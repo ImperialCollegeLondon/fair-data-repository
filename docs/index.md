@@ -182,6 +182,16 @@ A simple Continuous Integration setup is provided via GitHub Actions. This check
 target commit against the project QA tooling and for commits to the main branch builds
 and pushes Docker images for the web application and frontend.
 
+### Branches
+
+The default branch for the repository is `staging`. This is where feature development
+should be carried out.
+
+The `develop` and `main` branches control deployment to the dev and prod deployments
+respectively via CI workflow. The goal is to keep the dev infrastructure as similar to
+prod as possible therefore the majority of development work should be against `staging`.
+Only urgent bug fixes or security patches should be started against `develop`.
+
 ### Tests
 
 A test suite is provided in the `tests` directory. Assuming services have already been

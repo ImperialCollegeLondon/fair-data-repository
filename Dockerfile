@@ -2,7 +2,7 @@
 #
 # This image installs all Python dependencies for your application. It's based
 # on Almalinux (https://github.com/inveniosoftware/docker-invenio)
-# and includes Pip, Pipenv, Node.js, NPM and some few standard libraries
+# and includes Pip, uv, Node.js, NPM and some few standard libraries
 # Invenio usually needs.
 #
 # Note: It is important to keep the commands in this file in sync with your
@@ -60,7 +60,7 @@ RUN dnf install -y \
     dnf clean all
 
 # Symlink Python
-RUN pip install --upgrade pip pipenv wheel --no-cache-dir
+RUN pip install --upgrade pip uv wheel --no-cache-dir
 
 
 # Create working directory
@@ -86,8 +86,8 @@ RUN chgrp -R 0 ${WORKING_DIR} && \
     chown -R invenio:root ${WORKING_DIR}
 
 COPY site ./site
-COPY Pipfile Pipfile.lock ./
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy --extra-pip-args="--no-cache-dir"
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
 ENV VIRTUAL_ENV_PATH=${WORKING_DIR}/src/.venv
 ENV PATH="$VIRTUAL_ENV_PATH/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
@@ -101,10 +101,13 @@ COPY ./app_data/ ${INVENIO_INSTANCE_PATH}/app_data/
 COPY ./translations/ ${INVENIO_INSTANCE_PATH}/translations/
 COPY ./ .
 
+RUN dnf install -y libatomic
+RUN curl -fsSL https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
+
 RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \
     cp -r ./assets/. ${INVENIO_INSTANCE_PATH}/assets/ && \
     invenio collect --verbose  && \
-    invenio webpack buildall && \
-    npm cache clean --force
+    PATH=$PATH:/root/.local/share/pnpm/bin/ invenio webpack buildall && \
+    /root/.local/share/pnpm/bin/pnpm cache delete
 
 RUN chown -R invenio test_data/ ${INVENIO_INSTANCE_PATH}/app_data/

@@ -118,7 +118,7 @@ If you want to restart the setup process from scratch you can use
 Reload the changed vocabulary with:
 
 ```console
-pipenv run invenio rdm-records add-to-fixture licenses
+uv run invenio rdm-records add-to-fixture licenses
 ```
 
 ### Logging In

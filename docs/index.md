@@ -12,12 +12,15 @@ repository and can run `invenio-cli check-requirements --development` in the pro
 directory and all requirements are met. Below are some tips and specifics for this
 project:
 
-- Start by installing `invenio-cli` and run the requirements check above to see what's
-    missing.
-- Both `pipenv` and `invenio-cli` are best installed with [pipx]. These need to be
-    discoverable on your path.
-- We are currently pinning to Python 3.12 for compatibility to the deployment base image
-    so you'll need this available.
+- `uv` is used to manage Python dependencies and the virtual environment. Install it
+    following the [uv installation instructions].
+- `invenio-cli` can be installed with uv - `uv tool install "invenio-cli>=1.12`. If you
+    see a warning, follow the suggested steps to make sure you can find the
+    `invenio-cli` command.
+- Now run the `invenio-cli check-requirements --development`.
+- The version of python found by `invenio-cli` may be a bit random so don't worry too
+    much about that aspect - `uv` should find or install the correct Python version
+    later.
 - Cairo and DejaVu are listed in the InvenioRDM Docs but are not checked for by
     `invenio-cli`. The direct impacts of not having these is unclear but you'd probably
     get by.
@@ -30,7 +33,7 @@ A combination of tools are used to manage the project. Their different roles are
 summarised below but most operations use `invenio-cli` which wraps the other tools as
 required and is covered in more detail below.
 
-- `pipenv` is used to manage Python dependencies and the virtual environment used for
+- `uv` is used to manage Python dependencies and the virtual environment used for
     development.
 - `node` and `npm` are used to manage JavaScript dependencies and the build process for
     the frontend.
@@ -38,8 +41,8 @@ required and is covered in more detail below.
     application, namely the database, OpenSearch, Redis and RabbitMQ.
 - `invenio` - is the core application of InvenioRDM. Whilst a few operations require
     invoking it directly it mostly called indirectly via `invenio-cli`. It is installed
-    within the virtual environment managed by `pipenv` so must be invoked via
-    `pipenv run invenio`.
+    within the virtual environment managed by `uv` so must be invoked via
+    `uv run invenio`.
 
 ### `invenio-cli`
 
@@ -48,15 +51,14 @@ development and most operations are performed by invoking it. It's main subcomma
 sumarised below:
 
 - `invenio-cli install` - Installs the project and its dependencies. Creates the virtual
-    environment if necessary, syncs the dependencies with Pipfile.lock, builds the
-    frontend and copies/symlinks the assets to the correct location in the virtual
-    environment.
+    environment if necessary, syncs the dependencies with uv.lock, builds the frontend
+    and copies/symlinks the assets to the correct location in the virtual environment.
 - `invenio-cli services` - Manages the Docker services required to run the application.
     Can be used to setup, start, stop and teardown the services.
 - `invenio-cli run` - Starts the Flask development server and a set of Celery workers.
     Note that in development this should always be used rather than `invenio run` as
     this passes appropriate configuration.
-- `invenio-cli packages` - Wraps `pipenv` to manage Python dependencies. Can be used to
+- `invenio-cli packages` - Works with `uv` to manage Python dependencies. Can be used to
     install, uninstall and update packages.
 - `invenio-cli pyshell` - Starts a shell in the virtual environment with an initialised
     Flask app.
@@ -124,13 +126,13 @@ pipenv run invenio rdm-records add-to-fixture licenses
 In order to log in to the application you will need to create a user account:
 
 ```console
-pipenv run invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active --confirm
+uv run invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active --confirm
 ```
 
 You can also optionally make this user an admin with:
 
 ```console
-pipenv run invenio access allow superuser-access user DUMMY_EMAIL
+uv run invenio access allow superuser-access user DUMMY_EMAIL
 ```
 
 ### Imperial Single Sign-On and Microsoft Graph API Access
@@ -156,7 +158,7 @@ If the logged in user is not a superuser it must also be granted permission to m
 deposits via:
 
 ```console
-pipenv run invenio access allow deposit-action user DUMMY_EMAIL
+uv run invenio access allow deposit-action user DUMMY_EMAIL
 ```
 
 ## Development
@@ -168,8 +170,8 @@ you don't already have it installed pre-commit is included along with the develo
 dependencies of the project. If you have a separate installation of pre-commit you can
 set it up to check your individual commits with `pre-commit install`. If you're using
 pre-commit from the development dependencies then you can set it up
-`pipenv run pre-commit install`. Note that in this later case you may need to run this
-command again if the pipenv managed virtual environment changes.
+`uv run pre-commit install`. Note that in this latter case you may need to run this
+command again if the uv-managed virtual environment changes.
 
 It is strongly recommended to use [pre-commit] to check your individual commits meet the
 QA standards of the project. These are enforced via GitHub Actions and it's easiest to
@@ -199,7 +201,7 @@ setup, tests can be run with:
 
 ```console
 invenio-cli services start
-pipenv run pytest
+uv run pytest
 ```
 
 All development work should be supported by an appropriate set of tests. Best practices
@@ -221,7 +223,7 @@ E2E tests are explicitly marked with
 The `e2e` marker is registered in [pyproject.toml](../pyproject.toml), and default
 pytest options exclude E2E tests (`-m 'not e2e'`). This means:
 
-- `pipenv run pytest` runs non-E2E tests only
+- `uv run pytest` runs non-E2E tests only
 - To run E2E tests, include `-m e2e`
 
 #### Local run steps
@@ -233,30 +235,30 @@ pytest options exclude E2E tests (`-m 'not e2e'`). This means:
 
 1. Create a community using the helper script:
 
-    - `pipenv run python app_data/create_imperial_community.py`
+    - `uv run python app_data/create_imperial_community.py`
 
 1. Two users will need to be created, one with permission to submit a deposit, one with
     permission to accept/decline a submission.
 
     - Create a user:
 
-        `pipenv run invenio users create test.user@test.co --password password --active --confirm`
+        `uv run invenio users create test.user@test.co --password password --active --confirm`
 
         The user will need permission to submit a deposit:
 
-        `pipenv run invenio access allow deposit-action user test.user@test.co`
+        `uv run invenio access allow deposit-action user test.user@test.co`
 
     - Create a superuser:
 
-        `pipenv run invenio users create test.superuser@test.co --password password --active --confirm`
+        `uv run invenio users create test.superuser@test.co --password password --active --confirm`
 
         The user will need permission to accept submitted deposits
 
-        `pipenv run invenio access allow superuser-access user test.superuser@test.co`
+        `uv run invenio access allow superuser-access user test.superuser@test.co`
 
 1. Finally, run the E2E tests:
 
-    - `pipenv run pytest -m e2e tests/e2e`
+    - `uv run pytest -m e2e tests/e2e`
 
 #### Screenshots and artifacts
 
@@ -370,8 +372,8 @@ the [test_data directory].
 [icl_oauth_client_id]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456013&ORGN_NAME=MSP
 [icl_oauth_client_secret]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456012&ORGN_NAME=MSP
 [inveniordm system requirements docs]: https://inveniordm.docs.cern.ch/install/requirements/
-[pipx]: https://pipx.pypa.io/stable/
 [pre-commit]: https://pre-commit.com/
 [pytest-flask]: https://pytest-flask.readthedocs.io/en/latest/
 [pytest-invenio]: https://pytest-invenio.readthedocs.io/en/latest/
 [test_data directory]: https://github.com/ImperialCollegeLondon/fair-data-repository/blob/develop/test_data/README.md
+[uv installation instructions]: https://docs.astral.sh/uv/getting-started/installation/

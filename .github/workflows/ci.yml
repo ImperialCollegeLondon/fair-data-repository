@@ -36,5 +36,8 @@ jobs:
           cache-dependency-glob: |
             **/pyproject.toml
             **/uv.lock
+      - uses: pnpm/setup@v2
+        with:
+          version: 11
       - name: install dependencies and build assets
         run: uvx invenio-cli==1.12 install

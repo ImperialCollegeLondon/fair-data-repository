@@ -34,6 +34,10 @@ jobs:
             **/pyproject.toml
             **/uv.lock
 
+      - uses: pnpm/setup@v2
+        with:
+          version: 11
+
       - name: Install project
         run: uvx invenio-cli==1.12 install
 

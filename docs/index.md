@@ -182,6 +182,16 @@ A simple Continuous Integration setup is provided via GitHub Actions. This check
 target commit against the project QA tooling and for commits to the main branch builds
 and pushes Docker images for the web application and frontend.
 
+### Branches
+
+The default branch for the repository is `staging`. This is where feature development
+should be carried out.
+
+The `develop` and `main` branches control deployment to the dev and prod deployments
+respectively via CI workflow. The goal is to keep the dev infrastructure as similar to
+prod as possible therefore the majority of development work should be against `staging`.
+Only urgent bug fixes or security patches should be started against `develop`.
+
 ### Tests
 
 A test suite is provided in the `tests` directory. Assuming services have already been
@@ -270,6 +280,24 @@ and rebuild automatically use `invenio-cli assets watch`.
 
 Note that the above is not required for any changes to the html templates which are
 processed by the backend.
+
+### AI Infrastructure
+
+This project has several components that aim to support use of AI tools for development.
+The main supported service is GitHub Copilot but you will likely be able to use the
+other providers albeit with some additional friction. The infrastructure components are:
+
+- A agent instructions file at `.github/copilot-instructions.md`.
+- Repository local skills stored in the standard copilot location - `.github/skills`.
+- A repository local knowledge base - `docs/knowledge_base` - that provides content to
+    improve AI model context and quality of outputs. See `docs/knowledge_base/index.md`
+    for its structure and design.
+
+**This infrastructure is still experimental and best practices for its use and
+maintainence are TBD.**
+
+For compatibility, there is an `AGENTS.md` file that is an light-weight pointer to
+`copilot-instructions.md`.
 
 ### Troubleshooting
 

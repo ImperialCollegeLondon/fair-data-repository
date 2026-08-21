@@ -15,6 +15,23 @@ deposit records. The following changes have been made (see [PR #262] and [PR #25
 - Deposit permission is assigned to users when they login to the system based on their
     identity data according to the check defined in `ext.py`.
 
+### Restricted Licence Permissions
+
+The `restricted-license-action` permission allows a user to choose a licence outside the
+public allowlist. It is granted independently of `deposit-action`.
+
+Administrators can grant the permission to a user with:
+
+```console
+pipenv run invenio access allow-action-for-user --user EMAIL --action restricted-license-action
+```
+
+Revoke it by removing the assignment:
+
+```console
+pipenv run invenio access remove-action-from-user --user EMAIL --action restricted-license-action
+```
+
 ## Deposit Visibility
 
 The deposit metadata schema has been updated to prevent metadata visibility from being

@@ -20,10 +20,11 @@ def test_restricted_license_generator():
     assert AbleToSelectRestrictedLicense().needs() == [restricted_license_action]
 
 
-def test_restricted_license_permission_grant_and_revoke(user, db):
+def test_restricted_license_permission_grant_and_revoke(db):
     """Test restricted licence access is independent of deposit access."""
-    identity = Identity(user.user.id)
-    identity.provides.add(UserNeed(user.user.id))
+    user_id = 2
+    identity = Identity(user_id)
+    identity.provides.add(UserNeed(user_id))
 
     assert not ImperialRecordPermissionPolicy("select_restricted_license").allows(
         identity
@@ -33,7 +34,7 @@ def test_restricted_license_permission_grant_and_revoke(user, db):
     ), "deposit access should initially be denied"
 
     restricted_license_grant = ActionUsers.allow(
-        restricted_license_action, user_id=user.user.id
+        restricted_license_action, user_id=user_id
     )
     db.session.add(restricted_license_grant)
     db.session.flush()
@@ -52,7 +53,7 @@ def test_restricted_license_permission_grant_and_revoke(user, db):
         identity
     ), "removing the grant should revoke restricted licence access"
 
-    db.session.add(ActionUsers.allow(deposit_action, user_id=user.user.id))
+    db.session.add(ActionUsers.allow(deposit_action, user_id=user_id))
     db.session.flush()
 
     assert ImperialRecordPermissionPolicy("create").allows(

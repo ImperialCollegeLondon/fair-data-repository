@@ -152,64 +152,59 @@ An integration with Symplectic Elements API has been implemented. This comprises
 ## Domain Metadata
 
 Records can be tagged with domain-specific classification terms via the
-`imperial:domain_metadata` custom field: a multi-value list of `{id, value}`
-pairs. `id` must reference a term in a dedicated `domainmetadatascheme`
-vocabulary.
+`imperial:domain_metadata` custom field: a multi-value list of `{id, value}` pairs. `id`
+must reference a term in a dedicated `domainmetadatascheme` vocabulary.
 
-`value` is required, free-text subject content supplied by the client,
-independent of the referenced term.
+`value` is required, free-text subject content supplied by the client, independent of
+the referenced term.
 
-Records only ever persist exactly `{id, value}` - nothing from the
-vocabulary term (title, or any other property) is copied onto the stored
-record.
+Records only ever persist exactly `{id, value}` - nothing from the vocabulary term
+(title, or any other property) is copied onto the stored record.
 
-`id` must be unique across this ENTIRE vocabulary, not just within one
-external scheme - it's a single flat namespace, not partitioned per 
-scheme. If terms are drawn from more than one external classification
-system, prefix each id with a short scheme identifier to avoid two
-unrelated schemes' native codes colliding, e.g.:
-   mesh-<mesh-code>
-   anzsrc-<anzsrc-code>
+`id` must be unique across this ENTIRE vocabulary, not just within one external scheme -
+it's a single flat namespace, not partitioned per scheme. If terms are drawn from more
+than one external classification system, prefix each id with a short scheme identifier
+to avoid two unrelated schemes' native codes colliding, e.g.: mesh-<mesh-code>
+anzsrc-<anzsrc-code>
 
 ### Fixtures
 
-Terms are defined in `app_data/vocabularies/domain_metadata_schemes.yaml`
-(mirrored for tests in `tests/data/vocabularies/`), using InvenioRDM's
-standard generic-vocabulary fixture format - just `id` and a localized
-`title` are needed; nothing about a term's own properties is read by the
-custom field.
+Terms are defined in `app_data/vocabularies/domain_metadata_schemes.yaml` (mirrored for
+tests in `tests/data/vocabularies/`), using InvenioRDM's standard generic-vocabulary
+fixture format - just `id` and a localized `title` are needed; nothing about a term's
+own properties is read by the custom field.
 
 ### Initial loading and live updates
 
 The vocabulary is loaded the same way as any other InvenioRDM vocabulary:
 
-- On first setup, `invenio rdm-records fixtures` loads it along with
-    everything else - this only runs once; it skips vocabularies that have
-    already been loaded.
+- On first setup, `invenio rdm-records fixtures` loads it along with everything else -
+    this only runs once; it skips vocabularies that have already been loaded.
+
 - To add or update terms later, edit the YAML file and run:
 
     ```console
     pipenv run invenio rdm-records add-to-fixture domainmetadatascheme
     ```
 
-    This upserts by `id` - existing terms are updated in place and new ones
-    created, so terms can be revised and re-applied without downtime.
+    This upserts by `id` - existing terms are updated in place and new ones created, so
+    terms can be revised and re-applied without downtime.
 
 ### OpenSearch mapping initialization
 
-Adding a new custom field to an instance whose search index already exists
-requires explicitly pushing its mapping - InvenioRDM does not do this
-automatically from a config change alone:
+Adding a new custom field to an instance whose search index already exists requires
+explicitly pushing its mapping - InvenioRDM does not do this automatically from a config
+change alone:
 
 ```console
 pipenv run invenio custom-fields init -f imperial:domain_metadata
 ```
 
-Omit `-f imperial:domain_metadata` to (re-)create the mappings for every
-configured custom field instead of just this one. This only needs to run
-once per environment, when the field is first deployed to it (or after
-changing its `mapping`) - `invenio rdm-records fixtures`, used for vocabulary
-data, does not touch custom field mappings at all.
+Omit `-f imperial:domain_metadata` to (re-)create the mappings for every configured
+custom field instead of just this one. This only needs to run once per environment, when
+the field is first deployed to it (or after changing its `mapping`) -
+`invenio rdm-records fixtures`, used for vocabulary data, does not touch custom field
+mappings at all.
 
 [app_rdm_deposit_form_defaults]: https://github.com/inveniosoftware/invenio-app-rdm/blob/af193c7a5fcb728343c7898ac4f52a5a5b44c95a/invenio_app_rdm/config.py#L917-L940
 [creatibutorsfield]: https://github.com/inveniosoftware/invenio-rdm-records/blob/v10.9.1/invenio_rdm_records/assets/semantic-ui/js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsField.js

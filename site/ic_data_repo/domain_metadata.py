@@ -36,15 +36,12 @@ class DomainMetadataItemSchema(Schema):
 
 
 class DomainMetadataCF(BaseCF):
-    """Custom field for domain metadata: a list of {id, value} pairs.
-    """
+    """Custom field for domain metadata: a list of {id, value} pairs."""
 
     @property
     def field(self):
         """Marshmallow field: a list of {id, value} pairs."""
-        return fields.List(
-            fields.Nested(DomainMetadataItemSchema), **self._field_args
-        )
+        return fields.List(fields.Nested(DomainMetadataItemSchema), **self._field_args)
 
     @property
     def mapping(self):

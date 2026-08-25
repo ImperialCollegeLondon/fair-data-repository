@@ -22,6 +22,9 @@ POSTGRADUATE_ROLE_TYPE = "Research Postgraduate"
 deposit_action = ActionNeed("deposit-action")
 """Action representing the ability to deposit datasets."""
 
+restricted_license_action = ActionNeed("restricted-license-action")
+"""Action representing the ability to select a restricted licence."""
+
 
 class AbleToDeposit(Generator):
     """Permission generator for dataset deposit."""
@@ -29,6 +32,14 @@ class AbleToDeposit(Generator):
     def needs(self, **kwargs):
         """The needs associated with the dataset deposit permission."""
         return [deposit_action]
+
+
+class AbleToSelectRestrictedLicense(Generator):
+    """Permission generator for selecting a restricted licence."""
+
+    def needs(self, **kwargs):
+        """The needs associated with restricted licence selection."""
+        return [restricted_license_action]
 
 
 class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
@@ -39,6 +50,10 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     """
 
     can_create: ClassVar = [AbleToDeposit(), SystemProcess()]
+    can_select_restricted_license: ClassVar = [
+        AbleToSelectRestrictedLicense(),
+        SystemProcess(),
+    ]
 
 
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:

@@ -18,6 +18,7 @@ ic_data_repo = "ic_data_repo.ext:ImperialExtension"
 
 [project.entry-points."invenio_access.actions"]
 deposit_action = "ic_data_repo.permissions:deposit_action"
+restricted_license_action = "ic_data_repo.permissions:restricted_license_action"
 
 [project.entry-points."invenio_base.api_apps"]
 ic_data_repo_symplectic = "ic_data_repo.ext:SymplecticExt"

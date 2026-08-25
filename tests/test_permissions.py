@@ -56,24 +56,24 @@ def test_permission_grant_and_revoke(action_name, need, db):
     identity = Identity(user_id)
     identity.provides.add(UserNeed(user_id))
 
-    assert not ImperialRecordPermissionPolicy(action_name).allows(
-        identity
-    ), f"{action_name} access should initially be denied"
+    assert not ImperialRecordPermissionPolicy(action_name).allows(identity), (
+        f"{action_name} access should initially be denied"
+    )
 
     grant = ActionUsers.allow(need, user_id=user_id)
     db.session.add(grant)
     db.session.flush()
 
-    assert ImperialRecordPermissionPolicy(action_name).allows(
-        identity
-    ), f"{action_name} grant should allow access"
+    assert ImperialRecordPermissionPolicy(action_name).allows(identity), (
+        f"{action_name} grant should allow access"
+    )
 
     db.session.delete(grant)
     db.session.flush()
 
-    assert not ImperialRecordPermissionPolicy(action_name).allows(
-        identity
-    ), f"removing the grant should revoke {action_name} access"
+    assert not ImperialRecordPermissionPolicy(action_name).allows(identity), (
+        f"removing the grant should revoke {action_name} access"
+    )
 
 
 def test_system_process_can_select_restricted_license():

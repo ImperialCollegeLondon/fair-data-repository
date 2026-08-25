@@ -117,6 +117,100 @@ def test_metadata_schema_copyright(
     assert "copyright" not in result.json["metadata"]
 
 
+@pytest.mark.parametrize(
+    ("entries", "expected_stored", "expected_errors", "publish_status"),
+    [
+        pytest.param(
+            [
+                {"id": "example-domain-term", "value": "My chosen subject text"},
+                {"id": "minimal-domain-term", "value": "A second subject"},
+            ],
+            [
+                {"id": "example-domain-term", "value": "My chosen subject text"},
+                {"id": "minimal-domain-term", "value": "A second subject"},
+            ],
+            [],
+            None,
+            id="valid-pairs",
+        ),
+        pytest.param(
+            [{"id": "does-not-exist", "value": "Some subject"}],
+            [{"value": "Some subject"}],
+            ["custom_fields.imperial:domain_metadata.0.id"],
+            400,
+            id="unknown-id",
+        ),
+        pytest.param(
+            [{"id": "example-domain-term", "value": ""}],
+            [{"id": "example-domain-term"}],
+            ["custom_fields.imperial:domain_metadata.0.value"],
+            400,
+            id="blank-value",
+        ),
+        pytest.param(
+            [{"id": "example-domain-term"}],
+            [{"id": "example-domain-term"}],
+            ["custom_fields.imperial:domain_metadata.0.value"],
+            400,
+            id="missing-value",
+        ),
+    ],
+)
+def test_domain_metadata_custom_field(
+    user_client,
+    location,
+    vocabularies,
+    user_depositor,
+    api_headers,
+    metadata,
+    entries,
+    expected_stored,
+    expected_errors,
+    publish_status,
+):
+    """imperial:domain_metadata: persistence and validation.
+
+    Multiple {id, value} pairs, each referencing a different vocabulary
+    term, persist independently and round-trip exactly as {id, value} - no
+    vocabulary properties (title, props, etc.) are ever copied onto the
+    record. An unknown id, or a blank/missing value, is flagged rather than
+    silently stored as if valid.
+
+    Drafts may be saved with validation errors (so work-in-progress can be
+    saved incomplete) - the API surfaces this as a non-blocking `errors`
+    entry on an otherwise-201 response, rather than a hard rejection on
+    create. Strict validation only happens at publish time - checked here
+    for the invalid cases only (`publish_status` is None for valid-pairs,
+    since actually succeeding at publish also requires a community
+    submission unrelated to domain_metadata; the draft-level checks above
+    already prove domain_metadata itself raises no error for valid input).
+    """
+    record_json = {
+        "metadata": metadata,
+        "files": {"enabled": False},
+        "custom_fields": {"imperial:domain_metadata": entries},
+    }
+    record = user_client.post(
+        "/records",
+        json=record_json,
+        headers=api_headers,
+    )
+    assert record.status_code == 201
+
+    error_fields = [e["field"] for e in record.json.get("errors", [])]
+    assert error_fields == expected_errors
+
+    stored_entries = record.json["custom_fields"].get("imperial:domain_metadata", [])
+    assert stored_entries == expected_stored
+
+    if publish_status is not None:
+        publish = user_client.post(
+            f"/records/{record.json['id']}/draft/actions/publish",
+            headers=api_headers,
+        )
+        assert publish.status_code == publish_status
+
+
 def test_new_record_version(
     user_client, location, vocabularies, user_depositor, api_headers, metadata
 ):

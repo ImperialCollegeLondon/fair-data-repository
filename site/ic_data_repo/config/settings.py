@@ -22,7 +22,11 @@ from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import SymplecticComponent
-from .custom_fields import RDM_CUSTOM_FIELDS, RDM_NAMESPACES  # noqa: F401
+from .custom_fields import (  # noqa: F401
+    RDM_CUSTOM_FIELDS,
+    RDM_CUSTOM_FIELDS_UI,
+    RDM_NAMESPACES,
+)
 from .utils import get_user_form_default
 
 # Flask

@@ -56,7 +56,8 @@ RUN dnf install -y \
         sqlite-devel \
         which \
         nodejs \
-        xmlsec1-devel && \
+        xmlsec1-devel \
+        libatomic && \
     dnf clean all
 
 # Symlink Python
@@ -101,7 +102,6 @@ COPY ./app_data/ ${INVENIO_INSTANCE_PATH}/app_data/
 COPY ./translations/ ${INVENIO_INSTANCE_PATH}/translations/
 COPY ./ .
 
-RUN dnf install -y libatomic
 RUN curl -fsSL https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
 
 RUN cp -r ./static/. ${INVENIO_INSTANCE_PATH}/static/ && \

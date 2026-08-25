@@ -14,7 +14,7 @@ project:
 
 - `uv` is used to manage Python dependencies and the virtual environment. Install it
     following the [uv installation instructions].
-- `invenio-cli` can be installed with uv - `uv tool install "invenio-cli>=1.12`. If you
+- `invenio-cli` can be installed with uv - `uv tool install "invenio-cli>=1.12"`. If you
     see a warning, follow the suggested steps to make sure you can find the
     `invenio-cli` command.
 - Now run the `invenio-cli check-requirements --development`.

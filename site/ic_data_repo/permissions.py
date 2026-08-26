@@ -22,6 +22,9 @@ POSTGRADUATE_ROLE_TYPE = "Research Postgraduate"
 deposit_action = ActionNeed("deposit-action")
 """Action representing the ability to deposit datasets."""
 
+deposit_description_action = ActionNeed("deposit-description-action")
+"""Action representing the ability to deposit datasets with a description."""
+
 restricted_license_action = ActionNeed("restricted-license-action")
 """Action representing the ability to select a restricted licence."""
 
@@ -32,6 +35,14 @@ class AbleToDeposit(Generator):
     def needs(self, **kwargs):
         """The needs associated with the dataset deposit permission."""
         return [deposit_action]
+
+
+class AbleToDepositDescription(Generator):
+    """Permission generator for dataset deposit with description."""
+
+    def needs(self, **kwargs):
+        """The needs associated with the dataset deposit permission."""
+        return [deposit_description_action]
 
 
 class AbleToSelectRestrictedLicense(Generator):

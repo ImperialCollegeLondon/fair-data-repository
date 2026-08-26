@@ -13,6 +13,7 @@ class DescriptionTransferSchema(LocalTransfer.Schema):
     """Schema for description transfer type."""
 
     description = fields.String(required=False, validate=validate.Length(max=100))
+    """Optional description field for the transfer."""
 
 
 class DescriptionTransfer(LocalTransfer):

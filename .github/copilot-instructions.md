@@ -6,7 +6,7 @@
 
 ## Tech Stack
 
-- **Python 3.12** with Pipenv for dependency management
+- **Python 3.12** with uv for dependency management
 - **InvenioRDM ~13.0** (Flask-based, with Celery, PostgreSQL, Redis, RabbitMQ, OpenSearch)
 - **Docker / Docker Compose** for local services
 - **Helm** for Kubernetes (AKS) deployment
@@ -15,7 +15,7 @@
 ## Project Structure
 
 ```
-/                        # Root: Pipfile, invenio.cfg, docker-compose files
+/                        # Root: pyproject.toml, uv.lock, invenio.cfg, docker-compose files
   site/
     ic_data_repo/        # Main Python package (InvenioRDM extension)
       config/            # Environment-specific config modules
@@ -43,16 +43,16 @@ invenio-cli install
 invenio-cli services start
 
 # Run tests (excludes e2e)
-pipenv run pytest -p no:warnings -m "not e2e"
+uv run pytest -p no:warnings -m "not e2e"
 
 # Run e2e tests only
-pipenv run pytest -m e2e
+uv run pytest -m e2e
 
 # Build documentation
-pipenv run mkdocs build
+uv run mkdocs build
 
 # Run Python commands with an intialised flask app
-pipenv run invenio shell -c "print(app.config)"
+uv run invenio shell -c "print(app.config)"
 ```
 
 ## Configuration

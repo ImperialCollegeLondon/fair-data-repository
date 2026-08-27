@@ -26,22 +26,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install CLI tooling
-        run: |
-          python -m pip install --upgrade pip pipx
-          pipx install pipenv
-          pipx install invenio-cli
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+
+      - uses: pnpm/setup@v2
+        with:
+          version: 11
 
       - name: Install project
-        run: pipenv run invenio-cli install
+        run: uvx invenio-cli==1.12 install
 
       - name: Start services
-        run: pipenv run invenio-cli services setup --no-demo-data
+        run: uvx invenio-cli==1.12 services setup --no-demo-data
 
 
       - name: Start dev server
         run: |
-          pipenv run invenio-cli run > app.log 2>&1 &
+          uvx invenio-cli==1.12 run > app.log 2>&1 &
           echo $! > app.pid
 
       - name: Wait for app to be ready
@@ -58,16 +64,16 @@ jobs:
 
       - name: Set up e2e submission access
         run: |
-          pipenv run python app_data/create_imperial_community.py
-          pipenv run invenio users create test.user@test.co --password password --active --confirm
-          pipenv run invenio access allow deposit-action user test.user@test.co
-          pipenv run invenio users create test.superuser@test.co --password password --active --confirm
-          pipenv run invenio access allow superuser-access user test.superuser@test.co
+          uv run invenio users create test.user@test.co --password password --active --confirm
+          uv run python app_data/create_imperial_community.py
+          uv run invenio access allow deposit-action user test.user@test.co
+          uv run invenio users create test.superuser@test.co --password password --active --confirm
+          uv run invenio access allow superuser-access user test.superuser@test.co
 
       - name: Run Selenium e2e
         env:
           MOZ_HEADLESS: 1
-        run: pipenv run pytest -m e2e tests/e2e
+        run: uv run pytest -m e2e tests/e2e
 
       - name: Upload app logs on failure
         if: failure()

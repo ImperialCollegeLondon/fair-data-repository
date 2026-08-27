@@ -49,12 +49,12 @@ indices before reloading fixtures. Never use `--force` against a production inst
 
 ## Updating a live instance
 
-Fixture loading is additive: `pipenv run invenio rdm-records fixtures` can add entries
-that do not yet exist, but does not overwrite existing records. For supported additions
-and updates, use:
+Fixture loading is additive: `uv run invenio rdm-records fixtures` can add entries that
+do not yet exist, but does not overwrite existing records. For supported additions and
+updates, use:
 
 ```bash
-pipenv run invenio rdm-records add-to-fixture <vocabulary_name>
+uv run invenio rdm-records add-to-fixture <vocabulary_name>
 ```
 
 This command adds new entries or updates existing entries, but does not delete existing

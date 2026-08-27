@@ -11,7 +11,7 @@ the repository. In brief, this directory contains:
 See the individual script for details but the intended usage is, working in the
 `test_data` directory, to:
 
-- run `pipenv run python download_test_data.py` as a one-off or in the event of a change
-    in `dois`.
+- run `uv run python download_test_data.py` as a one-off or in the event of a change in
+    `dois`.
 - make sure the services have been setup and are running.
-- run `pipenv run python create_test_data_records.py`.
+- run `uv run python create_test_data_records.py`.

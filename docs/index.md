@@ -21,6 +21,8 @@ project:
 - The version of python found by `invenio-cli` may be a bit random so don't worry too
     much about that aspect - `uv` should find or install the correct Python version
     later.
+- You'll need have to [pnpm] and an appropriate version [node.js] installed. If you need
+    to install node it's recommended to use [nvm] to do so.
 - Cairo and DejaVu are listed in the InvenioRDM Docs but are not checked for by
     `invenio-cli`. The direct impacts of not having these is unclear but you'd probably
     get by.
@@ -35,7 +37,7 @@ required and is covered in more detail below.
 
 - `uv` is used to manage Python dependencies and the virtual environment used for
     development.
-- `node` and `npm` are used to manage JavaScript dependencies and the build process for
+- `node` and `pnpm` are used to manage JavaScript dependencies and the build process for
     the frontend.
 - Docker and Docker Compose are used to manage the services required to run the
     application, namely the database, OpenSearch, Redis and RabbitMQ.
@@ -372,6 +374,9 @@ the [test_data directory].
 [icl_oauth_client_id]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456013&ORGN_NAME=MSP
 [icl_oauth_client_secret]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456012&ORGN_NAME=MSP
 [inveniordm system requirements docs]: https://inveniordm.docs.cern.ch/install/requirements/
+[node.js]: https://nodejs.org/en
+[nvm]: https://www.nvmnode.com/
+[pnpm]: https://pnpm.io/
 [pre-commit]: https://pre-commit.com/
 [pytest-flask]: https://pytest-flask.readthedocs.io/en/latest/
 [pytest-invenio]: https://pytest-invenio.readthedocs.io/en/latest/

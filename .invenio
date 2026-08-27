@@ -1,7 +1,8 @@
 [cli]
 flavour = RDM
 logfile = /logs/invenio-cli.log
-javascript_package_manager = npm
+python_package_manager = uv
+javascript_package_manager = pnpm
 
 [cookiecutter]
 project_name = Helix

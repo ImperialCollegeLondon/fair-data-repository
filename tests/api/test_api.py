@@ -3,6 +3,8 @@
 from datetime import date
 
 import pytest
+from ic_data_repo.permissions import restricted_license_action
+from invenio_access.permissions import ActionUsers
 
 
 @pytest.fixture
@@ -183,3 +185,70 @@ def test_new_record_version(
         headers=api_headers,
     )
     assert record_v2_published.status_code == 202
+
+
+@pytest.mark.parametrize("grant", [True, False])
+def test_restricted_license_permission_create(
+    grant,
+    user_client,
+    location,
+    vocabularies,
+    user_depositor,
+    api_headers,
+    metadata,
+    db,
+):
+    """Test that restricted license permissions are enforced."""
+    metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
+    if grant:
+        db.session.add(
+            ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
+        )
+        db.session.flush()
+
+    result = user_client.post(
+        "/records",
+        json={
+            "metadata": metadata,
+            "files": {"enabled": False},
+        },
+        headers=api_headers,
+    )
+    assert result.status_code == (201 if grant else 403)
+
+
+@pytest.mark.parametrize("grant", [True, False])
+def test_restricted_license_permission_update(
+    grant,
+    user_client,
+    location,
+    vocabularies,
+    user_depositor,
+    api_headers,
+    metadata,
+    db,
+):
+    """Test that restricted license permissions are enforced."""
+    result = user_client.post(
+        "/records",
+        json={
+            "metadata": metadata,
+            "files": {"enabled": False},
+        },
+        headers=api_headers,
+    )
+    assert result.status_code == 201
+
+    metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
+    if grant:
+        db.session.add(
+            ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
+        )
+        db.session.flush()
+
+    result = user_client.put(
+        f"/records/{result.json['id']}/draft",
+        json={"metadata": metadata},
+        headers=api_headers,
+    )
+    assert result.status_code == (200 if grant else 403)

@@ -3,28 +3,11 @@
 
 import argparse
 import json
-import re
 import sys
 import tomllib
 from pathlib import Path
 
 PACKAGE_NAME = "invenio-app-rdm"
-EXACT_VERSION = re.compile(r"^==(?P<version>[0-9][0-9A-Za-z.+!-]*)$")
-
-
-def pipfile_lock_version(lockfile: Path) -> str | None:
-    """Return the exact InvenioRDM version in a Pipenv lockfile."""
-    with lockfile.open(encoding="utf-8") as file:
-        package = json.load(file).get("default", {}).get(PACKAGE_NAME)
-
-    if package is None:
-        return None
-
-    version = package.get("version")
-    match = EXACT_VERSION.fullmatch(version or "")
-    if match is None:
-        raise ValueError(f"{lockfile}: {PACKAGE_NAME} is not pinned exactly")
-    return match.group("version")
 
 
 def uv_lock_version(lockfile: Path) -> str | None:
@@ -49,16 +32,13 @@ def uv_lock_version(lockfile: Path) -> str | None:
 def main() -> int:
     """Write the resolved version as JSON or report why it cannot be resolved."""
     parser = argparse.ArgumentParser(
-        description="Resolve the pinned invenio-app-rdm version from lockfiles."
+        description="Resolve the pinned invenio-app-rdm version from uv.lock."
     )
     parser.add_argument("repository_root", type=Path, nargs="?", default=Path("."))
     arguments = parser.parse_args()
     root = arguments.repository_root.resolve()
 
-    lockfiles = (
-        (root / "Pipfile.lock", pipfile_lock_version),
-        (root / "uv.lock", uv_lock_version),
-    )
+    lockfiles = ((root / "uv.lock", uv_lock_version),)
     resolved = []
     try:
         for lockfile, resolver in lockfiles:
@@ -69,7 +49,6 @@ def main() -> int:
     except (
         OSError,
         ValueError,
-        json.JSONDecodeError,
         tomllib.TOMLDecodeError,
     ) as error:
         print(error, file=sys.stderr)
@@ -78,7 +57,7 @@ def main() -> int:
     versions = {version for _, version in resolved}
     if not resolved:
         print(
-            f"No exact {PACKAGE_NAME} version was found in Pipfile.lock or uv.lock.",
+            f"No exact {PACKAGE_NAME} version was found in uv.lock.",
             file=sys.stderr,
         )
         return 2

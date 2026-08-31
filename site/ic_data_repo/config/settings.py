@@ -79,6 +79,14 @@ APP_DEFAULT_SECURE_HEADERS = {
     "strict_transport_security_preload": False,
 }
 
+if USE_UPPY := os.getenv("USE_UPPY"):
+    APP_RDM_DEPOSIT_NG_FILES_UI_ENABLED = True
+    # Script CSP required to use Uppy.
+    APP_DEFAULT_SECURE_HEADERS["content_security_policy"]["script-src"] = [
+        "'self'",
+        "blob:",
+        "'wasm-unsafe-eval'",
+    ]
 
 # Invenio-Theme
 # =============

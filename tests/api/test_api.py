@@ -3,6 +3,7 @@
 from datetime import date
 
 import pytest
+from invenio_search.proxies import current_search
 
 
 @pytest.fixture
@@ -141,6 +142,13 @@ def test_metadata_schema_copyright(
             id="unknown-id",
         ),
         pytest.param(
+            [{"value": "Some subject"}],
+            [{"value": "Some subject"}],
+            ["custom_fields.imperial:domain_metadata.0.id"],
+            400,
+            id="missing-id",
+        ),
+        pytest.param(
             [{"id": "example-domain-term", "value": ""}],
             [{"id": "example-domain-term"}],
             ["custom_fields.imperial:domain_metadata.0.value"],
@@ -198,7 +206,7 @@ def test_domain_metadata_custom_field(
     assert record.status_code == 201
 
     error_fields = [e["field"] for e in record.json.get("errors", [])]
-    assert error_fields == expected_errors
+    assert sorted(error_fields) == sorted(expected_errors)
 
     stored_entries = record.json["custom_fields"].get("imperial:domain_metadata", [])
     assert stored_entries == expected_stored
@@ -209,6 +217,76 @@ def test_domain_metadata_custom_field(
             headers=api_headers,
         )
         assert publish.status_code == publish_status
+
+
+def test_domain_metadata_custom_field_search(
+    user_client, location, vocabularies, user_depositor, api_headers, metadata
+):
+    """imperial:domain_metadata: findable via the default free-text search.
+
+    Both the ``id`` and ``value`` of a domain metadata entry are analysed and
+    included in the OpenSearch mapping (see ``DomainMetadataCF.mapping``),
+    so a plain ``q=`` search picks up either. A second, unrelated record
+    (with no domain metadata at all) is created alongside to prove the
+    match is actually driven by the custom field's content rather than
+    every record matching every query.
+    """
+    with_domain_metadata = {
+        "metadata": metadata,
+        "files": {"enabled": False},
+        "custom_fields": {
+            "imperial:domain_metadata": [
+                {"id": "example-domain-term", "value": "Zebra unicorn quokka"}
+            ]
+        },
+    }
+    other_metadata = {**metadata, "title": "Unrelated other record"}
+    without_domain_metadata = {
+        "metadata": other_metadata,
+        "files": {"enabled": False},
+    }
+
+    matching_record = user_client.post(
+        "/records", json=with_domain_metadata, headers=api_headers
+    )
+    assert matching_record.status_code == 201
+    other_record = user_client.post(
+        "/records", json=without_domain_metadata, headers=api_headers
+    )
+    assert other_record.status_code == 201
+
+    current_search.flush_and_refresh("*")
+
+    # matches on the entry's "value" (a word unique to this test) and finds
+    # only this record, since nothing else in the suite uses it ...
+    for q in ("quokka", "unicorn"):
+        result = user_client.get(f"/user/records?q={q}", headers=api_headers)
+        assert result.status_code == 200
+        hit_ids = [hit["id"] for hit in result.json["hits"]["hits"]]
+        assert hit_ids == [matching_record.json["id"]]
+
+    # ... and on the entry's "id" -- other tests' records may share this
+    # vocabulary id, so only assert this record is among the matches (and
+    # that the record with no domain metadata at all is not).
+    result = user_client.get(
+        "/user/records?q=example-domain-term", headers=api_headers
+    )
+    assert result.status_code == 200
+    hit_ids = {hit["id"] for hit in result.json["hits"]["hits"]}
+    assert matching_record.json["id"] in hit_ids
+    assert other_record.json["id"] not in hit_ids
+
+    # a term present in neither record matches nothing.
+    result = user_client.get("/user/records?q=qwertyxyz999", headers=api_headers)
+    assert result.status_code == 200
+    assert result.json["hits"]["hits"] == []
+
+    # sanity check: both records are otherwise listed (proves the filtering
+    # above is the query doing its job, not the other record being hidden).
+    result = user_client.get("/user/records", headers=api_headers)
+    assert result.status_code == 200
+    all_ids = {hit["id"] for hit in result.json["hits"]["hits"]}
+    assert {matching_record.json["id"], other_record.json["id"]} <= all_ids
 
 
 def test_new_record_version(

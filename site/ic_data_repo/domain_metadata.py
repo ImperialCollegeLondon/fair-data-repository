@@ -5,7 +5,7 @@ vocabulary; ``value`` is required free-text subject content supplied by the
 client, independent of the vocabulary term itself.
 """
 
-from invenio_i18n import lazy_gettext as _
+from invenio_pidstore.errors import PersistentIdentifierError
 from invenio_records_resources.services.custom_fields.base import BaseCF
 from invenio_vocabularies.records.api import Vocabulary
 from marshmallow import Schema, ValidationError, fields, validate, validates
@@ -18,7 +18,7 @@ def _resolve_domain_metadata_scheme(id_):
         return None
     try:
         return Vocabulary.pid.with_type_ctx("domainmetadatascheme").resolve(id_)
-    except Exception:
+    except PersistentIdentifierError:
         return None
 
 
@@ -32,7 +32,7 @@ class DomainMetadataItemSchema(Schema):
     def validate_id(self, value, **kwargs):
         """Reject ids that don't resolve to a real vocabulary term."""
         if _resolve_domain_metadata_scheme(value) is None:
-            raise ValidationError(_("Invalid domain metadata scheme id."))
+            raise ValidationError("Invalid domain metadata scheme id.")
 
 
 class DomainMetadataCF(BaseCF):

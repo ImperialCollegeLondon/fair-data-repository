@@ -164,8 +164,9 @@ Records only ever persist exactly `{id, value}` - nothing from the vocabulary te
 `id` must be unique across this ENTIRE vocabulary, not just within one external scheme -
 it's a single flat namespace, not partitioned per scheme. If terms are drawn from more
 than one external classification system, prefix each id with a short scheme identifier
-to avoid two unrelated schemes' native codes colliding, e.g.: mesh-<mesh-code>
-anzsrc-<anzsrc-code>
+to avoid two unrelated schemes' native codes colliding, for example:
+ - `mesh-<mesh-code>`
+ - `anzsrc-<anzsrc-code>`
 
 ### Fixtures
 

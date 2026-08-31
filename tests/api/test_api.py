@@ -268,9 +268,7 @@ def test_domain_metadata_custom_field_search(
     # ... and on the entry's "id" -- other tests' records may share this
     # vocabulary id, so only assert this record is among the matches (and
     # that the record with no domain metadata at all is not).
-    result = user_client.get(
-        "/user/records?q=example-domain-term", headers=api_headers
-    )
+    result = user_client.get("/user/records?q=example-domain-term", headers=api_headers)
     assert result.status_code == 200
     hit_ids = {hit["id"] for hit in result.json["hits"]["hits"]}
     assert matching_record.json["id"] in hit_ids

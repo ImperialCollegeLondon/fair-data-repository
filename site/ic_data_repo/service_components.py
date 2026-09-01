@@ -22,12 +22,11 @@ class RestrictedLicensePermissionComponent(ServiceComponent):
     def _enforce_restricted_license_permission(self, identity, data):
         """Check if a restricted license is requested and test permission."""
         deposit_licenses = data and data.get("metadata", {}).get("rights", [])
-        restricted_licenses = vocabularies_service.search(
-            identity, type="licenses", params=dict(tags=["restricted"])
+        vocab_entries = vocabularies_service.read_many(
+            identity, type="licenses", ids=[dl["id"] for dl in deposit_licenses]
         )
-        restricted_license_ids = {dl["id"] for dl in restricted_licenses.hits}
 
-        if any(dl["id"] in restricted_license_ids for dl in deposit_licenses):
+        if any("restricted" in entry["tags"] for entry in vocab_entries):
             self.service.require_permission(identity, "select_restricted_license")
 
     def create(self, identity, data=None, record=None, **kwargs):

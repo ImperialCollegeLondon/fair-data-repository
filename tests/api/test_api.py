@@ -353,3 +353,94 @@ def test_new_record_version(
         headers=api_headers,
     )
     assert record_v2_published.status_code == 202
+
+
+def test_domain_metadata_landing_page_shows_resolved_vocabulary(
+    user_client, location, vocabularies, user_depositor, api_headers, metadata
+):
+    """imperial:domain_metadata: landing-page (UI) display resolves each
+    entry's vocabulary term, adding a title and (safe, http(s)-only)
+    DataCite-style scheme/value URIs alongside the stored id/value - see
+    DomainMetadataCF.ui_field / DomainMetadataItemUISchema and the
+    domain_metadata.html landing-page template that consumes this.
+
+    Covers a term with full props (example-domain-term) and one with no
+    props at all (minimal-domain-term), confirming the latter degrades to
+    just a title with null props rather than erroring.
+    """
+    record_json = {
+        "metadata": metadata,
+        "files": {"enabled": False},
+        "custom_fields": {
+            "imperial:domain_metadata": [
+                {"id": "example-domain-term", "value": "Full props term"},
+                {"id": "minimal-domain-term", "value": "Minimal term"},
+            ]
+        },
+    }
+    record = user_client.post("/records", json=record_json, headers=api_headers)
+    assert record.status_code == 201, record.json
+
+    ui_headers = {**api_headers, "Accept": "application/vnd.inveniordm.v1+json"}
+    result = user_client.get(f"/records/{record.json['id']}/draft", headers=ui_headers)
+    assert result.status_code == 200
+
+    entries = result.json["ui"]["custom_fields"]["imperial:domain_metadata"]
+    assert entries == [
+        {
+            "id": "example-domain-term",
+            "value": "Full props term",
+            "title": "Example domain term",
+            "props": {
+                "subjectScheme": "Example Scheme",
+                "schemeURI": "https://example.org/schemes/example-scheme",
+                "valueURI": "https://example.org/schemes/example-scheme/example-domain-term",
+            },
+        },
+        {
+            "id": "minimal-domain-term",
+            "value": "Minimal term",
+            "title": "Minimal domain term",
+            "props": {"subjectScheme": None, "schemeURI": None, "valueURI": None},
+        },
+    ]
+
+
+def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
+    user_client, location, vocabularies, user_depositor, api_headers, metadata
+):
+    """No imperial:domain_metadata entries means the landing-page macro's
+    `{% if field_value %}` check sees a falsy (missing/empty) value and skips
+    the section entirely - so it isn't dumped into the UI payload at all.
+    """
+    record = user_client.post(
+        "/records",
+        json={"metadata": metadata, "files": {"enabled": False}},
+        headers=api_headers,
+    )
+    assert record.status_code == 201, record.json
+
+    ui_headers = {**api_headers, "Accept": "application/vnd.inveniordm.v1+json"}
+    result = user_client.get(f"/records/{record.json['id']}/draft", headers=ui_headers)
+    assert result.status_code == 200
+
+    assert "imperial:domain_metadata" not in result.json["ui"]["custom_fields"]
+
+
+def test_domain_metadata_hidden_from_upload_form():
+    """imperial:domain_metadata must never be an editable input on the
+    deposit/edit form - it's populated via bulk import, not by hand (see
+    RDM_CUSTOM_FIELDS_UI in site/ic_data_repo/config/custom_fields.py).
+    get_form_config() (invenio_app_rdm) drops any section with
+    hide_from_upload_form=True before it reaches the deposit form's React
+    config, so asserting the flag here is sufficient to guarantee that.
+    """
+    from ic_data_repo.config.custom_fields import RDM_CUSTOM_FIELDS_UI
+
+    domain_metadata_sections = [
+        section
+        for section in RDM_CUSTOM_FIELDS_UI
+        if any(f["field"] == "imperial:domain_metadata" for f in section["fields"])
+    ]
+    assert len(domain_metadata_sections) == 1
+    assert domain_metadata_sections[0]["hide_from_upload_form"] is True

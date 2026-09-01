@@ -1,0 +1,23 @@
+<dt class="ui tiny header">Domain metadata</dt>
+{% for item in field_value %}
+  <dd>
+    {{ item.value }}
+    {% if item.title %}
+      &mdash;
+      {% if item.props.valueURI %}
+        <a href="{{ item.props.valueURI }}">{{ item.title }}</a>
+      {% else %}
+        {{ item.title }}
+      {% endif %}
+      {% if item.props.subjectScheme %}
+        (
+        {%- if item.props.schemeURI -%}
+          <a href="{{ item.props.schemeURI }}">{{ item.props.subjectScheme }}</a>
+        {%- else -%}
+          {{ item.props.subjectScheme }}
+        {%- endif -%}
+        )
+      {% endif %}
+    {% endif %}
+  </dd>
+{% endfor %}

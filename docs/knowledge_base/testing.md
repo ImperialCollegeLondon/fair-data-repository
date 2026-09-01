@@ -23,29 +23,31 @@ routes. The unit tests use `create_app` (the full UI+API app).
 
 ## Database Session Behaviour
 
-The `db` fixture uses `PytestInvenioSession`, which overrides `commit()` → `flush()`.
-This keeps all test state inside an outer transaction that is rolled back after each
-test, preventing cross-test pollution.
+The project extends `pytest_invenio`'s function-scoped `db` fixture. The upstream
+fixture opens an outer transaction on a dedicated connection, binds all ORM operations
+to that connection, and configures `join_transaction_mode="create_savepoint"`. Its
+teardown rolls back the outer transaction, preventing cross-test pollution while
+allowing services to use normal `commit()` and `rollback()` calls.
 
-**Consequence:** `UnitOfWork.rollback()` calls `session.rollback()`, which in the test
-session rolls back **all the way to the outer test savepoint** — not just to the UoW's
-inner savepoint. This means that after a service call fails inside a UoW (e.g.
-`PermissionDeniedError`), any DB rows added during fixture setup (OAuth tokens,
-`ActionUsers` grants) may be lost if they were flushed but not committed within the same
-nested savepoint.
-
-For rollback assertions, query the DB directly rather than making a second authenticated
-HTTP request:
+The local extension makes SQLite start that outer transaction physically before
+savepoints are used:
 
 ```python
-from invenio_rdm_records.records.models import RDMDraftMetadata
-
-# ✅ Safe — ORM query survives session rollback
-assert db.session.query(RDMDraftMetadata).count() == 0
-
-# ❌ Fragile — the token may have been wiped by the rollback
-response = client.get("/user/records", headers=api_headers)
+@pytest.fixture
+def db(db):
+    connection = db.session.get_bind()
+    if connection.dialect.name == "sqlite":
+        connection.exec_driver_sql("BEGIN")
+    return db
 ```
+
+SQLite otherwise defers `BEGIN` until its first write; releasing a savepoint can then
+commit the transaction that should isolate the test.
+
+Each state-changing API call runs in Invenio's `UnitOfWork`, which opens nested
+savepoints. On success, the service commits its savepoint work so later API calls in the
+same test can read it. On failure (for example, `PermissionDeniedError`), the UoW
+rollback discards only that request's work.
 
 ## Granting Action Permissions to Users
 

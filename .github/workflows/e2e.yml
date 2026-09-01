@@ -75,6 +75,10 @@ jobs:
           MOZ_HEADLESS: 1
         run: uv run pytest -m e2e tests/e2e
 
+      - name: Shutdown app
+        if: always()
+        run: kill -s SIGINT $(cat app.pid)
+
       - name: Upload app logs on failure
         if: failure()
         uses: actions/upload-artifact@v4

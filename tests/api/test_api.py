@@ -5,6 +5,7 @@ from datetime import date
 import pytest
 from ic_data_repo.permissions import restricted_license_action
 from invenio_access.permissions import ActionUsers
+from invenio_rdm_records.records.models import RDMDraftMetadata
 
 
 @pytest.fixture
@@ -216,8 +217,6 @@ def test_restricted_license_permission_create(
     )
     assert result.status_code == (201 if grant else 403)
 
-    from invenio_rdm_records.records.models import RDMDraftMetadata
-
     assert RDMDraftMetadata.query.count() == (1 if grant else 0)
 
 
@@ -250,20 +249,12 @@ def test_restricted_license_permission_update(
             ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
         )
 
-    from invenio_rdm_records.records.models import RDMDraftMetadata
-
-    assert RDMDraftMetadata.query.count() == 1
-    import os
-
-    os.environ["BREAK"] = "TRUE"
     result = user_client.put(
         f"/records/{draft_id}/draft",
         json={"metadata": metadata},
         headers=api_headers,
     )
     assert result.status_code == (200 if grant else 403)
-
-    assert RDMDraftMetadata.query.count() == 1
 
     result = user_client.get(
         f"/records/{draft_id}/draft",

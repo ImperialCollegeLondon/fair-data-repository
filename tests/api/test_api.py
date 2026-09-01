@@ -23,6 +23,7 @@ def metadata():
                 "role": "the one",
             },
         ],
+        "rights": [{"id": "cc-by-4.0"}],
     }
 
 
@@ -204,7 +205,6 @@ def test_restricted_license_permission_create(
         db.session.add(
             ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
         )
-        db.session.flush()
 
     result = user_client.post(
         "/records",
@@ -215,6 +215,10 @@ def test_restricted_license_permission_create(
         headers=api_headers,
     )
     assert result.status_code == (201 if grant else 403)
+
+    from invenio_rdm_records.records.models import RDMDraftMetadata
+
+    assert RDMDraftMetadata.query.count() == (1 if grant else 0)
 
 
 @pytest.mark.parametrize("grant", [True, False])
@@ -238,17 +242,35 @@ def test_restricted_license_permission_update(
         headers=api_headers,
     )
     assert result.status_code == 201
+    draft_id = result.json["id"]
 
     metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
     if grant:
         db.session.add(
             ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
         )
-        db.session.flush()
 
+    from invenio_rdm_records.records.models import RDMDraftMetadata
+
+    assert RDMDraftMetadata.query.count() == 1
+    import os
+
+    os.environ["BREAK"] = "TRUE"
     result = user_client.put(
-        f"/records/{result.json['id']}/draft",
+        f"/records/{draft_id}/draft",
         json={"metadata": metadata},
         headers=api_headers,
     )
     assert result.status_code == (200 if grant else 403)
+
+    assert RDMDraftMetadata.query.count() == 1
+
+    result = user_client.get(
+        f"/records/{draft_id}/draft",
+        headers=api_headers,
+    )
+    assert result.status_code == 200
+
+    assert result.json["metadata"]["rights"][0]["id"] == (
+        "cc-by-nd-4.0" if grant else "cc-by-4.0"
+    )

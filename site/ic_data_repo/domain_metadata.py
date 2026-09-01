@@ -25,8 +25,13 @@ def _resolve_domain_metadata_scheme(id_):
 def _safe_uri(uri):
     """Only pass through http(s) URIs -- vocabulary props are free-text data
     entered via fixture files, not schema-constrained, so a landing-page link
-    built from them must not blindly trust the scheme (e.g. javascript:)."""
-    return uri if isinstance(uri, str) and uri.startswith(("http://", "https://")) else None
+    built from them must not blindly trust the scheme (e.g. javascript:).
+    """
+    return (
+        uri
+        if isinstance(uri, str) and uri.startswith(("http://", "https://"))
+        else None
+    )
 
 
 class DomainMetadataItemSchema(Schema):
@@ -83,7 +88,9 @@ class DomainMetadataCF(BaseCF):
         DomainMetadataItemUISchema) - the stored id/value themselves are
         untouched, this only adds extra read-only display data.
         """
-        return fields.List(fields.Nested(DomainMetadataItemUISchema), **self._field_args)
+        return fields.List(
+            fields.Nested(DomainMetadataItemUISchema), **self._field_args
+        )
 
     @property
     def mapping(self):

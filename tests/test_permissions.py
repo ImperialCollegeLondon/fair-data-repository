@@ -6,9 +6,11 @@ from ic_data_repo.permissions import (
     ALLOWED_JOB_FAMILIES,
     POSTGRADUATE_ROLE_TYPE,
     AbleToDeposit,
+    AbleToEditDomainMetadata,
     AbleToSelectRestrictedLicense,
     ImperialRecordPermissionPolicy,
     deposit_action,
+    domain_metadata_action,
     restricted_license_action,
     user_is_allowed_employee,
     user_is_postgraduate,
@@ -27,11 +29,17 @@ def test_deposit_generator():
     assert AbleToDeposit().needs() == [deposit_action]
 
 
+def test_domain_metadata_generator():
+    """Test the domain metadata generator returns its named action need."""
+    assert AbleToEditDomainMetadata().needs() == [domain_metadata_action]
+
+
 @pytest.mark.parametrize(
     "action_name,generator_class",
     [
         ("can_select_restricted_license", AbleToSelectRestrictedLicense),
         ("can_create", AbleToDeposit),
+        ("can_edit_domain_metadata", AbleToEditDomainMetadata),
     ],
 )
 def test_deposit_permission_policy_generators(action_name, generator_class):
@@ -48,6 +56,7 @@ def test_deposit_permission_policy_generators(action_name, generator_class):
     [
         ("select_restricted_license", restricted_license_action),
         ("create", deposit_action),
+        ("edit_domain_metadata", domain_metadata_action),
     ],
 )
 def test_permission_grant_and_revoke(action_name, need, db):
@@ -79,6 +88,13 @@ def test_permission_grant_and_revoke(action_name, need, db):
 def test_system_process_can_select_restricted_license():
     """Test system processes can select restricted licences."""
     assert ImperialRecordPermissionPolicy("select_restricted_license").allows(
+        system_identity
+    )
+
+
+def test_system_process_can_edit_domain_metadata():
+    """Test system processes (e.g. bulk import) can edit domain metadata."""
+    assert ImperialRecordPermissionPolicy("edit_domain_metadata").allows(
         system_identity
     )
 

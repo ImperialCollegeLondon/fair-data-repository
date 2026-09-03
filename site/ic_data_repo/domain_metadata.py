@@ -48,10 +48,12 @@ class DomainMetadataItemSchema(Schema):
 
 
 class DomainMetadataItemUISchema(DomainMetadataItemSchema):
-    """Landing-page dump of a {id, value} pair: adds the resolved vocabulary
-    term's title and (safe, http(s)-only) DataCite-style scheme/value URIs,
-    read-only, alongside the stored id/value. Never used for input -
-    @validates only runs on load(), so inheriting it here is harmless.
+    """Landing-page dump of a {id, value} pair.
+
+    Adds the resolved vocabulary term's title and (safe, http(s)-only)
+    DataCite-style scheme/value URIs, read-only, alongside the stored
+    id/value. Never used for input - @validates only runs on load(), so
+    inheriting it here is harmless.
     """
 
     @post_dump
@@ -83,10 +85,12 @@ class DomainMetadataCF(BaseCF):
 
     @property
     def ui_field(self):
-        """Marshmallow UI field: as `field`, but each entry also carries the
-        resolved vocabulary term's title/props for landing-page display (see
-        DomainMetadataItemUISchema) - the stored id/value themselves are
-        untouched, this only adds extra read-only display data.
+        """Marshmallow UI field: as `field`, but with extra display data.
+
+        Each entry also carries the resolved vocabulary term's title/props
+        for landing-page display (see DomainMetadataItemUISchema) - the
+        stored id/value themselves are untouched, this only adds extra
+        read-only display data.
         """
         return fields.List(
             fields.Nested(DomainMetadataItemUISchema), **self._field_args

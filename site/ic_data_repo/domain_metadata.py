@@ -23,9 +23,11 @@ def _resolve_domain_metadata_scheme(id_):
 
 
 def _safe_uri(uri):
-    """Only pass through http(s) URIs -- vocabulary props are free-text data
-    entered via fixture files, not schema-constrained, so a landing-page link
-    built from them must not blindly trust the scheme (e.g. javascript:).
+    """Only pass through http(s) URIs.
+
+    Vocabulary props are free-text data entered via fixture files, not
+    schema-constrained, so a landing-page link built from them must not
+    blindly trust the scheme (e.g. javascript:).
     """
     return (
         uri

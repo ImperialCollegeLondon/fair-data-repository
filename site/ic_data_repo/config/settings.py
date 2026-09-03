@@ -24,7 +24,7 @@ from invenio_records_resources.config import (
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
-from ..service_components import SymplecticComponent
+from ..service_components import DomainMetadataPermissionComponent, SymplecticComponent
 from .custom_fields import (  # noqa: F401
     RDM_CUSTOM_FIELDS,
     RDM_CUSTOM_FIELDS_UI,
@@ -259,7 +259,14 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
-RDM_RECORDS_SERVICE_COMPONENTS = [*DefaultRecordsComponents, SymplecticComponent]
+# DomainMetadataPermissionComponent must run before CustomFieldsComponent (in
+# DefaultRecordsComponents) so it still sees the *previous* custom_fields
+# value to diff against - see that component's docstring.
+RDM_RECORDS_SERVICE_COMPONENTS = [
+    DomainMetadataPermissionComponent,
+    *DefaultRecordsComponents,
+    SymplecticComponent,
+]
 
 VOCABULARIES_DATASTREAM_WRITERS["affiliations-service"] = AffiliationsWriter
 VOCABULARIES_DATASTREAM_READERS["stream-yaml"] = StreamingYamlSequenceReader

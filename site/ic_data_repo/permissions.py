@@ -25,6 +25,10 @@ deposit_action = ActionNeed("deposit-action")
 restricted_license_action = ActionNeed("restricted-license-action")
 """Action representing the ability to select a restricted licence."""
 
+domain_metadata_action = ActionNeed("domain-metadata-action")
+"""Action representing the ability to add, update, reorder, or remove
+imperial:domain_metadata entries."""
+
 
 class AbleToDeposit(Generator):
     """Permission generator for dataset deposit."""
@@ -42,6 +46,14 @@ class AbleToSelectRestrictedLicense(Generator):
         return [restricted_license_action]
 
 
+class AbleToEditDomainMetadata(Generator):
+    """Permission generator for editing domain metadata."""
+
+    def needs(self, **kwargs):
+        """The needs associated with the domain metadata permission."""
+        return [domain_metadata_action]
+
+
 class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     """The permission policy for the repository.
 
@@ -54,6 +66,7 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
         AbleToSelectRestrictedLicense(),
         SystemProcess(),
     ]
+    can_edit_domain_metadata: ClassVar = [AbleToEditDomainMetadata(), SystemProcess()]
 
 
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:

@@ -23,13 +23,13 @@ public allowlist. It is granted independently of `deposit-action`.
 Administrators can grant the permission to a user with:
 
 ```console
-pipenv run invenio access allow-action-for-user --user EMAIL --action restricted-license-action
+uv run invenio access allow-action-for-user --user EMAIL --action restricted-license-action
 ```
 
 Revoke it by removing the assignment:
 
 ```console
-pipenv run invenio access remove-action-from-user --user EMAIL --action restricted-license-action
+uv run invenio access remove-action-from-user --user EMAIL --action restricted-license-action
 ```
 
 ## Deposit Visibility
@@ -186,11 +186,35 @@ The vocabulary is loaded the same way as any other InvenioRDM vocabulary:
 - To add or update terms later, edit the YAML file and run:
 
     ```console
-    pipenv run invenio rdm-records add-to-fixture domainmetadatascheme
+    uv run invenio rdm-records add-to-fixture domainmetadatascheme
     ```
 
     This upserts by `id` - existing terms are updated in place and new ones created, so
     terms can be revised and re-applied without downtime.
+
+### Editing permission
+
+Adding, updating, reordering, or removing `imperial:domain_metadata` entries requires
+the `domain-metadata-action` permission. It's granted independently of `deposit-action`
+and `restricted-license-action`.
+
+This is enforced by `DomainMetadataPermissionComponent`
+(`ic_data_repo.service_components`), a record service component that compares the
+incoming request's `imperial:domain_metadata` value against the record's current one; a
+request that doesn't mention the field at all (e.g. a depositor editing an unrelated
+field through the deposit form, which never sees this field) is left alone.
+
+Administrators can grant the permission to a user with:
+
+```console
+uv run invenio access allow-action-for-user --user EMAIL --action domain-metadata-action
+```
+
+Revoke it by removing the assignment:
+
+```console
+uv run invenio access remove-action-from-user --user EMAIL --action domain-metadata-action
+```
 
 ### OpenSearch mapping initialization
 
@@ -199,7 +223,7 @@ explicitly pushing its mapping - InvenioRDM does not do this automatically from 
 change alone:
 
 ```console
-pipenv run invenio custom-fields init -f imperial:domain_metadata
+uv run invenio custom-fields init -f imperial:domain_metadata
 ```
 
 Omit `-f imperial:domain_metadata` to (re-)create the mappings for every configured

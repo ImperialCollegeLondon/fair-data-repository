@@ -31,3 +31,12 @@ def api_headers(db, user_depositor):
         "Authorization": f"Bearer {token.access_token}",
         "Content-Type": "application/json",
     }
+
+
+@pytest.fixture
+def api_file_upload_headers(api_headers):
+    """Headers for API file upload requests, including API token."""
+    return {
+        **api_headers,
+        "Content-Type": "application/octet-stream",
+    }

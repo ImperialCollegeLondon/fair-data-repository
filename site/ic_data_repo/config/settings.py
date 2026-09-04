@@ -20,11 +20,12 @@ from invenio_rdm_records.services.components import DefaultRecordsComponents
 from invenio_records_resources.config import (
     RECORDS_RESOURCES_TRANSFERS as DEFAULT_TRANSFERS,
 )
+from invenio_records_resources.services.files.config import FileServiceConfig
 
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
-from ..service_components import SymplecticComponent
+from ..service_components import DescribedFilePermissionComponent, SymplecticComponent
 from .custom_fields import (  # noqa: F401
     RDM_CUSTOM_FIELDS,
     RDM_CUSTOM_FIELDS_UI,
@@ -140,6 +141,11 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
 RECORDS_RESOURCES_TRANSFERS = [
     *DEFAULT_TRANSFERS,
     "ic_data_repo.description_transfer:DescriptionTransfer",
+]
+
+RDM_DRAFT_FILES_SERVICE_COMPONENTS = [
+    DescribedFilePermissionComponent,
+    *FileServiceConfig.components,
 ]
 
 # Override record schemas

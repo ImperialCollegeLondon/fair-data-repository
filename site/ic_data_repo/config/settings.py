@@ -17,12 +17,19 @@ from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 from invenio_rdm_records.services.components import DefaultRecordsComponents
+from invenio_records_resources.config import (
+    RECORDS_RESOURCES_TRANSFERS as DEFAULT_TRANSFERS,
+)
 
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import SymplecticComponent
-from .custom_fields import *  # noqa: F401,F403
+from .custom_fields import (  # noqa: F401
+    RDM_CUSTOM_FIELDS,
+    RDM_CUSTOM_FIELDS_UI,
+    RDM_NAMESPACES,
+)
 from .utils import get_user_form_default
 
 # Flask
@@ -108,6 +115,8 @@ SITE_UI_URL = "https://127.0.0.1:5000"
 
 SITE_API_URL = "https://127.0.0.1:5000/api"
 
+PUBLIC_LICENSES = ["cc-by-4.0", "cc0-1.0"]
+
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "resource_type": "dataset",
     "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),
@@ -127,6 +136,11 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "publisher": "Imperial College London",
     "creators": lambda: get_user_form_default(),
 }
+
+RECORDS_RESOURCES_TRANSFERS = [
+    *DEFAULT_TRANSFERS,
+    "ic_data_repo.description_transfer:DescriptionTransfer",
+]
 
 # Override record schemas
 RDM_RECORD_SCHEMA = ImperialRecordSchema
@@ -175,7 +189,7 @@ OAUTHCLIENT_REMOTE_APPS = dict()
 
 ICL_OAUTH_CLIENT_ID = os.getenv("ICL_OAUTH_CLIENT_ID")
 ICL_OAUTH_CLIENT_SECRET = os.getenv("ICL_OAUTH_CLIENT_SECRET")
-ICL_OAUTH_WELL_KNOWN_URL = "https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/v2.0/.well-known/openid-configuration"  # noqa: E501
+ICL_OAUTH_WELL_KNOWN_URL = "https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/v2.0/.well-known/openid-configuration"
 ICL_MICROSOFT_TENANT_ID = "2b897507-ee8c-4575-830b-4f8267c3d307"
 
 ICL_GRAPH_API_ENABLED = ICL_OAUTH_CLIENT_ID and ICL_OAUTH_CLIENT_SECRET
@@ -189,9 +203,9 @@ if ICL_GRAPH_API_ENABLED:
             request_token_params=dict(scope="openid profile"),
             base_url="",
             request_token_url=None,
-            access_token_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/token",  # noqa: E501
+            access_token_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/token",
             access_token_method="POST",
-            authorize_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/authorize",  # noqa: E501
+            authorize_url="https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/oauth2/v2.0/authorize",
             app_key="ICL_APP_CREDENTIALS",
         ),
         authorized_handler="invenio_oauthclient.handlers:authorized_signup_handler",
@@ -245,7 +259,7 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
-RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [SymplecticComponent]
+RDM_RECORDS_SERVICE_COMPONENTS = [*DefaultRecordsComponents, SymplecticComponent]
 
 VOCABULARIES_DATASTREAM_WRITERS["affiliations-service"] = AffiliationsWriter
 VOCABULARIES_DATASTREAM_READERS["stream-yaml"] = StreamingYamlSequenceReader
@@ -264,11 +278,11 @@ ENABLE_SYPLECTIC_SEARCH = False
 APP_RDM_DEPOSIT_FORM_TEMPLATE = "ic_data_repo/deposit.html"
 POLICY_DOCUMENTS_URL = os.getenv(
     "POLICY_DOCUMENTS_URL",
-    "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/archival-and-preservation/",  # noqa: E501
+    "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/archival-and-preservation/",
 )
 DATA_DEPOSIT_AGREEMENT_URL = os.getenv(
     "DATA_DEPOSIT_AGREEMENT_URL",
-    "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/archival-and-preservation/data-deposit-agreement/",  # noqa: E501
+    "https://www.imperial.ac.uk/research-and-innovation/support-for-staff/scholarly-communication/research-data-management/archival-and-preservation/data-deposit-agreement/",
 )
 ACCESSIBILITY_STATEMENT_URL = os.getenv(
     "ACCESSIBILITY_STATEMENT_URL",
@@ -277,7 +291,7 @@ ACCESSIBILITY_STATEMENT_URL = os.getenv(
 COOKIE_STATEMENT_URL = "https://www.imperial.ac.uk/about-the-site/use-of-cookies/"
 USER_GUIDE_URL = os.getenv(
     "USER_GUIDE_URL",
-    "https://www.imperial.ac.uk/media/imperial-college/research-and-innovation/scholarly-communication/public/Helix_Step-by-Step_Deposit_Guide-(2).pdf",  # noqa: E501
+    "https://www.imperial.ac.uk/media/imperial-college/research-and-innovation/scholarly-communication/public/Helix_Step-by-Step_Deposit_Guide-(2).pdf",
 )
 
 TOTAL_RECORD_STORAGE_LIMIT_BYTES = 10e9
@@ -293,3 +307,6 @@ FILES_REST_DEFAULT_QUOTA_SIZE = TOTAL_RECORD_STORAGE_LIMIT_BYTES
 FILES_REST_DEFAULT_MAX_FILE_SIZE = PER_FILE_STORAGE_LIMIT_BYTES
 
 THEME_SITENAME = "Helix"
+
+WEBPACKEXT_NPM_PKG_CLS = "pynpm:PNPMPackage"
+WEBPACKEXT_PROJECT = "invenio_assets.webpack:rspack_project"

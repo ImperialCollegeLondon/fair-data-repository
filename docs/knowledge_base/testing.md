@@ -53,6 +53,7 @@ response = client.get("/user/records", headers=api_headers)
 from invenio_access.permissions import ActionUsers
 from my_site.permissions import deposit_action, subject_metadata_action
 
+
 @pytest.fixture
 def user_subject_depositor(user, db):
     db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
@@ -65,6 +66,7 @@ def user_subject_depositor(user, db):
 ```python
 from invenio_oauth2server.models import Token
 from invenio_oauth2server.proxies import current_oauth2server
+
 
 @pytest.fixture
 def api_headers(db, user_depositor):
@@ -102,9 +104,9 @@ additional fields that are validated at publish time:
 {
     "metadata": {
         "title": "...",
-        "description": "...",           # required to publish
+        "description": "...",  # required to publish
         "resource_type": {"id": "dataset"},  # required to publish
-        "publication_date": "2024-01-01",    # required to publish
+        "publication_date": "2024-01-01",  # required to publish
         "creators": [...],
     },
     "files": {"enabled": False},

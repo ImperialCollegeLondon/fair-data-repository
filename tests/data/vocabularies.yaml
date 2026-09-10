@@ -36,3 +36,6 @@ awards:
 datetypes:
   pid-type: dat
   data-file: vocabularies/datetypes.yaml
+domainmetadatascheme:
+  pid-type: dmsc
+  data-file: vocabularies/domain_metadata_schemes.yaml

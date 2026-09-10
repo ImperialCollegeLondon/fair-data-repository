@@ -1,0 +1,89 @@
+name: End-to-End Tests
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - staging
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        if: ${{ github.event.repository.private }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+
+      - uses: pnpm/setup@v2
+        with:
+          version: 11
+
+      - name: Install project
+        run: uvx invenio-cli==1.12 install
+
+      - name: Start services
+        run: uvx invenio-cli==1.12 services setup --no-demo-data
+
+
+      - name: Start dev server
+        run: |
+          uvx invenio-cli==1.12 run > app.log 2>&1 &
+          echo $! > app.pid
+
+      - name: Wait for app to be ready
+        run: |
+          for i in {1..90}; do
+            if curl -sSkf https://localhost:5000/ > /dev/null; then
+              exit 0;
+            fi
+            sleep 3;
+          done
+          echo "App did not start in time" >&2
+          tail -n 200 app.log || true
+          exit 1
+
+      - name: Set up e2e submission access
+        run: |
+          uv run invenio users create test.user@test.co --password password --active --confirm
+          uv run python app_data/create_imperial_community.py
+          uv run invenio access allow deposit-action user test.user@test.co
+          uv run invenio users create test.superuser@test.co --password password --active --confirm
+          uv run invenio access allow superuser-access user test.superuser@test.co
+
+      - name: Run Selenium e2e
+        env:
+          MOZ_HEADLESS: 1
+        run: uv run pytest -m e2e tests/e2e
+
+      - name: Upload app logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: invenio-cli-app-log
+          path: app.log
+
+      - name: Upload e2e screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: artifacts/**/*.png

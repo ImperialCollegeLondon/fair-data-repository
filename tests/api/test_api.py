@@ -3,6 +3,7 @@
 from datetime import date
 
 import pytest
+from invenio_search.proxies import current_search
 
 
 @pytest.fixture
@@ -114,6 +115,175 @@ def test_metadata_schema_copyright(
     assert error["field"] == "metadata.copyright"
     assert error["messages"] == ["Unknown field."]
     assert "copyright" not in result.json["metadata"]
+
+
+@pytest.mark.parametrize(
+    ("entries", "expected_stored", "expected_errors", "publish_status"),
+    [
+        pytest.param(
+            [
+                {"id": "example-domain-term", "value": "My chosen subject text"},
+                {"id": "minimal-domain-term", "value": "A second subject"},
+            ],
+            [
+                {"id": "example-domain-term", "value": "My chosen subject text"},
+                {"id": "minimal-domain-term", "value": "A second subject"},
+            ],
+            [],
+            None,
+            id="valid-pairs",
+        ),
+        pytest.param(
+            [{"id": "does-not-exist", "value": "Some subject"}],
+            [{"value": "Some subject"}],
+            ["custom_fields.imperial:domain_metadata.0.id"],
+            400,
+            id="unknown-id",
+        ),
+        pytest.param(
+            [{"value": "Some subject"}],
+            [{"value": "Some subject"}],
+            ["custom_fields.imperial:domain_metadata.0.id"],
+            400,
+            id="missing-id",
+        ),
+        pytest.param(
+            [{"id": "example-domain-term", "value": ""}],
+            [{"id": "example-domain-term"}],
+            ["custom_fields.imperial:domain_metadata.0.value"],
+            400,
+            id="blank-value",
+        ),
+        pytest.param(
+            [{"id": "example-domain-term"}],
+            [{"id": "example-domain-term"}],
+            ["custom_fields.imperial:domain_metadata.0.value"],
+            400,
+            id="missing-value",
+        ),
+    ],
+)
+def test_domain_metadata_custom_field(
+    user_client,
+    location,
+    vocabularies,
+    user_depositor,
+    api_headers,
+    metadata,
+    entries,
+    expected_stored,
+    expected_errors,
+    publish_status,
+):
+    """imperial:domain_metadata: persistence and validation.
+
+    Multiple {id, value} pairs, each referencing a different vocabulary
+    term, persist independently and round-trip exactly as {id, value} - no
+    vocabulary properties (title, props, etc.) are ever copied onto the
+    record. An unknown id, or a blank/missing value, is flagged rather than
+    silently stored as if valid.
+
+    Drafts may be saved with validation errors (so work-in-progress can be
+    saved incomplete) - the API surfaces this as a non-blocking `errors`
+    entry on an otherwise-201 response, rather than a hard rejection on
+    create. Strict validation only happens at publish time - checked here
+    for the invalid cases only (`publish_status` is None for valid-pairs,
+    since actually succeeding at publish also requires a community
+    submission unrelated to domain_metadata; the draft-level checks above
+    already prove domain_metadata itself raises no error for valid input).
+    """
+    record_json = {
+        "metadata": metadata,
+        "files": {"enabled": False},
+        "custom_fields": {"imperial:domain_metadata": entries},
+    }
+    record = user_client.post(
+        "/records",
+        json=record_json,
+        headers=api_headers,
+    )
+    assert record.status_code == 201
+
+    error_fields = [e["field"] for e in record.json.get("errors", [])]
+    assert sorted(error_fields) == sorted(expected_errors)
+
+    stored_entries = record.json["custom_fields"].get("imperial:domain_metadata", [])
+    assert stored_entries == expected_stored
+
+    if publish_status is not None:
+        publish = user_client.post(
+            f"/records/{record.json['id']}/draft/actions/publish",
+            headers=api_headers,
+        )
+        assert publish.status_code == publish_status
+
+
+def test_domain_metadata_custom_field_search(
+    user_client, location, vocabularies, user_depositor, api_headers, metadata
+):
+    """imperial:domain_metadata: findable via the default free-text search.
+
+    Both the ``id`` and ``value`` of a domain metadata entry are analysed and
+    included in the OpenSearch mapping (see ``DomainMetadataCF.mapping``),
+    so a plain ``q=`` search picks up either. A second, unrelated record
+    (with no domain metadata at all) is created alongside to prove the
+    match is actually driven by the custom field's content rather than
+    every record matching every query.
+    """
+    with_domain_metadata = {
+        "metadata": metadata,
+        "files": {"enabled": False},
+        "custom_fields": {
+            "imperial:domain_metadata": [
+                {"id": "example-domain-term", "value": "Zebra unicorn quokka"}
+            ]
+        },
+    }
+    other_metadata = {**metadata, "title": "Unrelated other record"}
+    without_domain_metadata = {
+        "metadata": other_metadata,
+        "files": {"enabled": False},
+    }
+
+    matching_record = user_client.post(
+        "/records", json=with_domain_metadata, headers=api_headers
+    )
+    assert matching_record.status_code == 201
+    other_record = user_client.post(
+        "/records", json=without_domain_metadata, headers=api_headers
+    )
+    assert other_record.status_code == 201
+
+    current_search.flush_and_refresh("*")
+
+    # matches on the entry's "value" (a word unique to this test) and finds
+    # only this record, since nothing else in the suite uses it ...
+    for q in ("quokka", "unicorn"):
+        result = user_client.get(f"/user/records?q={q}", headers=api_headers)
+        assert result.status_code == 200
+        hit_ids = [hit["id"] for hit in result.json["hits"]["hits"]]
+        assert hit_ids == [matching_record.json["id"]]
+
+    # ... and on the entry's "id" -- other tests' records may share this
+    # vocabulary id, so only assert this record is among the matches (and
+    # that the record with no domain metadata at all is not).
+    result = user_client.get("/user/records?q=example-domain-term", headers=api_headers)
+    assert result.status_code == 200
+    hit_ids = {hit["id"] for hit in result.json["hits"]["hits"]}
+    assert matching_record.json["id"] in hit_ids
+    assert other_record.json["id"] not in hit_ids
+
+    # a term present in neither record matches nothing.
+    result = user_client.get("/user/records?q=qwertyxyz999", headers=api_headers)
+    assert result.status_code == 200
+    assert result.json["hits"]["hits"] == []
+
+    # sanity check: both records are otherwise listed (proves the filtering
+    # above is the query doing its job, not the other record being hidden).
+    result = user_client.get("/user/records", headers=api_headers)
+    assert result.status_code == 200
+    all_ids = {hit["id"] for hit in result.json["hits"]["hits"]}
+    assert {matching_record.json["id"], other_record.json["id"]} <= all_ids
 
 
 def test_new_record_version(

@@ -4,6 +4,8 @@ from invenio_records_resources.services.custom_fields import TextCF
 from marshmallow import validate
 from marshmallow_utils.fields import ISOLangString
 
+from ic_data_repo.domain_metadata import DomainMetadataCF
+
 RDM_NAMESPACES = {
     "imperial": "https://www.imperial.ac.uk",
 }
@@ -23,13 +25,16 @@ RDM_CUSTOM_FIELDS = [
         name="imperial:dart_id",
         field_args={
             "validate": validate.Length(min=1, max=100),
-            "required": True,
+            "required": False,
             "error_messages": {
                 "required": "DART ID is required.",
                 "invalid": "Invalid DART ID.",
             },
         },
         multiple=False,
+    ),
+    DomainMetadataCF(
+        name="imperial:domain_metadata",
     ),
 ]
 
@@ -55,7 +60,7 @@ RDM_CUSTOM_FIELDS_UI = [
         ],
     },
     {
-        "section": "Data Asset Registration Tool - DART",
+        "section": "Data Activity Risk-assessment Tool - DART",
         "fields": [
             dict(
                 field="imperial:dart_id",
@@ -69,6 +74,7 @@ RDM_CUSTOM_FIELDS_UI = [
                     search=False,
                     multiple=False,  # True for selecting multiple values
                     clearable=True,
+                    required=False,
                 ),
             ),
         ],

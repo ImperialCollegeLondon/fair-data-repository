@@ -12,27 +12,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
-          cache: "pipenv"
-      - name: install pipenv and invenio-cli
-        run: pip install pipenv invenio-cli
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
       - name: setup project dependencies
-        run: invenio-cli install python
+        run: uvx invenio-cli==1.12 install python
       - name: setup symlink
-        run: invenio-cli install symlink
+        run: uvx invenio-cli==1.12 install symlink
       - name: run tests
-        run: pipenv run pytest -p no:warnings
+        run: uv run pytest -p no:warnings -m "not e2e"
   check_assets:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
-          cache: "pipenv"
-      - name: install pipenv and invenio-cli
-        run: pip install pipenv invenio-cli
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+      - uses: pnpm/setup@v2
+        with:
+          version: 11
       - name: install dependencies and build assets
-        run: invenio-cli install
+        run: uvx invenio-cli==1.12 install

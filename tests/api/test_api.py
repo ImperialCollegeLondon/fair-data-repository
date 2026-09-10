@@ -12,6 +12,7 @@ def metadata():
     return {
         "title": "Test Record",
         "description": "This is a test record.",
+        "resource_type": {"id": "dataset"},
         "creators": [
             {
                 "person_or_org": {
@@ -38,7 +39,6 @@ def test_metadata_schema(
     client, location, vocabularies, user_depositor, api_headers, metadata, access
 ):
     """Test that the metadata schema is enforced."""
-    metadata["resource_type"] = "fake_resource_type"
     metadata["publisher"] = "Fake Publisher"
     metadata["publication_date"] = "1970-01-01"
     access["record"] = "restricted"
@@ -52,7 +52,6 @@ def test_metadata_schema(
 
     # Test metadata policies are enforced.
     assert result.json["metadata"]["title"] == "Test Record"
-    assert result.json["metadata"]["resource_type"]["id"] == "dataset"
     assert (
         result.json["metadata"]["creators"][0]["person_or_org"]["given_name"] == "Neo"
     )

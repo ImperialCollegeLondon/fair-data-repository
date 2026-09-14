@@ -77,8 +77,10 @@ jobs:
 
       - name: Shutdown app
         if: always()
-        run: kill -s SIGINT $(cat app.pid)
-
+        run: |
+          if [ -f app.pid ]; then
+            kill -s SIGINT "$(cat app.pid)" || true
+          fi
       - name: Upload app logs on failure
         if: failure()
         uses: actions/upload-artifact@v4

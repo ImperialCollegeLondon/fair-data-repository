@@ -8,8 +8,9 @@ submitted for review.
 
 import argparse
 
-from flask_principal import Identity, UserNeed
-from invenio_access.permissions import any_user, authenticated_user, system_identity
+from invenio_access.permissions import system_identity
+from invenio_access.utils import get_identity
+from invenio_accounts.proxies import current_datastore as current_accounts_datastore
 from invenio_app.factory import create_app
 from invenio_communities.proxies import current_communities
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -28,12 +29,9 @@ def submit_for_review(record_id: str) -> None:
     # method used in the invenio_rdm_records codebase.
     user_id = int(draft.data["parent"]["access"]["owned_by"]["user"])
 
-    # create identity with required permissions so we can submit the record as the user
-    # who owns it
-    user_identity = Identity(user_id)
-    user_identity.provides.add(UserNeed(user_id))
-    user_identity.provides.add(any_user)
-    user_identity.provides.add(authenticated_user)
+    # get user identity so we can use it to create the review request
+    user = current_accounts_datastore.get_user(user_id)
+    user_identity = get_identity(user)
 
     # create and submit the review request
     current_rdm_records_service.review.update(

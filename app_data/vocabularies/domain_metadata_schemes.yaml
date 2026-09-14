@@ -1,0 +1,18 @@
+# Domain metadata scheme vocabulary.
+#
+# Terms referenced by the "imperial:domain_metadata" custom field
+# (site/ic_data_repo/domain_metadata.py) - the field only reads a term's
+# `id`. `title` and any `props` (e.g. DataCite 4.6-style
+# subjectScheme/schemeURI/valueURI) are optional, descriptive vocabulary
+# metadata only; nothing about them is read or copied by the custom field.
+#
+# Add real cataloguing terms via:
+#   pipenv run invenio rdm-records add-to-fixture domainmetadatascheme
+#- id: example-domain-term
+#  title:
+#    en: Example domain term
+#  props:
+#    subjectScheme: Example Scheme
+#    schemeURI: "https://example.org/schemes/example-scheme"
+#    valueURI: "https://example.org/schemes/example-scheme/example-domain-term"
+# Minimal term: props are entirely optional, only id and title are required.

@@ -23,9 +23,11 @@ def logout(driver):
     """Helper function to log out the current user."""
     driver.get(f"{pytest.base_url}/logout")
     WebDriverWait(driver, timeout=10).until(
-        lambda d: d.current_url == f"{pytest.base_url}/"
-        and "user-profile-dropdown-btn" not in d.page_source
-        and "Log in" in d.page_source
+        lambda d: (
+            d.current_url == f"{pytest.base_url}/"
+            and "user-profile-dropdown-btn" not in d.page_source
+            and "Log in" in d.page_source
+        )
     )
 
 

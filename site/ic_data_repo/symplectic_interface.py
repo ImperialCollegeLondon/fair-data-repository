@@ -14,19 +14,13 @@ SYMPLECTIC_DATASET_TYPE_ID = "22"
 class SymplecticException(Exception):
     """Base exception for Symplectic API errors."""
 
-    pass
-
 
 class NoAwardsFoundError(SymplecticException):
     """Raised when no awards are found for a given search criteria."""
 
-    pass
-
 
 class MultipleAwardsFoundError(SymplecticException):
     """Raised when multiple awards are found."""
-
-    pass
 
 
 class SymplecticClient:
@@ -275,7 +269,10 @@ class SymplecticClient:
 
     def fetch_related_objects(self, related_doi_text):
         """Search for all object_ids to link to based on related DOI."""
-        url = f'{self.api_url}/publications?detail=single-record&query=doi="{related_doi_text}"'  # noqa: E501
+        url = (
+            f"{self.api_url}/publications?detail=single-record&"
+            f'query=doi="{related_doi_text}"'
+        )
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
 
@@ -314,7 +311,10 @@ class SymplecticClient:
 
     def get_related_awards(self, award_id, award_type_id):
         """This calls the symplectic API to get the related awards."""
-        url = f'{self.api_url}/grants?detail=full&per-page=25&page=15&query="{award_type_id}"="{award_id}"'  # noqa: E501
+        url = (
+            f"{self.api_url}/grants?detail=full&per-page=25&page=15&query="
+            f'"{award_type_id}"="{award_id}"'
+        )
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
 
@@ -339,10 +339,11 @@ class SymplecticClient:
 
     def search_symplectic(self, query, search_type):
         """Search Symplectic for records matching the query."""
+        url_base = f"{self.api_url}/publications?detail=full"
         if search_type == "title-keywords":
-            url = f'{self.api_url}/publications?detail=full&query=title-keywords="{query}"'  # noqa: E501
+            url = f'{url_base}&query=title-keywords="{query}"'
         elif search_type == "first-author-name":
-            url = f'{self.api_url}/publications?detail=full&query=first-author-name="{query}"'  # noqa: E501
+            url = f'{url_base}&query=first-author-name="{query}"'
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
 

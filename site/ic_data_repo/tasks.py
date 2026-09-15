@@ -78,7 +78,10 @@ def update_funders_vocabulary(archive_download_url: str) -> None:
 @shared_task
 def export_record_to_symplectic(record) -> None:
     """Syncronise record metadata to symplectic."""
-    if not current_app.config["SYMPLECTIC_ENABLED"]:
+    if (
+        not current_app.config["SYMPLECTIC_ENABLED"]
+        or not current_app.config["SYMPLECTIC_RECORD_EXPORT_ENABLED"]
+    ):
         return
 
     client = SymplecticClient(
@@ -91,39 +94,44 @@ def export_record_to_symplectic(record) -> None:
     metadata = record.get("metadata", {})
     related_identifiers = metadata.get("related_identifiers", [])
 
-    related_work_doi = {
-        identifier["identifier"]: type_id
-        for identifier in related_identifiers
-        if identifier.get("scheme") == "doi"
-        and (relation_type := identifier.get("relation_type", {})).get("id")
-        and (type_id := relation_type_to_type_id.get(relation_type["id"])) is not None
-    }
+    if current_app.config["SYMPLECTIC_PUBLICATION_LINKS_ENABLED"]:
+        related_work_doi = {
+            identifier["identifier"]: type_id
+            for identifier in related_identifiers
+            if identifier.get("scheme") == "doi"
+            and (relation_type := identifier.get("relation_type", {})).get("id")
+            and (type_id := relation_type_to_type_id.get(relation_type["id"]))
+            is not None
+        }
 
-    for doi, type_id in related_work_doi.items():
-        related_object_ids = client.fetch_related_objects(doi)
-        for related_object_id in related_object_ids:
-            client.link_related_records(
-                object_id, related_object_id, type_id, to_object_type="publication"
-            )
+        for doi, type_id in related_work_doi.items():
+            related_object_ids = client.fetch_related_objects(doi)
+            for related_object_id in related_object_ids:
+                client.link_related_records(
+                    object_id, related_object_id, type_id, to_object_type="publication"
+                )
 
     funding = metadata.get("funding", [])
 
-    for fund in funding:
-        award = fund.get("award", {})
-        if award_id := award.get("id"):
-            award_id_type = "institution-reference"
-        elif award_id := award.get("number"):
-            award_id_type = "funder-reference"
+    if current_app.config["SYMPLECTIC_FUNDING_LINKS_ENABLED"]:
+        for fund in funding:
+            award = fund.get("award", {})
+            if award_id := award.get("id"):
+                award_id_type = "institution-reference"
+            elif award_id := award.get("number"):
+                award_id_type = "funder-reference"
 
-        if award_id:
-            try:
-                related_award_id = client.get_related_awards(award_id, award_id_type)
-                client.link_related_records(
-                    object_id, related_award_id, type_id=2, to_object_type="grant"
-                )
-            except (NoAwardsFoundError, MultipleAwardsFoundError) as e:
-                current_app.logger.warning(f"Failed to link award {award_id}: {e}")
-                continue
+            if award_id:
+                try:
+                    related_award_id = client.get_related_awards(
+                        award_id, award_id_type
+                    )
+                    client.link_related_records(
+                        object_id, related_award_id, type_id=2, to_object_type="grant"
+                    )
+                except (NoAwardsFoundError, MultipleAwardsFoundError) as e:
+                    current_app.logger.warning(f"Failed to link award {award_id}: {e}")
+                    continue
 
     return
 

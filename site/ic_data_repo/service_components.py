@@ -1,11 +1,13 @@
 """Module for custom service components."""
 
+from flask_principal import Identity
 from invenio_access import Permission
 from invenio_access.permissions import system_process
 from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_records_resources.services.files.components import FileServiceComponent
 from invenio_records_resources.services.records.components import ServiceComponent
 from invenio_records_resources.services.uow import TaskOp
+from invenio_vocabularies.proxies import current_service as vocabularies_service
 
 from .description_transfer import DESCRIPTION_TRANSFER_TYPE
 from .permissions import described_file_action
@@ -50,3 +52,40 @@ class DescribedFilePermissionComponent(FileServiceComponent):
         transfer_type = record.files[file_key].transfer.transfer_type
         if transfer_type == DESCRIPTION_TRANSFER_TYPE:
             self._require_permission(identity)
+
+
+class RestrictedLicensePermissionComponent(ServiceComponent):
+    """Service component to enforce restricted license permissions."""
+
+    def _enforce_restricted_license_permission(
+        self, identity: Identity, data: dict[str, object] | None
+    ):
+        """Check if a restricted license is requested and test permission."""
+        if not data:
+            return
+
+        # As the schema of data is not guaranteed when this component runs, we need to
+        # strictly check the types of the fields we access to avoid runtime errors. If
+        # it's not what we expect, just skip the permission check and let a following
+        # service component handle the validation and raise an error.
+        metadata = data.get("metadata")
+        if not isinstance(metadata, dict):
+            return
+        deposit_licenses = metadata.get("rights")
+        if not isinstance(deposit_licenses, list):
+            return
+
+        vocab_entries = vocabularies_service.read_many(
+            identity, type="licenses", ids=[dl["id"] for dl in deposit_licenses]
+        )
+
+        if any("restricted" in entry["tags"] for entry in vocab_entries):
+            self.service.require_permission(identity, "select_restricted_license")
+
+    def create(self, identity, data=None, record=None, **kwargs):
+        """Check if user has permission to create a record with a restricted license."""
+        self._enforce_restricted_license_permission(identity, data)
+
+    def update_draft(self, identity, data=None, record=None, **kwargs):
+        """Check if user has permission to update a draft with a restricted license."""
+        self._enforce_restricted_license_permission(identity, data)

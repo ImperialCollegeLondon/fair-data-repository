@@ -17,15 +17,19 @@ from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 from invenio_rdm_records.services.components import DefaultRecordsComponents
+from invenio_rdm_records.services.config import FileServiceConfig
 from invenio_records_resources.config import (
     RECORDS_RESOURCES_TRANSFERS as DEFAULT_TRANSFERS,
 )
-from invenio_rdm_records.services.config import FileServiceConfig
 
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
-from ..service_components import DescribedFilePermissionComponent, SymplecticComponent
+from ..service_components import (
+    DescribedFilePermissionComponent,
+    RestrictedLicensePermissionComponent,
+    SymplecticComponent,
+)
 from .custom_fields import (  # noqa: F401
     RDM_CUSTOM_FIELDS,
     RDM_CUSTOM_FIELDS_UI,
@@ -115,8 +119,6 @@ INSTANCE_THEME_FILE = "./less/theme.less"
 SITE_UI_URL = "https://127.0.0.1:5000"
 
 SITE_API_URL = "https://127.0.0.1:5000/api"
-
-PUBLIC_LICENSES = ["cc-by-4.0", "cc0-1.0"]
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "resource_type": "dataset",
@@ -265,7 +267,11 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
-RDM_RECORDS_SERVICE_COMPONENTS = [*DefaultRecordsComponents, SymplecticComponent]
+RDM_RECORDS_SERVICE_COMPONENTS = [
+    RestrictedLicensePermissionComponent,
+    *DefaultRecordsComponents,
+    SymplecticComponent,
+]
 
 VOCABULARIES_DATASTREAM_WRITERS["affiliations-service"] = AffiliationsWriter
 VOCABULARIES_DATASTREAM_READERS["stream-yaml"] = StreamingYamlSequenceReader

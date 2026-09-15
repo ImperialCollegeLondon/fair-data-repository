@@ -24,7 +24,11 @@ from invenio_records_resources.config import (
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
-from ..service_components import DomainMetadataPermissionComponent, SymplecticComponent
+from ..service_components import (
+    DomainMetadataPermissionComponent,
+    RestrictedLicensePermissionComponent,
+    SymplecticComponent,
+)
 from .custom_fields import (  # noqa: F401
     RDM_CUSTOM_FIELDS,
     RDM_CUSTOM_FIELDS_UI,
@@ -114,8 +118,6 @@ INSTANCE_THEME_FILE = "./less/theme.less"
 SITE_UI_URL = "https://127.0.0.1:5000"
 
 SITE_API_URL = "https://127.0.0.1:5000/api"
-
-PUBLIC_LICENSES = ["cc-by-4.0", "cc0-1.0"]
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "resource_type": "dataset",
@@ -259,11 +261,9 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
-# DomainMetadataPermissionComponent must run before CustomFieldsComponent (in
-# DefaultRecordsComponents) so it still sees the *previous* custom_fields
-# value to diff against - see that component's docstring.
 RDM_RECORDS_SERVICE_COMPONENTS = [
     DomainMetadataPermissionComponent,
+    RestrictedLicensePermissionComponent,
     *DefaultRecordsComponents,
     SymplecticComponent,
 ]

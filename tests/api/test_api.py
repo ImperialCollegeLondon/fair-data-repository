@@ -3,9 +3,11 @@
 from datetime import date
 
 import pytest
+from ic_data_repo.permissions import restricted_license_action
+from invenio_access.permissions import ActionUsers
+from invenio_rdm_records.records.models import RDMDraftMetadata
 from ic_data_repo.config.custom_fields import RDM_CUSTOM_FIELDS_UI
 from ic_data_repo.permissions import domain_metadata_action
-from invenio_access.permissions import ActionUsers
 from invenio_search.proxies import current_search
 
 
@@ -15,6 +17,7 @@ def metadata():
     return {
         "title": "Test Record",
         "description": "This is a test record.",
+        "resource_type": {"id": "dataset"},
         "creators": [
             {
                 "person_or_org": {
@@ -25,6 +28,7 @@ def metadata():
                 "role": "the one",
             },
         ],
+        "rights": [{"id": "cc-by-4.0"}],
     }
 
 
@@ -70,7 +74,6 @@ def test_metadata_schema(
     client, location, vocabularies, user_depositor, api_headers, metadata, access
 ):
     """Test that the metadata schema is enforced."""
-    metadata["resource_type"] = "fake_resource_type"
     metadata["publisher"] = "Fake Publisher"
     metadata["publication_date"] = "1970-01-01"
     access["record"] = "restricted"
@@ -84,7 +87,6 @@ def test_metadata_schema(
 
     # Test metadata policies are enforced.
     assert result.json["metadata"]["title"] == "Test Record"
-    assert result.json["metadata"]["resource_type"]["id"] == "dataset"
     assert (
         result.json["metadata"]["creators"][0]["person_or_org"]["given_name"] == "Neo"
     )
@@ -388,6 +390,84 @@ def test_new_record_version(
         headers=api_headers,
     )
     assert record_v2_published.status_code == 202
+
+
+@pytest.mark.parametrize("grant", [True, False])
+def test_restricted_license_permission_create(
+    grant,
+    user_client,
+    location,
+    vocabularies,
+    user_depositor,
+    api_headers,
+    metadata,
+    db,
+):
+    """Test that restricted license permissions are enforced."""
+    metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
+    if grant:
+        db.session.add(
+            ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
+        )
+
+    result = user_client.post(
+        "/records",
+        json={
+            "metadata": metadata,
+            "files": {"enabled": False},
+        },
+        headers=api_headers,
+    )
+    assert result.status_code == (201 if grant else 403)
+
+    assert RDMDraftMetadata.query.count() == (1 if grant else 0)
+
+
+@pytest.mark.parametrize("grant", [True, False])
+def test_restricted_license_permission_update(
+    grant,
+    user_client,
+    location,
+    vocabularies,
+    user_depositor,
+    api_headers,
+    metadata,
+    db,
+):
+    """Test that restricted license permissions are enforced."""
+    result = user_client.post(
+        "/records",
+        json={
+            "metadata": metadata,
+            "files": {"enabled": False},
+        },
+        headers=api_headers,
+    )
+    assert result.status_code == 201
+    draft_id = result.json["id"]
+
+    metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
+    if grant:
+        db.session.add(
+            ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
+        )
+
+    result = user_client.put(
+        f"/records/{draft_id}/draft",
+        json={"metadata": metadata},
+        headers=api_headers,
+    )
+    assert result.status_code == (200 if grant else 403)
+
+    result = user_client.get(
+        f"/records/{draft_id}/draft",
+        headers=api_headers,
+    )
+    assert result.status_code == 200
+
+    assert result.json["metadata"]["rights"][0]["id"] == (
+        "cc-by-nd-4.0" if grant else "cc-by-4.0"
+    )
 
 
 def test_domain_metadata_landing_page_shows_resolved_vocabulary(

@@ -20,7 +20,7 @@ from invenio_rdm_records.services.components import DefaultRecordsComponents
 from invenio_records_resources.config import (
     RECORDS_RESOURCES_TRANSFERS as DEFAULT_TRANSFERS,
 )
-from invenio_records_resources.services.files.config import FileServiceConfig
+from invenio_rdm_records.services.config import FileServiceConfig
 
 from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema

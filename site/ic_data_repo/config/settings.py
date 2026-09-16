@@ -17,6 +17,7 @@ from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
 from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 from invenio_rdm_records.services.components import DefaultRecordsComponents
+from invenio_rdm_records.services.config import FileServiceConfig
 from invenio_records_resources.config import (
     RECORDS_RESOURCES_TRANSFERS as DEFAULT_TRANSFERS,
 )
@@ -25,6 +26,7 @@ from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import (
+    DescribedFilePermissionComponent,
     RestrictedLicensePermissionComponent,
     SymplecticComponent,
 )
@@ -141,6 +143,11 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
 RECORDS_RESOURCES_TRANSFERS = [
     *DEFAULT_TRANSFERS,
     "ic_data_repo.description_transfer:DescriptionTransfer",
+]
+
+RDM_DRAFT_FILES_SERVICE_COMPONENTS = [
+    DescribedFilePermissionComponent,
+    *FileServiceConfig.components,
 ]
 
 # Override record schemas

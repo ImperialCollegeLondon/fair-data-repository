@@ -1,4 +1,4 @@
-"""API test fixttures."""
+"""API test fixtures."""
 
 import pytest
 from ic_data_repo.permissions import deposit_action

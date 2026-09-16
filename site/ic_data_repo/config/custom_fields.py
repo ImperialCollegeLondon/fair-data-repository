@@ -85,12 +85,7 @@ RDM_CUSTOM_FIELDS_UI = [
         "fields": [
             dict(
                 field="imperial:domain_metadata",
-                ui_widget="Input",
                 template="domain_metadata.html",
-                props=dict(
-                    label="Domain metadata",
-                    icon="tags",
-                ),
             ),
         ],
     },

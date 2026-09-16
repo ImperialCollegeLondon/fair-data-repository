@@ -5,6 +5,9 @@ from typing import ClassVar
 from flask_principal import ActionNeed
 from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
 from invenio_records_permissions.generators import Generator, SystemProcess
+from invenio_records_resources.services.files.generators import IfTransferType
+
+from .description_transfer import DESCRIPTION_TRANSFER_TYPE
 
 ALLOWED_JOB_FAMILIES = [
     "Academic & Research",
@@ -24,6 +27,9 @@ deposit_action = ActionNeed("deposit-action")
 
 restricted_license_action = ActionNeed("restricted-license-action")
 """Action representing the ability to select a restricted licence."""
+
+described_file_action = ActionNeed("described-file-action")
+"""Action representing the ability to upload files with descriptions."""
 
 domain_metadata_action = ActionNeed("domain-metadata-action")
 """Action representing the ability to add, update, reorder, or remove
@@ -57,16 +63,54 @@ class AbleToEditDomainMetadata(Generator):
 class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     """The permission policy for the repository.
 
-    A lightly customised version of the standard InvenioRDM permission policy.
+    A customised version of the standard InvenioRDM permission policy.
     Implements additional restrictions on depositing datasets.
     """
 
     can_create: ClassVar = [AbleToDeposit(), SystemProcess()]
+
     can_select_restricted_license: ClassVar = [
         AbleToSelectRestrictedLicense(),
         SystemProcess(),
     ]
     can_edit_domain_metadata: ClassVar = [AbleToEditDomainMetadata(), SystemProcess()]
+
+    # Described file permissions.
+    can_draft_create_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_draft_create_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_review,
+        ),
+    ]
+    can_draft_set_content_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_draft_set_content_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_review,
+        ),
+    ]
+    can_draft_commit_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_draft_commit_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_review,
+        ),
+    ]
+    can_draft_get_content_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_draft_get_content_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_draft_read_files,
+        ),
+    ]
+    can_get_content_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_get_content_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_read_files,
+        ),
+    ]
 
 
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:

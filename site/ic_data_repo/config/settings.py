@@ -27,6 +27,7 @@ from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import (
     DescribedFilePermissionComponent,
+    DomainMetadataPermissionComponent,
     RestrictedLicensePermissionComponent,
     SymplecticComponent,
 )
@@ -268,6 +269,7 @@ SYMPLECTIC_ENABLED = bool(SYMPLECTIC_API_URL and SYMPLECTIC_API_SUBSCRIPTION_KEY
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
 RDM_RECORDS_SERVICE_COMPONENTS = [
+    DomainMetadataPermissionComponent,
     RestrictedLicensePermissionComponent,
     *DefaultRecordsComponents,
     SymplecticComponent,

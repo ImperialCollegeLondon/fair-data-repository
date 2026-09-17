@@ -89,3 +89,30 @@ class RestrictedLicensePermissionComponent(ServiceComponent):
     def update_draft(self, identity, data=None, record=None, **kwargs):
         """Check if user has permission to update a draft with a restricted license."""
         self._enforce_restricted_license_permission(identity, data)
+
+
+class DomainMetadataPermissionComponent(ServiceComponent):
+    """Enforces the domain-metadata action permission."""
+
+    field = "imperial:domain_metadata"
+    action_name = "edit_domain_metadata"
+
+    def _field_present(self, data):
+        return bool(data) and self.field in data.get("custom_fields", {})
+
+    def _require_permission_if_present(self, identity, data):
+        if not self._field_present(data):
+            # this request's payload doesn't mention the field at all (e.g. a
+            # depositor editing an unrelated field through the deposit form,
+            # which never even sees this field) - nothing to gate.
+            return
+
+        self.service.require_permission(identity, self.action_name)
+
+    def create(self, identity, data=None, record=None, **kwargs):
+        """Gate imperial:domain_metadata on the initial draft creation."""
+        self._require_permission_if_present(identity, data)
+
+    def update_draft(self, identity, data=None, record=None, **kwargs):
+        """Gate any add/update/reorder/remove to imperial:domain_metadata."""
+        self._require_permission_if_present(identity, data)

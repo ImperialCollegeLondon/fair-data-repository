@@ -79,4 +79,14 @@ RDM_CUSTOM_FIELDS_UI = [
             ),
         ],
     },
+    {
+        "section": "Domain metadata",
+        "hide_from_upload_form": True,
+        "fields": [
+            dict(
+                field="imperial:domain_metadata",
+                template="domain_metadata.html",
+            ),
+        ],
+    },
 ]

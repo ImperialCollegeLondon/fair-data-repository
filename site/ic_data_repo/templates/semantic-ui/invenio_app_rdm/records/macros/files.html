@@ -75,6 +75,11 @@ To access its content, please download it and open it locally.') }}
 {%- endmacro %}
 
 
+{#
+  Imperial modification of the original InvenioRDM file_list macro to check for and display described files.
+  If any files in the list have a transfer type of "D" (described), a 'Description' column will be added to the table,
+  and the description will be displayed in that column if a file has one.
+#}
 {%- macro file_list(
     files, pid, is_preview, include_deleted,
     record=None,
@@ -84,11 +89,19 @@ To access its content, please download it and open it locally.') }}
     is_media=false,
     permissions=None
 ) %}
+  {% set ns = namespace(has_described_file=false) %}
+  {% for file in files %}
+    {% if file.transfer.type == "D" %}
+      {% set ns.has_described_file = true %}
+    {% endif %}
+  {% endfor %}
   <table class="ui striped table files fluid {{record.ui.access_status.id}}">
     <thead>
       <tr>
         <th>{{_('Name')}}</th>
-        <th>{{_('Description')}}</th>
+        {% if ns.has_described_file %}
+          <th>{{_('Description')}}</th>
+        {% endif %}
         <th>{{_('Size')}}</th>
         <th class>
           {%- if config.RDM_ARCHIVE_DOWNLOAD_ENABLED %}
@@ -120,7 +133,11 @@ To access its content, please download it and open it locally.') }}
 
         {%- set file_type = file.key.split('.')[-1] %}
         <tr>
-          <td class="five wide">
+          {% if ns.has_described_file %}
+            <td class="five wide">
+          {% else %}
+            <td class="ten wide">
+          {% endif %}
             <div>
               <a href="{{ file_url_download }}">{{ file.key }}</a>
             </div>
@@ -132,9 +149,13 @@ To access its content, please download it and open it locally.') }}
             </small>
             {%- endif %}
           </td>
-          <td class="five wide">
-            {%- if is_described_file %}{{file.transfer.description}}{%- endif %}
-          </td>
+          {% if ns.has_described_file %}
+            <td class="five wide">
+              {% if is_described_file %}
+                {{ file.transfer.description }}
+              {% endif %}
+            </td>
+          {% endif %}
           <td>{%- if is_remote_file %}{{_("N/A (external)")}}{%- else -%}{{ file.size|filesizeformat(binary=binary_sizes) }}{%- endif %}</td>
           <td class="right aligned">
             <span>

@@ -133,7 +133,7 @@ To access its content, please download it and open it locally.') }}
             {%- endif %}
           </td>
           <td class="five wide">
-            {%- if is_described_file %}{{_(file.transfer.description)}}{%- endif %}
+            {%- if is_described_file %}{{file.transfer.description}}{%- endif %}
           </td>
           <td>{%- if is_remote_file %}{{_("N/A (external)")}}{%- else -%}{{ file.size|filesizeformat(binary=binary_sizes) }}{%- endif %}</td>
           <td class="right aligned">

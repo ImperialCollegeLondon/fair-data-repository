@@ -16,3 +16,228 @@
 #    schemeURI: "https://example.org/schemes/example-scheme"
 #    valueURI: "https://example.org/schemes/example-scheme/example-domain-term"
 # Minimal term: props are entirely optional, only id and title are required.
+#
+# Entries supporting migrated records from Imperial's legacy repository have '-legacy'
+# appended to their id
+- id: D3BJ_Dispersion_Energy-legacy
+  title:
+    en: D3BJ Dispersion Energy
+  props:
+    subjectScheme: D3BJ_Dispersion_Energy
+- id: D4_Dispersion_Energy-legacy
+  title:
+    en: D4 Dispersion Energy
+  props:
+    subjectScheme: D4_Dispersion_Energy
+- id: Fields of Science and Technology (FOS)-legacy
+  title:
+    en: Fields of Science and Technology (FOS)
+  props:
+    subjectScheme: Fields of Science and Technology (FOS)
+- id: Gibbe_Energy-legacy
+  title:
+    en: Gibbs Energy
+  props:
+    subjectScheme: Gibbe_Energy
+    schemeURI: https://doi.org/10.1351/goldbook.G02629
+    valueURI: http://gaussian.com/thermo/
+- id: Gibbes_Energy-legacy
+  title:
+    en: Gibbs Energy
+  props:
+    subjectScheme: Gibbes_Energy
+    schemeURI: https://doi.org/10.1351/goldbook.G02629
+    valueURI: http://gaussian.com/thermo/
+- id: Gibbs Energy-legacy
+  title:
+    en: Gibbs Energy
+  props:
+    subjectScheme: Gibbs Energy
+    schemeURI: https://doi.org/10.1351/goldbook.G02629
+    valueURI: http://gaussian.com/thermo/
+- id: Gibbs-Energy-legacy
+  title:
+    en: Gibbs Energy
+  props:
+    subjectScheme: Gibbs-Energy
+    schemeURI: https://doi.org/10.1351/goldbook.G02629
+    valueURI: http://gaussian.com/thermo/
+- id: Gibbs_Energy-legacy
+  title:
+    en: Gibbs Energy
+  props:
+    subjectScheme: Gibbs_Energy
+    schemeURI: https://doi.org/10.1351/goldbook.G02629
+    valueURI: http://gaussian.com/thermo/
+- id: Gibbs_energy-legacy
+  title:
+    en: Gibbs Energy
+  props:
+    subjectScheme: Gibbs_energy
+    schemeURI: https://doi.org/10.1351/goldbook.G02629
+    valueURI: http://gaussian.com/thermo/
+- id: Gibs_Energy-legacy
+  title:
+    en: Gibbs Energy
+  props:
+    subjectScheme: Gibs_Energy
+    schemeURI: https://doi.org/10.1351/goldbook.G02629
+    valueURI: http://gaussian.com/thermo/
+- id: IFD-legacy
+  title:
+    en: IFD
+  props:
+    subjectScheme: IFD
+- id: IFD.Comp-legacy
+  title:
+    en: IFD.Comp
+  props:
+    subjectScheme: IFD.Comp
+- id: IFD.Comp.IR-legacy
+  title:
+    en: IFD.Comp.IR
+  props:
+    subjectScheme: IFD.Comp.IR
+- id: IFD.Comp.NMR-legacy
+  title:
+    en: IFD.Comp.NMR
+  props:
+    subjectScheme: IFD.Comp.NMR
+- id: IFD.FindingAid-legacy
+  title:
+    en: IFD.FindingAid
+  props:
+    subjectScheme: IFD.FindingAid
+- id: IFD.IR-legacy
+  title:
+    en: IFD.IR
+  props:
+    subjectScheme: IFD.IR
+- id: IFD.XRAY-legacy
+  title:
+    en: IFD.XRAY
+  props:
+    subjectScheme: IFD.XRAY
+- id: IFD.xray-legacy
+  title:
+    en: IFD.xray
+  props:
+    subjectScheme: IFD.xray
+- id: InChI-legacy
+  title:
+    en: InChI
+  props:
+    subjectScheme: InChI
+    schemeURI: http://www.inchi-trust.org/
+- id: InChIKey-legacy
+  title:
+    en: InChIKey
+  props:
+    subjectScheme: InChIKey
+    schemeURI: http://www.inchi-trust.org/
+- id: InChi-legacy
+  title:
+    en: InChi
+  props:
+    subjectScheme: InChi
+    schemeURI: http://www.inchi-trust.org/
+- id: Inchi-legacy
+  title:
+    en: Inchi
+  props:
+    subjectScheme: Inchi
+    schemeURI: http://www.inchi-trust.org/
+- id: Inchikey-legacy
+  title:
+    en: Inchikey
+  props:
+    subjectScheme: Inchikey
+    schemeURI: http://www.inchi-trust.org/
+- id: KIE-legacy
+  title:
+    en: KIE
+  props:
+    subjectScheme: KIE
+- id: MMR_Solvent-legacy
+  title:
+    en: MMR_Solvent
+  props:
+    subjectScheme: MMR_Solvent
+- id: NMR Nucleus-legacy
+  title:
+    en: NMR Nucleus
+  props:
+    subjectScheme: NMR Nucleus
+- id: NMR_Expt-legacy
+  title:
+    en: NMR_Expt
+  props:
+    subjectScheme: NMR_Expt
+- id: NMR_Frequency-legacy
+  title:
+    en: NMR_Frequency
+  props:
+    subjectScheme: NMR_Frequency
+- id: NMR_Mucleus-legacy
+  title:
+    en: NMR_Mucleus
+  props:
+    subjectScheme: NMR_Mucleus
+- id: NMR_Nucleus-legacy
+  title:
+    en: NMR_Nucleus
+  props:
+    subjectScheme: NMR_Nucleus
+- id: NMR_Nucleus1-legacy
+  title:
+    en: NMR_Nucleus1
+  props:
+    subjectScheme: NMR_Nucleus1
+- id: NMR_Nucleus2-legacy
+  title:
+    en: NMR_Nucleus2
+  props:
+    subjectScheme: NMR_Nucleus2
+- id: NMR_Pulse-legacy
+  title:
+    en: NMR_Pulse
+  props:
+    subjectScheme: NMR_Pulse
+- id: NMR_Solvent-legacy
+  title:
+    en: NMR_Solvent
+  props:
+    subjectScheme: NMR_Solvent
+- id: NMR_Temperature-legacy
+  title:
+    en: NMR_Temperature
+  props:
+    subjectScheme: NMR_Temperature
+- id: NMR_temperature-legacy
+  title:
+    en: NMR_temperature
+  props:
+    subjectScheme: NMR_temperature
+- id: SMILES-legacy
+  title:
+    en: SMILES
+  props:
+    subjectScheme: SMILES
+- id: inbchi-legacy
+  title:
+    en: inbchi
+  props:
+    subjectScheme: inbchi
+    schemeURI: http://www.inchi-trust.org/
+- id: inchi-legacy
+  title:
+    en: inchi
+  props:
+    subjectScheme: inchi
+    schemeURI: http://www.inchi-trust.org/
+- id: inchikey-legacy
+  title:
+    en: inchikey
+  props:
+    subjectScheme: inchikey
+    schemeURI: http://www.inchi-trust.org/

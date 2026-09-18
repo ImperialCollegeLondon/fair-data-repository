@@ -10,6 +10,10 @@ import requests
 from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
+from invenio_rdm_records.proxies import (
+    current_rdm_records_service,
+    current_record_communities_service,
+)
 
 from .microsoft_graph_api_client import get_client
 from .symplectic_interface import (
@@ -160,3 +164,44 @@ def update_imperial_awards_from_symplectic() -> None:
     if not current_app.config.get("SYMPLECTIC_ENABLED", False):
         return
     import_imperial_awards_from_symplectic(current_app.logger)
+
+
+@shared_task
+def create_system_record_and_download_files(
+    metadata: dict[str, object],
+    files: list[tuple[str, str]],
+    community="",
+) -> None:
+    """Create a record owned by system_identity and download files from given URLs.
+
+    This task is primarily intended to be used for the legacy repository migration
+    but may be useful for other purposes.
+
+    Args:
+        metadata: The metadata for the record to be created.
+        files: A list of tuples of filename and download URL pairs.
+        community: If provided, record is added to the community with this ID.
+    """
+    draft = current_rdm_records_service.create(system_identity, metadata)
+
+    draft_file_service = current_rdm_records_service.draft_files
+    for filename, file_url in files:
+        file_data = [dict(key=filename)]
+        draft_file_service.init_files(system_identity, draft.id, file_data)
+        with requests.get(file_url, stream=True) as response:
+            response.raise_for_status()
+            # response.raw provides a buffered file like interface for streaming data
+            # suitable for use with set_file_content
+            draft_file_service.set_file_content(
+                system_identity, draft.id, filename, response.raw
+            )
+        draft_file_service.commit_file(system_identity, draft.id, filename)
+
+    record = current_rdm_records_service.publish(system_identity, draft.id)
+
+    if community:
+        current_record_communities_service.add(
+            system_identity,
+            record.id,
+            data=dict(communities=[dict(id=community, require_review=False)]),
+        )

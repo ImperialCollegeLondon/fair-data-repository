@@ -198,11 +198,13 @@ def create_system_record_and_download_files(
     for filename, file_url in files:
         file_data = [dict(key=filename)]
         draft_file_service.init_files(identity, draft.id, file_data)
-        response = requests.get(file_url, stream=True)
-        response.raise_for_status()
-        # response.raw provides a buffered file like interface for streaming data
-        # suitable for use with set_file_content
-        draft_file_service.set_file_content(identity, draft.id, filename, response.raw)
+        with requests.get(file_url, stream=True) as response:
+            response.raise_for_status()
+            # response.raw provides a buffered file like interface for streaming data
+            # suitable for use with set_file_content
+            draft_file_service.set_file_content(
+                identity, draft.id, filename, response.raw
+            )
         draft_file_service.commit_file(identity, draft.id, filename)
 
     record = current_rdm_records_service.publish(identity, draft.id)

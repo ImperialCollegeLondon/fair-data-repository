@@ -3,8 +3,9 @@
 from typing import ClassVar
 
 from flask_principal import ActionNeed
+from invenio_rdm_records.services.generators import IfNewRecord
 from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
-from invenio_records_permissions.generators import Generator, SystemProcess
+from invenio_records_permissions.generators import Generator, IfConfig, SystemProcess
 from invenio_records_resources.services.files.generators import IfTransferType
 
 from .description_transfer import DESCRIPTION_TRANSFER_TYPE
@@ -111,6 +112,20 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
             RDMRecordPermissionPolicy.can_read_files,
         ),
     ]
+
+    # override to allow SystemProcess to manage files
+    can_manage_files: ClassVar = (
+        IfConfig(
+            "RDM_ALLOW_METADATA_ONLY_RECORDS",
+            then_=[
+                IfNewRecord(
+                    then_=RDMRecordPermissionPolicy.can_authenticated,
+                    else_=RDMRecordPermissionPolicy.can_review,
+                )
+            ],
+            else_=[SystemProcess()],
+        ),
+    )
 
 
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:

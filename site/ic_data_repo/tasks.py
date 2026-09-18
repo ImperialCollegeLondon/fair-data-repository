@@ -10,8 +10,6 @@ import requests
 from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
-from invenio_access.utils import get_identity
-from invenio_accounts.proxies import current_datastore as current_accounts_datastore
 from invenio_rdm_records.proxies import (
     current_rdm_records_service,
     current_record_communities_service,
@@ -172,7 +170,6 @@ def update_imperial_awards_from_symplectic() -> None:
 def create_system_record_and_download_files(
     metadata: dict[str, object],
     files: list[tuple[str, str]],
-    user_id: int | None = None,
     community="",
 ) -> None:
     """Create a record owned by system_identity and download files from given URLs.
@@ -183,35 +180,28 @@ def create_system_record_and_download_files(
     Args:
         metadata: The metadata for the record to be created.
         files: A list of tuples of filename and download URL pairs.
-        user_id: The ID of the user, if None system_identity is used
         community: If provided, record is added to the community with this ID.
     """
-    if user_id:
-        user = current_accounts_datastore.get_user(user_id)
-        identity = get_identity(user)
-    else:
-        identity = system_identity
-
-    draft = current_rdm_records_service.create(identity, metadata)
+    draft = current_rdm_records_service.create(system_identity, metadata)
 
     draft_file_service = current_rdm_records_service.draft_files
     for filename, file_url in files:
         file_data = [dict(key=filename)]
-        draft_file_service.init_files(identity, draft.id, file_data)
+        draft_file_service.init_files(system_identity, draft.id, file_data)
         with requests.get(file_url, stream=True) as response:
             response.raise_for_status()
             # response.raw provides a buffered file like interface for streaming data
             # suitable for use with set_file_content
             draft_file_service.set_file_content(
-                identity, draft.id, filename, response.raw
+                system_identity, draft.id, filename, response.raw
             )
-        draft_file_service.commit_file(identity, draft.id, filename)
+        draft_file_service.commit_file(system_identity, draft.id, filename)
 
-    record = current_rdm_records_service.publish(identity, draft.id)
+    record = current_rdm_records_service.publish(system_identity, draft.id)
 
     if community:
         current_record_communities_service.add(
-            identity,
+            system_identity,
             record.id,
             data=dict(communities=[dict(id=community, require_review=False)]),
         )

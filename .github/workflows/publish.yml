@@ -44,7 +44,7 @@ jobs:
           format: "table"
           exit-code: 0 # Do not fail the build on vulnerabilities
           output: trivy-backend.txt
-          version: v0.67.2
+          version: v0.74.0
       - name: Upload Trivy backend scan report
         uses: actions/upload-artifact@v4
         with:

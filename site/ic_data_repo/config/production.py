@@ -2,7 +2,7 @@
 
 import os
 
-from .settings import *  # noqa: F401, F403
+from .settings import *  # noqa: F403
 
 SECRET_KEY = os.environ["INVENIO_SECRET_KEY"]
 

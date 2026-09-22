@@ -5,10 +5,64 @@ from functools import partial
 
 import requests
 from lxml import etree
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
 etree.register_namespace("api", NAMESPACE_URI)
 SYMPLECTIC_DATASET_TYPE_ID = "22"
+
+REQUEST_TIMEOUT = 30
+"""Seconds to wait for a single attempt before giving up on it."""
+
+RETRY_TOTAL = 5
+"""Maximum number of retries per request, on top of the initial attempt."""
+
+RETRY_BACKOFF_FACTOR = 1.0
+"""Seconds multiplier for the exponential backoff between retries."""
+
+RETRY_BACKOFF_MAX = 60.0
+"""Upper bound on the delay between two retries, in seconds."""
+
+RETRY_STATUS_CODES = (429, 500, 502, 503, 504)
+"""Responses that indicate a transient failure and are worth retrying."""
+
+
+def build_retrying_session(
+    total: int = RETRY_TOTAL,
+    backoff_factor: float = RETRY_BACKOFF_FACTOR,
+) -> requests.Session:
+    """Build a session that retries transient failures with exponential backoff.
+
+    Retries are spread over exponentially increasing, jittered delays so that a
+    rate limited or struggling Symplectic API is not overwhelmed by our traffic.
+    A ``Retry-After`` header sent by the API takes precedence over the backoff.
+
+    Args:
+        total: Maximum number of retries per request.
+        backoff_factor: Seconds multiplier for the exponential backoff.
+
+    Returns:
+        A session with the retry policy mounted for HTTP and HTTPS.
+    """
+    retry = Retry(
+        total=total,
+        backoff_factor=backoff_factor,
+        backoff_jitter=backoff_factor,
+        backoff_max=RETRY_BACKOFF_MAX,
+        status_forcelist=RETRY_STATUS_CODES,
+        # PUT and POST are retried because the Symplectic import endpoints are
+        # keyed on our own identifiers and so are idempotent.
+        allowed_methods=frozenset({"GET", "PUT", "POST"}),
+        respect_retry_after_header=True,
+        # let the caller's raise_for_status() surface the final failure
+        raise_on_status=False,
+    )
+    session = requests.Session()
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
 
 
 class SymplecticException(Exception):
@@ -41,6 +95,7 @@ class SymplecticClient:
             # firewall covering the Symplectic APIM doesn't like the requests one
             "User-Agent": "Helix",
         }
+        self.session = build_retrying_session()
 
     def add_doi_subtree(self, parent_element, doi_type, doi):
         """Add a DOI subtree to the XML tree."""
@@ -253,10 +308,11 @@ class SymplecticClient:
 
         proprietary_id = metadata.get("id")
         url = f"{self.api_url}/publication/records/manual/{proprietary_id}"
-        response = requests.put(
+        response = self.session.put(
             url,
             data=etree.tostring(record_xml, encoding="unicode"),
             headers=self.headers,
+            timeout=REQUEST_TIMEOUT,
         )
         response.raise_for_status()
 
@@ -274,7 +330,7 @@ class SymplecticClient:
             f"{self.api_url}/publications?detail=single-record&"
             f'query=doi="{related_doi_text}"'
         )
-        response = requests.get(url, headers=self.headers)
+        response = self.session.get(url, headers=self.headers, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
 
         root = etree.fromstring(response.content)
@@ -301,10 +357,11 @@ class SymplecticClient:
         xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
 
         url = f"{self.api_url}/relationships"
-        response = requests.post(
+        response = self.session.post(
             url,
             data=xml_data,
             headers=self.headers,
+            timeout=REQUEST_TIMEOUT,
         )
         response.raise_for_status()
 
@@ -316,7 +373,7 @@ class SymplecticClient:
             f"{self.api_url}/grants?detail=full&per-page=25&page=15&query="
             f'"{award_type_id}"="{award_id}"'
         )
-        response = requests.get(url, headers=self.headers)
+        response = self.session.get(url, headers=self.headers, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
 
         root = etree.fromstring(response.content)
@@ -345,7 +402,7 @@ class SymplecticClient:
             url = f'{url_base}&query=title-keywords="{query}"'
         elif search_type == "first-author-name":
             url = f'{url_base}&query=first-author-name="{query}"'
-        response = requests.get(url, headers=self.headers)
+        response = self.session.get(url, headers=self.headers, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
 
         root = etree.fromstring(response.content)

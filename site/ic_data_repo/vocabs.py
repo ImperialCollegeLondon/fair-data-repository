@@ -16,7 +16,6 @@ from shutil import which
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 
-import requests
 import yaml
 from flask import current_app
 from invenio_vocabularies.datastreams.factories import DataStreamFactory
@@ -25,6 +24,7 @@ from msgraph import GraphServiceClient
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 
 from .microsoft_graph_api_client import get_imperial_users
+from .symplectic_interface import REQUEST_TIMEOUT, build_retrying_session
 
 _POSSIBLE_CONTRIBUTOR_INCLUDE_ROLE_TYPES = {
     "Employee",
@@ -400,7 +400,7 @@ def fetch_all_results(logger: Logger = _get_default_logger()):
     SUBSCRIPTION_KEY = current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"]
     SYMPLECTIC_API_AUTH_HEADER = current_app.config["SYMPLECTIC_API_AUTH_HEADER"]
 
-    session = requests.Session()
+    session = build_retrying_session()
     all_results = []
     total_results = 0
     max_results = None
@@ -409,7 +409,7 @@ def fetch_all_results(logger: Logger = _get_default_logger()):
 
     while url and (max_results is None or total_results < max_results):
         logger.info(f"Fetching: {url}")
-        response = session.get(url, headers=headers, timeout=30)
+        response = session.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         root = ET.fromstring(response.text)
 

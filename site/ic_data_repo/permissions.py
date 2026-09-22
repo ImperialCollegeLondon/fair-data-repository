@@ -3,8 +3,12 @@
 from typing import ClassVar
 
 from flask_principal import ActionNeed
+from invenio_rdm_records.services.generators import IfNewRecord
 from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
-from invenio_records_permissions.generators import Generator, SystemProcess
+from invenio_records_permissions.generators import Generator, IfConfig, SystemProcess
+from invenio_records_resources.services.files.generators import IfTransferType
+
+from .description_transfer import DESCRIPTION_TRANSFER_TYPE
 
 ALLOWED_JOB_FAMILIES = [
     "Academic & Research",
@@ -25,6 +29,13 @@ deposit_action = ActionNeed("deposit-action")
 restricted_license_action = ActionNeed("restricted-license-action")
 """Action representing the ability to select a restricted licence."""
 
+described_file_action = ActionNeed("described-file-action")
+"""Action representing the ability to upload files with descriptions."""
+
+domain_metadata_action = ActionNeed("domain-metadata-action")
+"""Action representing the ability to add, update, reorder, or remove
+imperial:domain_metadata entries."""
+
 
 class AbleToDeposit(Generator):
     """Permission generator for dataset deposit."""
@@ -42,18 +53,79 @@ class AbleToSelectRestrictedLicense(Generator):
         return [restricted_license_action]
 
 
+class AbleToEditDomainMetadata(Generator):
+    """Permission generator for editing domain metadata."""
+
+    def needs(self, **kwargs):
+        """The needs associated with the domain metadata permission."""
+        return [domain_metadata_action]
+
+
 class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     """The permission policy for the repository.
 
-    A lightly customised version of the standard InvenioRDM permission policy.
+    A customised version of the standard InvenioRDM permission policy.
     Implements additional restrictions on depositing datasets.
     """
 
     can_create: ClassVar = [AbleToDeposit(), SystemProcess()]
+
     can_select_restricted_license: ClassVar = [
         AbleToSelectRestrictedLicense(),
         SystemProcess(),
     ]
+    can_edit_domain_metadata: ClassVar = [AbleToEditDomainMetadata(), SystemProcess()]
+
+    # Described file permissions.
+    can_draft_create_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_draft_create_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_review,
+        ),
+    ]
+    can_draft_set_content_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_draft_set_content_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_review,
+        ),
+    ]
+    can_draft_commit_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_draft_commit_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_review,
+        ),
+    ]
+    can_draft_get_content_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_draft_get_content_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_draft_read_files,
+        ),
+    ]
+    can_get_content_files: ClassVar = [
+        *RDMRecordPermissionPolicy.can_get_content_files,
+        IfTransferType(
+            DESCRIPTION_TRANSFER_TYPE,
+            RDMRecordPermissionPolicy.can_read_files,
+        ),
+    ]
+
+    # override to allow SystemProcess to manage files
+    can_manage_files: ClassVar = (
+        IfConfig(
+            "RDM_ALLOW_METADATA_ONLY_RECORDS",
+            then_=[
+                IfNewRecord(
+                    then_=RDMRecordPermissionPolicy.can_authenticated,
+                    else_=RDMRecordPermissionPolicy.can_review,
+                )
+            ],
+            else_=[SystemProcess()],
+        ),
+    )
 
 
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:

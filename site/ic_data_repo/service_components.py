@@ -1,10 +1,16 @@
 """Module for custom service components."""
 
 from flask_principal import Identity
+from invenio_access import Permission
+from invenio_access.permissions import system_process
+from invenio_records_resources.services.errors import PermissionDeniedError
+from invenio_records_resources.services.files.components import FileServiceComponent
 from invenio_records_resources.services.records.components import ServiceComponent
 from invenio_records_resources.services.uow import TaskOp
 from invenio_vocabularies.proxies import current_service as vocabularies_service
 
+from .description_transfer import DESCRIPTION_TRANSFER_TYPE
+from .permissions import described_file_action
 from .tasks import export_record_to_symplectic
 
 
@@ -15,6 +21,37 @@ class SymplecticComponent(ServiceComponent):
         """Enqueue celery task to publish a record to Symplectic."""
         if record:
             self.uow.register(TaskOp(export_record_to_symplectic, record))
+
+
+class DescribedFilePermissionComponent(FileServiceComponent):
+    """Restrict mutating operations on described files."""
+
+    @staticmethod
+    def _require_permission(identity):
+        if system_process in identity.provides:
+            return
+
+        if not Permission(described_file_action).allows(identity):
+            raise PermissionDeniedError()
+
+    def init_files(self, identity, id_, record, data):
+        """Init files handler."""
+        for file_metadata in data:
+            transfer_type = file_metadata.get("transfer", {}).get("type")
+            if transfer_type == DESCRIPTION_TRANSFER_TYPE:
+                self._require_permission(identity)
+
+    def set_file_content(self, identity, id_, file_key, stream, content_length, record):
+        """Set file content handler."""
+        transfer_type = record.files[file_key].transfer.transfer_type
+        if transfer_type == DESCRIPTION_TRANSFER_TYPE:
+            self._require_permission(identity)
+
+    def commit_file(self, identity, id_, file_key, record):
+        """Commit file handler."""
+        transfer_type = record.files[file_key].transfer.transfer_type
+        if transfer_type == DESCRIPTION_TRANSFER_TYPE:
+            self._require_permission(identity)
 
 
 class RestrictedLicensePermissionComponent(ServiceComponent):
@@ -52,3 +89,30 @@ class RestrictedLicensePermissionComponent(ServiceComponent):
     def update_draft(self, identity, data=None, record=None, **kwargs):
         """Check if user has permission to update a draft with a restricted license."""
         self._enforce_restricted_license_permission(identity, data)
+
+
+class DomainMetadataPermissionComponent(ServiceComponent):
+    """Enforces the domain-metadata action permission."""
+
+    field = "imperial:domain_metadata"
+    action_name = "edit_domain_metadata"
+
+    def _field_present(self, data):
+        return bool(data) and self.field in data.get("custom_fields", {})
+
+    def _require_permission_if_present(self, identity, data):
+        if not self._field_present(data):
+            # this request's payload doesn't mention the field at all (e.g. a
+            # depositor editing an unrelated field through the deposit form,
+            # which never even sees this field) - nothing to gate.
+            return
+
+        self.service.require_permission(identity, self.action_name)
+
+    def create(self, identity, data=None, record=None, **kwargs):
+        """Gate imperial:domain_metadata on the initial draft creation."""
+        self._require_permission_if_present(identity, data)
+
+    def update_draft(self, identity, data=None, record=None, **kwargs):
+        """Gate any add/update/reorder/remove to imperial:domain_metadata."""
+        self._require_permission_if_present(identity, data)

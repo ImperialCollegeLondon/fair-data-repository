@@ -15,8 +15,8 @@ from invenio_app_rdm.config import (
 )
 from invenio_notifications.backends.email import EmailNotificationBackend
 from invenio_oauthclient.views.client import auto_redirect_login
-from invenio_rdm_records.config import RDM_PERSISTENT_IDENTIFIERS
 from invenio_rdm_records.services.components import DefaultRecordsComponents
+from invenio_rdm_records.services.config import FileServiceConfig
 from invenio_records_resources.config import (
     RECORDS_RESOURCES_TRANSFERS as DEFAULT_TRANSFERS,
 )
@@ -25,6 +25,8 @@ from ..datastreams import AffiliationsWriter, StreamingYamlSequenceReader
 from ..imperial_schema import ImperialRecordSchema
 from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import (
+    DescribedFilePermissionComponent,
+    DomainMetadataPermissionComponent,
     RestrictedLicensePermissionComponent,
     SymplecticComponent,
 )
@@ -143,6 +145,11 @@ RECORDS_RESOURCES_TRANSFERS = [
     "ic_data_repo.description_transfer:DescriptionTransfer",
 ]
 
+RDM_DRAFT_FILES_SERVICE_COMPONENTS = [
+    DescribedFilePermissionComponent,
+    *FileServiceConfig.components,
+]
+
 # Override record schemas
 RDM_RECORD_SCHEMA = ImperialRecordSchema
 
@@ -159,9 +166,6 @@ DATACITE_PASSWORD = ""
 DATACITE_PREFIX = ""
 DATACITE_TEST_MODE = True
 DATACITE_DATACENTER_SYMBOL = ""
-
-# Remove "external" as a DOI provider
-RDM_PERSISTENT_IDENTIFIERS["doi"]["providers"].remove("external")
 
 # Authentication - Invenio-Accounts and Invenio-OAuthclient
 # =========================================================
@@ -268,6 +272,7 @@ ENABLE_SYMPLECTIC_SEARCH = False
 RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 
 RDM_RECORDS_SERVICE_COMPONENTS = [
+    DomainMetadataPermissionComponent,
     RestrictedLicensePermissionComponent,
     *DefaultRecordsComponents,
     SymplecticComponent,

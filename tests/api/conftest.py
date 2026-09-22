@@ -1,4 +1,4 @@
-"""API test fixttures."""
+"""API test fixtures."""
 
 import pytest
 from ic_data_repo.permissions import deposit_action
@@ -30,4 +30,13 @@ def api_headers(db, user_depositor):
     return {
         "Authorization": f"Bearer {token.access_token}",
         "Content-Type": "application/json",
+    }
+
+
+@pytest.fixture
+def api_file_upload_headers(api_headers):
+    """Headers for API file upload requests, including API token."""
+    return {
+        **api_headers,
+        "Content-Type": "application/octet-stream",
     }

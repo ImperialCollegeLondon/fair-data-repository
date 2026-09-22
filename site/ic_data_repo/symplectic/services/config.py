@@ -21,4 +21,7 @@ class SymplecticServiceConfig(ServiceConfig):
         config.symplectic_api_key = app.config.get(
             "SYMPLECTIC_API_SUBSCRIPTION_KEY", ""
         )
+        config.symplectic_api_auth_header = app.config.get(
+            "SYMPLECTIC_API_AUTH_HEADER", ""
+        )
         return config

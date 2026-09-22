@@ -88,4 +88,8 @@ jobs:
           --set invenio.extraConfig.INVENIO_TRUSTED_HOSTS=${{ vars.HOSTNAME }} \
           --set invenio.extra_secrets.icl_secrets.data.SYMPLECTIC_API_SUBSCRIPTION_KEY="${{ secrets.SYMPLECTIC_API_SUBSCRIPTION_KEY }}" \
           --set invenio.extraConfig.SYMPLECTIC_API_URL="${{ vars.SYMPLECTIC_API_URL }}" \
-          --set invenio.extraConfig.SYMPLECTIC_API_AUTH_HEADER="${{ vars.SYMPLECTIC_API_AUTH_HEADER }}"
+          --set invenio.extraConfig.SYMPLECTIC_API_AUTH_HEADER="${{ vars.SYMPLECTIC_API_AUTH_HEADER }}" \
+          --set-string invenio.extraConfig.SYMPLECTIC_ENABLED="${{ vars.SYMPLECTIC_ENABLED }}" \
+          --set-string invenio.extraConfig.SYMPLECTIC_RECORD_EXPORT_ENABLED="${{ vars.SYMPLECTIC_RECORD_EXPORT_ENABLED }}" \
+          --set-string invenio.extraConfig.SYMPLECTIC_PUBLICATION_LINKS_ENABLED="${{ vars.SYMPLECTIC_PUBLICATION_LINKS_ENABLED }}" \
+          --set-string invenio.extraConfig.SYMPLECTIC_FUNDING_LINKS_ENABLED="${{ vars.SYMPLECTIC_FUNDING_LINKS_ENABLED }}"

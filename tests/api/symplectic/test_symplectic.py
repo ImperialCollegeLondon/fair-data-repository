@@ -13,13 +13,14 @@ from lxml import etree
 
 DUMMY_URL = "https://api.symplectic.example.com"
 DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
+DUMMY_AUTH_HEADER = "Subscription-Key"
 DATACITE_PREFIX = "10.5281/"
 
 
 @pytest.fixture
 def client():
     """Create a Symplectic client instance with mocked environment variables."""
-    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY)
+    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY, DUMMY_AUTH_HEADER)
 
 
 @pytest.fixture
@@ -159,7 +160,7 @@ def test_generate_record_xml(client, sample_metadata, datacite_prefix):
     assert related_doi_text.text == "10.5281/zenodo.783021"
 
 
-@patch("requests.put")
+@patch("requests.Session.put")
 def test_create_record_success(mock_put, client, sample_metadata, datacite_prefix):
     """Test successful record creation by mocking the API response."""
     mock_put.return_value.content = b"""
@@ -178,7 +179,7 @@ def test_create_record_success(mock_put, client, sample_metadata, datacite_prefi
     assert called_headers == client.headers
 
 
-@patch("requests.put")
+@patch("requests.Session.put")
 def test_create_record_failure(mock_put, client, sample_metadata):
     """Test record creation failure by mocking an unsuccessful API response."""
     mock_put().raise_for_status.side_effect = requests.exceptions.HTTPError(
@@ -197,7 +198,7 @@ def test_create_record_failure(mock_put, client, sample_metadata):
     assert called_headers == client.headers
 
 
-@patch("requests.put")
+@patch("requests.Session.put")
 def test_create_record_minimal_metadata(
     mock_put, client, minimal_metadata, datacite_prefix
 ):
@@ -255,7 +256,7 @@ def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
     assert abstract_field is None
 
 
-@patch("requests.get")
+@patch("requests.Session.get")
 def test_fetch_related_objects(mock_get, client):
     """Test fetching related objects with a DOI."""
     mock_response = MagicMock()
@@ -276,7 +277,7 @@ def test_fetch_related_objects(mock_get, client):
     assert "zenodo.123456" in mock_get.call_args[0][0]
 
 
-@patch("requests.post")
+@patch("requests.Session.post")
 def test_link_related_records(mock_post, client):
     """Test linking related records."""
     mock_response = MagicMock()
@@ -298,7 +299,7 @@ def test_link_related_records(mock_post, client):
     assert "<type-id>1</type-id>" in called_data
 
 
-@patch("requests.get")
+@patch("requests.Session.get")
 def test_get_related_awards_success(mock_get, client):
     """Test fetching a single related award successfully."""
     mock_response = MagicMock()
@@ -320,7 +321,7 @@ def test_get_related_awards_success(mock_get, client):
     assert f'query="{award_type_id}"="{award_id}"' in mock_get.call_args[0][0]
 
 
-@patch("requests.get")
+@patch("requests.Session.get")
 def test_get_related_awards_no_results(mock_get, client):
     """Test fetching related awards when none are found."""
     mock_response = MagicMock()
@@ -340,7 +341,7 @@ def test_get_related_awards_no_results(mock_get, client):
         client.get_related_awards(award_id, award_type_id)
 
 
-@patch("requests.get")
+@patch("requests.Session.get")
 def test_get_related_awards_multiple_results(mock_get, client):
     """Test fetching related awards when multiple are found."""
     mock_response = MagicMock()
@@ -360,7 +361,7 @@ def test_get_related_awards_multiple_results(mock_get, client):
         client.get_related_awards(award_id, award_type_id)
 
 
-@patch("requests.get")
+@patch("requests.Session.get")
 def test_search_symplectic(mock_get, client):
     """Test searching Symplectic for records matching DOI and title keyword."""
     mock_response = MagicMock()

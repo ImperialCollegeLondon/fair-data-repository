@@ -13,3 +13,8 @@
      datacite: Obsoletes
   title:
      en: Obsoletes
+- id: haspart
+  props:
+     datacite: HasPart
+  title:
+     en: Has part

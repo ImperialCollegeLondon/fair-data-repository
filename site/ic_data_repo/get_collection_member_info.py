@@ -33,9 +33,12 @@ def get_collection_member_info(
     if not member_dois:
         return []
 
-    # Despite the name, `search_drafts` queries both draft AND published records.
+    # Search draft and published records (edit drafts take precedence).
     q = " OR ".join([f'metadata.identifiers.identifier:"{doi}"' for doi in member_dois])
-    members = records_service.search_drafts(identity, params={"q": q})
+    published = records_service.search(identity, params={"q": q})
+    drafts = records_service.search_drafts(identity, params={"q": q})
+    members = {member["id"]: member for member in published}
+    members.update({member["id"]: member for member in drafts})
 
     return [
         {
@@ -47,5 +50,5 @@ def get_collection_member_info(
                 if member["metadata"]["identifiers"][i]["scheme"] == "doi"
             ],
         }
-        for member in members
+        for member in members.values()
     ]

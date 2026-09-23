@@ -193,3 +193,39 @@ def test_related_records_no_doi(db, search_clear, location, vocabularies, record
     search_clear.indices.refresh()
     result = get_collection_member_info(system_identity, c.id)
     assert len(result) == 0
+
+
+def test_related_records_no_permission(
+    db, search_clear, location, vocabularies, user, record_data
+):
+    """Test a collection with related records without permission to read them."""
+    r_1_data = deepcopy(record_data)
+    r_1_data["metadata"]["identifiers"] = [
+        {"identifier": "10.1234/collection1", "scheme": "doi"},
+        {"identifier": "https://example.com/collection1", "scheme": "url"},
+    ]
+    r_1_draft = records_service.create(system_identity, r_1_data)
+
+    # We need a restricted record. Normally Imperial's schema disallows them.
+    r_1_draft._record.access.protection.record = "restricted"
+    r_1_draft._record.commit()
+    db.session.commit()
+
+    r_1 = records_service.publish(system_identity, r_1_draft.id)
+    assert r_1.data["access"]["record"] == "restricted"
+
+    c_data = deepcopy(record_data)
+    c_data["metadata"]["related_identifiers"] = [
+        {
+            "identifier": r_1.data["metadata"]["identifiers"][0]["identifier"],
+            "relation_type": {"id": "haspart"},
+            "scheme": "doi",
+        },
+    ]
+    c_draft = records_service.create(system_identity, c_data)
+    c = records_service.publish(system_identity, c_draft.id)
+
+    # Use a different identity that does not have permission.
+    search_clear.indices.refresh()
+    result = get_collection_member_info(user.identity, c.id)
+    assert len(result) == 0

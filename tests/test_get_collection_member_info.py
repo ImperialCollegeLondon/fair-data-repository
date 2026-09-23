@@ -58,6 +58,7 @@ def test_valid_related_records(db, search_clear, location, vocabularies, record_
     r_2 = records_service.publish(system_identity, r_2_draft.id)
 
     c_data = deepcopy(record_data)
+    c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
             "identifier": r_1.data["metadata"]["identifiers"][0]["identifier"],
@@ -101,6 +102,7 @@ def test_valid_related_draft_records(
     r_1_draft = records_service.create(system_identity, r_1_data)
 
     c_data = deepcopy(record_data)
+    c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
             "identifier": r_1_draft.data["metadata"]["identifiers"][0]["identifier"],
@@ -126,6 +128,7 @@ def test_nonlocal_related_records(
 ):
     """Test a collection with no locally-hosted related records."""
     c_data = deepcopy(record_data)
+    c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
             "identifier": "10.1234/nonlocal",
@@ -154,6 +157,7 @@ def test_related_records_no_haspart(
     r_1 = records_service.publish(system_identity, r_1_draft.id)
 
     c_data = deepcopy(record_data)
+    c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
             "identifier": r_1.data["metadata"]["identifiers"][0]["identifier"],
@@ -180,6 +184,7 @@ def test_related_records_no_doi(db, search_clear, location, vocabularies, record
     r_1 = records_service.publish(system_identity, r_1_draft.id)
 
     c_data = deepcopy(record_data)
+    c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
             "identifier": r_1.data["metadata"]["identifiers"][1]["identifier"],
@@ -215,6 +220,7 @@ def test_related_records_no_permission(
     assert r_1.data["access"]["record"] == "restricted"
 
     c_data = deepcopy(record_data)
+    c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
             "identifier": r_1.data["metadata"]["identifiers"][0]["identifier"],

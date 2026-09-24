@@ -1,0 +1,11 @@
+{% extends 'invenio_app_rdm/records/detail.html' %}
+{%- block record_details -%}
+  {{ super() }}
+  {% set members = collection_members(record.id) %}
+
+  {% for member in members %}
+    <a href="{{ member.url }}">{{ member.title }}</a></br>
+    {{ member.dois }}</br></br>
+  {% endfor %}
+
+{%- endblock record_details -%}

@@ -6,17 +6,21 @@
     {% if members|length == 0 %}
       <p>No local collection members found.</p>
     {% else %}
-      <table>
-        <tr>
-          <th>Title</th>
-          <th>DOIs</th>
-        </tr>
-        {% for member in members %}
-        <tr>
-          <td><a href="{{ member.url }}">{{ member.title }}</a></td>
-          <td>{% for doi in member.dois %}{{ doi }} {% endfor %}</td>
-        </tr>
-        {% endfor %}
+      <table class="ui striped table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>DOIs</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for member in members %}
+          <tr>
+            <td><a href="{{ member.url }}">{{ member.title }}</a></td>
+            <td>{% for doi in member.dois %}{{ doi }} {% endfor %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
       </table>
     {% endif %}
   {% endif %}

@@ -8,11 +8,7 @@ from invenio_oauthclient.views.client import _login as _oauthclient_login
 
 @login_required
 def connect_orcid():
-    """Start the ORCID linking flow for the current, already-authenticated user.
-
-    Returns a 404 if ``ORCID_OAUTH_ENABLED`` is false or the remote app otherwise
-    failed to register.
-    """
+    """Start the ORCID linking flow for the current, already-authenticated user."""
     if not current_app.config.get("ORCID_OAUTH_ENABLED"):
         abort(404)
 

@@ -13,11 +13,7 @@ from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 
 @pytest.fixture(autouse=True)
 def mock_manifest():
-    """Mock manifest to always return a value for theme.css.
-
-    Needed so any page render (including error pages) works without a real webpack
-    build.
-    """
+    """Mock manifest to always return a value for theme.css."""
     with patch("flask_webpackext.manifest.JinjaManifest.__getitem__") as mock:
         mock.return_value = '<link rel="stylesheet" href="/static/dist/theme.css">'
         yield mock

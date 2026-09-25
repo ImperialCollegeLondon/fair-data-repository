@@ -88,6 +88,11 @@ def app_config(opensearch_container, redis_container, rabbitmq_container, app_co
         f"amqp://guest:guest@{rabbitmq_host}:{rabbitmq_port}/"
     )
 
+    # DataCite must be enabled for tests that mint DOIs.
+    app_config["DATACITE_ENABLED"] = True
+    app_config["DATACITE_TEST_MODE"] = True
+    app_config["DATACITE_PREFIX"] = "10.1234"
+
     # ---- Webpack manifest configuration ----
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
     instance_path = app_config.get(

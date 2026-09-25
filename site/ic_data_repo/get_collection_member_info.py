@@ -2,6 +2,7 @@
 
 from flask_principal import Identity
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
+from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_records_resources.services.records.results import RecordItem
 
 
@@ -37,7 +38,10 @@ def get_collection_member_info(
     q = " OR ".join(f'pids.doi.identifier.keyword:"{doi}"' for doi in member_dois)
     published = records_service.search(identity, params={"q": q})
     members = {member["id"]: member for member in published}
-    drafts = records_service.search_drafts(identity, params={"q": q})
+    try:
+        drafts = records_service.search_drafts(identity, params={"q": q})
+    except PermissionDeniedError:
+        drafts = []
     members.update({member["id"]: member for member in drafts})
 
     return [

@@ -55,7 +55,7 @@ def get_collection_member_info(
     ]
 
 
-def template_collection_member_info(record_id: str) -> list[dict[str, str | list[str]]]:
+def template_collection_member_info(record_id: str) -> list[dict[str, str]]:
     """Get collection member information for the current user in templates.
 
     Args:

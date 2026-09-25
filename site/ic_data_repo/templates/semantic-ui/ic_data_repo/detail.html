@@ -17,7 +17,7 @@
           {% for member in members %}
           <tr>
             <td><a href="{{ member.url }}">{{ member.title }}</a></td>
-            <td>{% for doi in member.dois %}{{ doi }} {% endfor %}</td>
+            <td>{{ member.doi }}</td>
           </tr>
           {% endfor %}
         </tbody>

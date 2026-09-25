@@ -7,7 +7,7 @@ from invenio_records_resources.services.records.results import RecordItem
 
 def get_collection_member_info(
     identity: Identity, record_id: str
-) -> list[dict[str, str | list[str]]]:
+) -> list[dict[str, str]]:
     """Get information about the member records for a given collection record ID.
 
     Args:
@@ -34,21 +34,17 @@ def get_collection_member_info(
         return []
 
     # Search draft and published records (edit drafts take precedence).
-    q = " OR ".join([f'metadata.identifiers.identifier:"{doi}"' for doi in member_dois])
+    q = " OR ".join(f'pids.doi.identifier.keyword:"{doi}"' for doi in member_dois)
     published = records_service.search(identity, params={"q": q})
-    drafts = records_service.search_drafts(identity, params={"q": q})
     members = {member["id"]: member for member in published}
+    drafts = records_service.search_drafts(identity, params={"q": q})
     members.update({member["id"]: member for member in drafts})
 
     return [
         {
             "title": member["metadata"]["title"],
             "url": member["links"]["self_html"],
-            "dois": [
-                member["metadata"]["identifiers"][i]["identifier"]
-                for i in range(len(member["metadata"]["identifiers"]))
-                if member["metadata"]["identifiers"][i]["scheme"] == "doi"
-            ],
+            "doi": member["pids"]["doi"]["identifier"],
         }
         for member in members.values()
     ]

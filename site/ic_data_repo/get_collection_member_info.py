@@ -1,5 +1,6 @@
 """Get information about a collection's record members in Invenio RDM."""
 
+from flask import g
 from flask_principal import Identity
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
 from invenio_records_resources.services.errors import PermissionDeniedError
@@ -52,3 +53,15 @@ def get_collection_member_info(
         }
         for member in members.values()
     ]
+
+
+def template_collection_member_info(record_id: str) -> list[dict[str, str]]:
+    """Get collection member information for the current user in templates.
+
+    Args:
+        record_id: The ID of the collection record.
+
+    Returns:
+        A list of dictionaries containing information about the member records.
+    """
+    return get_collection_member_info(g.identity, record_id)

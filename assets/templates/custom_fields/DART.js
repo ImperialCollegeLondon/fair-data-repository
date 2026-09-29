@@ -5,27 +5,21 @@ import { Form } from "semantic-ui-react";
 
 export class DART extends Component {
   render() {
-    const {
-      fieldPath,
-      icon,
-      description,
-      label,
-      ID,
-    } = this.props;
+    const { fieldPath, icon, description, label, ID } = this.props;
 
     return (
-      <Form.Field style={{ margin: "1rem 0" }} required>
+      <Form.Field style={{ margin: "1rem 0" }}>
         <Input
           fieldPath={`${fieldPath}`}
           label={ID?.label || "DART ID"}
           placeholder={ID?.placeholder || "Enter DART ID"}
-          required={ID?.required || true}
+          required={false}
         />
         <div style={{ margin: "0.5rem 0", color: "#666" }}>
           <label class="helptext">
             Please enter your DART ID. For information about DART{" "}
             <a
-              href="https://www.imperial.ac.uk/admin-services/secretariat/policies-and-guidance/data-assessments/"
+              href="https://www.imperial.ac.uk/admin-services/governance/policies-and-guidance/data-assessments/"
               target="_blank"
               rel="noopener noreferrer"
             >

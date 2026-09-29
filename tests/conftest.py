@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 import redis
 from invenio_access.permissions import system_identity
-from invenio_app.factory import create_app as app_factory
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 
 
@@ -131,7 +130,77 @@ def app_config(opensearch_container, redis_container, rabbitmq_container, app_co
 @pytest.fixture(scope="module")
 def create_app():
     """Provide the Flask app object used by tests."""
-    return app_factory
+    from invenio_app.factory import (
+        app_class,
+        config_loader,
+        create_app_factory,
+        create_wsgi_factory,
+        instance_path,
+        static_folder,
+        static_url_path,
+    )
+    from invenio_base.urls import create_invenio_apps_urls_builder_factory
+    from invenio_base.wsgi import wsgi_proxyfix
+
+    # The following code is boilerplate copied from:
+    # https://github.com/inveniosoftware/invenio-app/blob/fcde4f4936d6e26338faf9cab81207b79843d2f5/invenio_app/factory.py#L87
+    # The purpose of reproducing it here is so that a new app factory is created in the
+    # pytest module scope. The root cause for needing this rather than just directly
+    # using invenio_app.factory.create_app comes from:
+    # https://github.com/inveniosoftware/invenio-base/blob/404908d766249d5114ccf465c0dfef00b484a3b2/invenio_base/app.py#L104-L106
+    # The update to app_kwargs subtly makes the returned factory no longer idempotent.
+    # The first time the factory is called the callables in app_kwargs are evaluated and
+    # the results are stored in the app_kwargs dict. This includes temporary directory
+    # paths that are linked to the pytest module scope. On subsequent calls to the
+    # factory in another test module, the callables are not evaluated again and the
+    # previous temporary directory paths are no longer valid. This causes subtle issues
+    # with the resultant app e.g. the paths passed to the Jinja2 template loader are no
+    # longer valid and Helix template overrides are not applied.
+
+    # This may need revision on Invenio upgrade.
+
+    create_api = create_app_factory(
+        "invenio",
+        config_loader=config_loader,
+        blueprint_entry_points=["invenio_base.api_blueprints"],
+        extension_entry_points=["invenio_base.api_apps"],
+        converter_entry_points=["invenio_base.api_converters"],
+        finalize_app_entry_points=["invenio_base.api_finalize_app"],
+        wsgi_factory=wsgi_proxyfix(),
+        instance_path=instance_path,
+        root_path=instance_path,
+        app_class=app_class(),
+        urls_builder_factory=create_invenio_apps_urls_builder_factory(
+            "SITE_API_URL",
+            "SITE_UI_URL",
+            {
+                "blueprints": ["invenio_base.blueprints"],
+                "converters": ["invenio_base.converters"],
+            },
+        ),
+    )
+    return create_app_factory(
+        "invenio",
+        config_loader=config_loader,
+        blueprint_entry_points=["invenio_base.blueprints"],
+        extension_entry_points=["invenio_base.apps"],
+        converter_entry_points=["invenio_base.converters"],
+        finalize_app_entry_points=["invenio_base.finalize_app"],
+        wsgi_factory=wsgi_proxyfix(create_wsgi_factory({"/api": create_api})),
+        instance_path=instance_path,
+        static_folder=static_folder,
+        root_path=instance_path,
+        static_url_path=static_url_path(),
+        app_class=app_class(),
+        urls_builder_factory=create_invenio_apps_urls_builder_factory(
+            "SITE_UI_URL",
+            "SITE_API_URL",
+            {
+                "blueprints": ["invenio_base.api_blueprints"],
+                "converters": ["invenio_base.api_converters"],
+            },
+        ),
+    )
 
 
 @pytest.fixture(scope="module")
@@ -198,34 +267,15 @@ def user_client(user, client):
 
 
 @pytest.fixture
-def db(database, db_session_options):
-    """Creates a new database session for a test, rolls back after test."""
-    from flask_sqlalchemy.session import Session as FlaskSQLAlchemySession
+def db(db):
+    """Test scoped database fixture.
 
-    connection = database.engine.connect()
-    transaction = connection.begin()  # Outer transaction
-
-    class PytestInvenioSession(FlaskSQLAlchemySession):
-        def commit(self, *args, **kwargs):
-            # prevent any commits to the outer session
-            self.flush(*args, **kwargs)
-
-    options = dict(
-        bind=connection,
-        binds={},
-        **db_session_options,
-        class_=PytestInvenioSession,
-    )
-    session = database._make_scoped_session(options=options)
-    session.begin_nested()  # Savepoint
-
-    old_session = database.session
-    database.session = session
-    try:
-        yield database
-    finally:
-        session.rollback()
-        session.remove()  # Remove session from registry (if using scoped_session)
-        transaction.rollback()  # Roll back the outer transaction
-        connection.close()  # Close the connection
-        database.session = old_session
+    Extends the implementation from pytest_invenio to ensure that a transaction is
+    started for sqlite databases. This makes sure that each test has a dedicated
+    transaction that is rolled back at the end to provide test isolation. Sqlite by
+    default defers transaction creation which can cause issues with rollbacks.
+    """
+    connection = db.session.get_bind()
+    if connection.dialect.name == "sqlite":
+        connection.exec_driver_sql("BEGIN")
+    return db

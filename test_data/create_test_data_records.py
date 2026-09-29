@@ -1,6 +1,6 @@
 """Script to upload realistic test datasets for Helix.
 
-usage: pipenv run python create_test_data_records.py COMMUNITY_ID
+usage: uv run python create_test_data_records.py COMMUNITY_ID
 
 The COMMUNITY_ID specifies a pre-existing community that the new records are created in.
 

@@ -59,7 +59,7 @@ def test_related_publications_endpoint(user_client, mock_symplectic_response):
         mock_get.return_value = mock_symplectic_response()
 
         response = user_client.get(
-            f"/symplectic/related-publications?search_query={search_query}&search_type={search_type}"  # noqa: E501
+            f"/symplectic/related-publications?search_query={search_query}&search_type={search_type}"
         )
 
     assert response.status_code == 200
@@ -96,7 +96,7 @@ def test_related_publications_invalid_search_type(user_client):
     search_query = "test"
     invalid_search_type = "invalid-type"
     response = user_client.get(
-        f"/symplectic/related-publications?search_query={search_query}&search_type={invalid_search_type}"  # noqa: E501
+        f"/symplectic/related-publications?search_query={search_query}&search_type={invalid_search_type}"
     )
 
     assert response.status_code == 400
@@ -115,7 +115,7 @@ def test_returning_error_from_symplectic(user_client, mock_symplectic_response):
         )
 
         response = user_client.get(
-            f"/symplectic/related-publications?search_query={search_query}&search_type={search_type}"  # noqa: E501
+            f"/symplectic/related-publications?search_query={search_query}&search_type={search_type}"
         )
 
     assert response.status_code == 500

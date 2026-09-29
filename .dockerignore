@@ -1,8 +1,8 @@
 # Ignore local virtualenv (if present)
 *
 !site
-!Pipfile
-!Pipfile.lock
+!pyproject.toml
+!uv.lock
 !docker/uwsgi
 !invenio.cfg
 !templates
@@ -12,4 +12,3 @@
 !assets
 !test_data
 test_data/10.14469_hpc_*
-!docker/entrypoint.sh

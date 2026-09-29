@@ -12,13 +12,17 @@ repository and can run `invenio-cli check-requirements --development` in the pro
 directory and all requirements are met. Below are some tips and specifics for this
 project:
 
-- Start by installing `invenio-cli` and run the requirements check above to see what's
-    missing.
-- Both `pipenv` and `invenio-cli` are best installed with [pipx]. These need to be
-    discoverable on your path.
-- We are currently pinning to Python 3.9 for compatibility to the deployment base image
-    so you'll need this available. `invenio-cli` will be satisfied with anything 3.9 or
-    newer but you need 3.9.
+- `uv` is used to manage Python dependencies and the virtual environment. Install it
+    following the [uv installation instructions].
+- `invenio-cli` can be installed with uv - `uv tool install "invenio-cli>=1.12"`. If you
+    see a warning, follow the suggested steps to make sure you can find the
+    `invenio-cli` command.
+- Now run the `invenio-cli check-requirements --development`.
+- The version of python found by `invenio-cli` may be a bit random so don't worry too
+    much about that aspect - `uv` should find or install the correct Python version
+    later.
+- You'll need have to [pnpm] and an appropriate version [node.js] installed. If you need
+    to install node it's recommended to use [nvm] to do so.
 - Cairo and DejaVu are listed in the InvenioRDM Docs but are not checked for by
     `invenio-cli`. The direct impacts of not having these is unclear but you'd probably
     get by.
@@ -31,16 +35,16 @@ A combination of tools are used to manage the project. Their different roles are
 summarised below but most operations use `invenio-cli` which wraps the other tools as
 required and is covered in more detail below.
 
-- `pipenv` is used to manage Python dependencies and the virtual environment used for
+- `uv` is used to manage Python dependencies and the virtual environment used for
     development.
-- `node` and `npm` are used to manage JavaScript dependencies and the build process for
+- `node` and `pnpm` are used to manage JavaScript dependencies and the build process for
     the frontend.
 - Docker and Docker Compose are used to manage the services required to run the
     application, namely the database, OpenSearch, Redis and RabbitMQ.
 - `invenio` - is the core application of InvenioRDM. Whilst a few operations require
     invoking it directly it mostly called indirectly via `invenio-cli`. It is installed
-    within the virtual environment managed by `pipenv` so must be invoked via
-    `pipenv run invenio`.
+    within the virtual environment managed by `uv` so must be invoked via
+    `uv run invenio`.
 
 ### `invenio-cli`
 
@@ -49,15 +53,14 @@ development and most operations are performed by invoking it. It's main subcomma
 sumarised below:
 
 - `invenio-cli install` - Installs the project and its dependencies. Creates the virtual
-    environment if necessary, syncs the dependencies with Pipfile.lock, builds the
-    frontend and copies/symlinks the assets to the correct location in the virtual
-    environment.
+    environment if necessary, syncs the dependencies with uv.lock, builds the frontend
+    and copies/symlinks the assets to the correct location in the virtual environment.
 - `invenio-cli services` - Manages the Docker services required to run the application.
     Can be used to setup, start, stop and teardown the services.
 - `invenio-cli run` - Starts the Flask development server and a set of Celery workers.
     Note that in development this should always be used rather than `invenio run` as
     this passes appropriate configuration.
-- `invenio-cli packages` - Wraps `pipenv` to manage Python dependencies. Can be used to
+- `invenio-cli packages` - Works with `uv` to manage Python dependencies. Can be used to
     install, uninstall and update packages.
 - `invenio-cli pyshell` - Starts a shell in the virtual environment with an initialised
     Flask app.
@@ -92,8 +95,8 @@ This will:
     data. Note that there are no Celery workers running yet to process these tasks so
     they are just waiting in a queue.
 
-Note that the above leaves the services running. You can stop them with
-`invenio-cli services stop`. Either way you can then start the Flask server with:
+Note that the above leaves the services running, you can then start the Flask server
+with:
 
 ```console
 invenio-cli run
@@ -112,18 +115,26 @@ warning. Once finished, stop the running Flask server and use
 If you want to restart the setup process from scratch you can use
 `invenio-cli services destroy` remove all the services and data.
 
+### Refreshing vocabularies
+
+Reload the changed vocabulary with:
+
+```console
+uv run invenio rdm-records add-to-fixture licenses
+```
+
 ### Logging In
 
 In order to log in to the application you will need to create a user account:
 
 ```console
-invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active
+uv run invenio users create DUMMY_EMAIL --password DUMMY_PASSWORD --active --confirm
 ```
 
 You can also optionally make this user an admin with:
 
 ```console
-invenio access allow administration-access user DUMMY_EMAIL
+uv run invenio access allow superuser-access user DUMMY_EMAIL
 ```
 
 ### Imperial Single Sign-On and Microsoft Graph API Access
@@ -145,6 +156,13 @@ links) until you have created a community to contain the records. This community
 have the id "icl" but its other properties are unimportant. The easiest way to create a
 community is via the UI at <https://127.0.0.1:5000/communities/new>.
 
+If the logged in user is not a superuser it must also be granted permission to make
+deposits via:
+
+```console
+uv run invenio access allow deposit-action user DUMMY_EMAIL
+```
+
 ## Development
 
 ### QA
@@ -154,8 +172,8 @@ you don't already have it installed pre-commit is included along with the develo
 dependencies of the project. If you have a separate installation of pre-commit you can
 set it up to check your individual commits with `pre-commit install`. If you're using
 pre-commit from the development dependencies then you can set it up
-`pipenv run pre-commit install`. Note that in this later case you may need to run this
-command again if the pipenv managed virtual environment changes.
+`uv run pre-commit install`. Note that in this latter case you may need to run this
+command again if the uv-managed virtual environment changes.
 
 It is strongly recommended to use [pre-commit] to check your individual commits meet the
 QA standards of the project. These are enforced via GitHub Actions and it's easiest to
@@ -168,6 +186,16 @@ A simple Continuous Integration setup is provided via GitHub Actions. This check
 target commit against the project QA tooling and for commits to the main branch builds
 and pushes Docker images for the web application and frontend.
 
+### Branches
+
+The default branch for the repository is `staging`. This is where feature development
+should be carried out.
+
+The `develop` and `main` branches control deployment to the dev and prod deployments
+respectively via CI workflow. The goal is to keep the dev infrastructure as similar to
+prod as possible therefore the majority of development work should be against `staging`.
+Only urgent bug fixes or security patches should be started against `develop`.
+
 ### Tests
 
 A test suite is provided in the `tests` directory. Assuming services have already been
@@ -175,7 +203,7 @@ setup, tests can be run with:
 
 ```console
 invenio-cli services start
-pipenv run pytest
+uv run pytest
 ```
 
 All development work should be supported by an appropriate set of tests. Best practices
@@ -183,6 +211,63 @@ around testing are expected to evolve as the project develops.
 
 The [pytest-invenio] plugin is provided to support test development. This extends
 [pytest-flask] to provide fixtures and support for testing Invenio.
+
+### End-to-end UI tests
+
+E2E tests live in [`tests/e2e`](../tests/e2e/) and use Selenium with shared fixtures
+from [`tests/e2e/conftest.py`](../tests/e2e/conftest.py).
+
+#### Pytest marker behaviour
+
+E2E tests are explicitly marked with
+[`pytestmark`](../tests/e2e/test_user_submission.py) (`pytest.mark.e2e`).
+
+The `e2e` marker is registered in [pyproject.toml](../pyproject.toml), and default
+pytest options exclude E2E tests (`-m 'not e2e'`). This means:
+
+- `uv run pytest` runs non-E2E tests only
+- To run E2E tests, include `-m e2e`
+
+#### Local run steps
+
+1. Start services and application:
+
+    - `invenio-cli services start`
+    - `invenio-cli run`
+
+1. Create a community using the helper script:
+
+    - `uv run python app_data/create_imperial_community.py`
+
+1. Two users will need to be created, one with permission to submit a deposit, one with
+    permission to accept/decline a submission.
+
+    - Create a user:
+
+        `uv run invenio users create test.user@test.co --password password --active --confirm`
+
+        The user will need permission to submit a deposit:
+
+        `uv run invenio access allow deposit-action user test.user@test.co`
+
+    - Create a superuser:
+
+        `uv run invenio users create test.superuser@test.co --password password --active --confirm`
+
+        The user will need permission to accept submitted deposits
+
+        `uv run invenio access allow superuser-access user test.superuser@test.co`
+
+1. Finally, run the E2E tests:
+
+    - `uv run pytest -m e2e tests/e2e`
+
+#### Screenshots and artifacts
+
+E2E tests write screenshots to the `artifacts/` directory (for example one image per
+test, plus key flow snapshots such as submission state changes).
+
+In GitHub Actions these images are uploaded as the `e2e-screenshots` workflow artifact.
 
 ### Backend Development
 
@@ -199,6 +284,24 @@ and rebuild automatically use `invenio-cli assets watch`.
 
 Note that the above is not required for any changes to the html templates which are
 processed by the backend.
+
+### AI Infrastructure
+
+This project has several components that aim to support use of AI tools for development.
+The main supported service is GitHub Copilot but you will likely be able to use the
+other providers albeit with some additional friction. The infrastructure components are:
+
+- A agent instructions file at `.github/copilot-instructions.md`.
+- Repository local skills stored in the standard copilot location - `.github/skills`.
+- A repository local knowledge base - `docs/knowledge_base` - that provides content to
+    improve AI model context and quality of outputs. See `docs/knowledge_base/index.md`
+    for its structure and design.
+
+**This infrastructure is still experimental and best practices for its use and
+maintainence are TBD.**
+
+For compatibility, there is an `AGENTS.md` file that is an light-weight pointer to
+`copilot-instructions.md`.
 
 ### Troubleshooting
 
@@ -264,9 +367,6 @@ file is also provided in `ic_data_repo.config.production`.
 
 ## Test Data
 
-!!! note
-    This functionality is not currently working.
-
 Instructions for accessing and working with realistic test data records are provided in
 the [test_data directory].
 
@@ -274,8 +374,11 @@ the [test_data directory].
 [icl_oauth_client_id]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456013&ORGN_NAME=MSP
 [icl_oauth_client_secret]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456012&ORGN_NAME=MSP
 [inveniordm system requirements docs]: https://inveniordm.docs.cern.ch/install/requirements/
-[pipx]: https://pipx.pypa.io/stable/
+[node.js]: https://nodejs.org/en
+[nvm]: https://www.nvmnode.com/
+[pnpm]: https://pnpm.io/
 [pre-commit]: https://pre-commit.com/
 [pytest-flask]: https://pytest-flask.readthedocs.io/en/latest/
 [pytest-invenio]: https://pytest-invenio.readthedocs.io/en/latest/
 [test_data directory]: https://github.com/ImperialCollegeLondon/fair-data-repository/blob/develop/test_data/README.md
+[uv installation instructions]: https://docs.astral.sh/uv/getting-started/installation/

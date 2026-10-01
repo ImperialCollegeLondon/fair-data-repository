@@ -26,12 +26,7 @@ def test_index_view(client):
 def test_index_auth(user_client, app):
     """Check the index view with a logged in user."""
     res = user_client.get("/")
-
     assert res.status_code == 200
-
-    # find any instances of the new upload url that don't include the community
-    # parameter, regex negative lookahead magic
-    assert not re.search(r"/uploads/new(?!\?community=icl)", res.data.decode("utf-8"))
 
 
 def test_deposit_view_permissions(user, user_client, db, vocabularies, app):

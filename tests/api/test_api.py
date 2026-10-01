@@ -8,8 +8,9 @@ from ic_data_repo.permissions import (
     domain_metadata_action,
     restricted_license_action,
 )
-from invenio_access.permissions import ActionUsers
+from invenio_access.permissions import ActionUsers, system_identity
 from invenio_rdm_records.records.models import RDMDraftMetadata
+from invenio_requests.proxies import current_requests_service
 from invenio_search.proxies import current_search
 
 
@@ -327,7 +328,7 @@ def test_domain_metadata_custom_field_search(
 
 
 def test_new_record_version(
-    user_client, location, vocabularies, user_depositor, api_headers, metadata
+    user_client, location, vocabularies, user_depositor, api_headers, metadata, db
 ):
     """Test creating a new version of a record."""
     record_v1_json = {
@@ -343,43 +344,21 @@ def test_new_record_version(
     assert record_v1.status_code == 201
     record_v1_id = record_v1.json["id"]
 
-    community_json = {
-        "slug": "icl",
-        "metadata": {"title": "Imperial College London"},
-        "access": {"visibility": "public"},
-    }
-    community = user_client.post(
-        "/communities",
-        json=community_json,
-        headers=api_headers,
-    )
-    assert community.status_code == 201
-    community_id = community.json["id"]
-
-    community_submit_json = {
-        "receiver": {"community": community_id},
-        "type": "community-submission",
-    }
-    community_submit = user_client.put(
-        f"/records/{record_v1_id}/draft/review",
-        json=community_submit_json,
-        headers=api_headers,
-    )
-    assert community_submit.status_code == 200
-    community_submit_id = community_submit.json["id"]
-
+    # Submit the record to the Imperial community for review.
     comunity_review = user_client.post(
         f"/records/{record_v1_id}/draft/actions/submit-review",
         headers=api_headers,
     )
     assert comunity_review.status_code == 202
+    review_id = comunity_review.json["id"]
 
-    accept_submission = user_client.post(
-        f"/requests/{community_submit_id}/actions/accept", headers=api_headers
+    # Admin accepts the community submission.
+    current_requests_service.execute_action(
+        system_identity, review_id, "accept", data={}
     )
-    assert accept_submission.status_code == 200
-    assert accept_submission.json["status"] == "accepted"
+    db.session.commit()
 
+    # Create version 2 of the record.
     record_v2 = user_client.post(
         f"/records/{record_v1_id}/versions",
         headers=api_headers,

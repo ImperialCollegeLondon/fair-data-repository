@@ -27,6 +27,7 @@ from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import (
     DescribedFilePermissionComponent,
     DomainMetadataPermissionComponent,
+    ForceCommunityComponent,
     RestrictedLicensePermissionComponent,
     SymplecticComponent,
 )
@@ -267,6 +268,7 @@ RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 RDM_RECORDS_SERVICE_COMPONENTS = [
     DomainMetadataPermissionComponent,
     RestrictedLicensePermissionComponent,
+    ForceCommunityComponent,
     *DefaultRecordsComponents,
     SymplecticComponent,
 ]
@@ -320,3 +322,8 @@ THEME_SITENAME = "Helix"
 
 WEBPACKEXT_NPM_PKG_CLS = "pynpm:PNPMPackage"
 WEBPACKEXT_PROJECT = "invenio_assets.webpack:rspack_project"
+
+# Miscellaneous
+# ===============
+
+ICL_FORCE_COMMUNITY = True

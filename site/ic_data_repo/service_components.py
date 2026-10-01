@@ -1,5 +1,6 @@
 """Module for custom service components."""
 
+from flask import current_app
 from flask_principal import Identity
 from invenio_access import Permission
 from invenio_access.permissions import system_process
@@ -31,6 +32,10 @@ class ForceCommunityComponent(ServiceComponent):
     def create(self, identity, record=None, **kwargs):
         """Open Imperial community review request on record creation."""
         if record is None:
+            return
+
+        # Check if forcing the Imperial community is enabled in the app config.
+        if not current_app.config.get("ICL_FORCE_COMMUNITY", True):
             return
 
         community = current_communities.service.read(identity, "icl")

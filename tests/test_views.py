@@ -52,15 +52,16 @@ def test_index_view(client, app):
         )
 
 
-def test_index_auth(user_client, app):
+def test_index_auth(user_client):
     """Check the index view with a logged in user."""
     res = user_client.get("/")
-
     assert res.status_code == 200
+    soup = BeautifulSoup(res.data, "html.parser")
 
-    # find any instances of the new upload url that don't include the community
-    # parameter, regex negative lookahead magic
-    assert not re.search(r"/uploads/new(?!\?community=icl)", res.data.decode("utf-8"))
+    notice = soup.select_one("#frontpage-search-bar ~ div p.ui.header")
+    assert notice is not None
+    assert "You have read-only access." in notice.get_text(" ", strip=True)
+    assert soup.select_one("#quick-create-dropdown") is None
 
 
 def test_deposit_view_permissions(user, user_client, db, vocabularies, app):

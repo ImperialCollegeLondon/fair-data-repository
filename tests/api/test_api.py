@@ -8,8 +8,9 @@ from ic_data_repo.permissions import (
     domain_metadata_action,
     restricted_license_action,
 )
-from invenio_access.permissions import ActionUsers
+from invenio_access.permissions import ActionUsers, system_identity
 from invenio_rdm_records.records.models import RDMDraftMetadata
+from invenio_requests.proxies import current_requests_service
 from invenio_search.proxies import current_search
 
 
@@ -73,14 +74,7 @@ def _csrf_headers(client, api_headers):
 
 
 def test_metadata_schema(
-    client,
-    location,
-    vocabularies,
-    icl_community,
-    user_depositor,
-    api_headers,
-    metadata,
-    access,
+    client, location, vocabularies, user_depositor, api_headers, metadata, access
 ):
     """Test that the metadata schema is enforced."""
     metadata["publisher"] = "Fake Publisher"
@@ -110,7 +104,7 @@ def test_metadata_schema(
 
 
 def test_metadata_schema_rights(
-    client, location, vocabularies, icl_community, user_depositor, api_headers, metadata
+    client, location, vocabularies, user_depositor, api_headers, metadata
 ):
     """Test that the rights schema is enforced."""
     # Test that no license is accepted.
@@ -145,7 +139,7 @@ def test_metadata_schema_rights(
 
 
 def test_metadata_schema_copyright(
-    client, location, vocabularies, icl_community, user_depositor, api_headers, metadata
+    client, location, vocabularies, user_depositor, api_headers, metadata
 ):
     """Test that the copyright metadata field is blocked."""
     metadata["copyright"] = "some data"
@@ -334,14 +328,7 @@ def test_domain_metadata_custom_field_search(
 
 
 def test_new_record_version(
-    user_client,
-    location,
-    vocabularies,
-    icl_community,
-    user_depositor,
-    api_headers,
-    metadata,
-    accept_request,
+    user_client, location, vocabularies, user_depositor, api_headers, metadata, db
 ):
     """Test creating a new version of a record."""
     record_v1_json = {
@@ -363,9 +350,13 @@ def test_new_record_version(
         headers=api_headers,
     )
     assert comunity_review.status_code == 202
+    review_id = comunity_review.json["id"]
 
     # Admin accepts the community submission.
-    accept_request(record_v1.json["parent"]["review"]["id"])
+    current_requests_service.execute_action(
+        system_identity, review_id, "accept", data={}
+    )
+    db.session.commit()
 
     # Create version 2 of the record.
     record_v2 = user_client.post(

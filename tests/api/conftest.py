@@ -7,7 +7,6 @@ from invenio_app.factory import create_api
 from invenio_communities.proxies import current_communities
 from invenio_oauth2server.models import Token
 from invenio_oauth2server.proxies import current_oauth2server
-from invenio_requests.proxies import current_requests_service
 
 
 @pytest.fixture(scope="module")
@@ -44,8 +43,8 @@ def api_file_upload_headers(api_headers):
     }
 
 
-@pytest.fixture
-def icl_community(db):
+@pytest.fixture(autouse=True)
+def icl_community(db, location):
     """Create the Imperial College London community."""
     data = {
         "slug": "icl",
@@ -63,19 +62,3 @@ def icl_community(db):
     community = current_communities.service.create(identity=system_identity, data=data)
     db.session.commit()
     return community
-
-
-@pytest.fixture
-def accept_request(db):
-    """Provides a function for accepting requests."""
-
-    def _accept(request_id):
-        current_requests_service.execute_action(
-            system_identity,
-            request_id,
-            "accept",
-            data={},
-        )
-        db.session.commit()
-
-    return _accept

@@ -3,6 +3,8 @@
 import re
 from unittest.mock import patch
 
+from bs4 import BeautifulSoup
+
 import pytest
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers
@@ -16,11 +18,36 @@ def mock_manifest():
         yield mock
 
 
-def test_index_view(client):
+def test_index_view(client, app):
     """Simple check that index view does not give an error when rendered."""
     res = client.get("/")
     assert res.status_code == 200
-    assert b"Imperial College London" in res.data
+    soup = BeautifulSoup(res.data, "html.parser")
+
+    hero = soup.select_one("main#main .frontpage-hero")
+    assert hero is not None
+    assert hero.select_one("h1").get_text(strip=True) == app.config["THEME_FRONTPAGE_TITLE"]
+
+    form = soup.select_one("#frontpage-search-bar form[role='search']")
+    assert form is not None
+    assert form.select_one("input[name='q']") is not None
+    assert form.select_one("button[type='submit']") is not None
+
+    footer = soup.select_one("footer#rdm-footer-element .footer__meta")
+    assert footer is not None
+    assert footer.select_one(
+        f"a[href='mailto:{app.config['SUPPORT_CONTACT_EMAIL']}']"
+    ) is not None
+    for setting in (
+        "ACCESSIBILITY_STATEMENT_URL",
+        "COOKIE_STATEMENT_URL",
+        "POLICY_DOCUMENTS_URL",
+        "USER_GUIDE_URL",
+    ):
+        assert any(
+            link.get("href") == app.config[setting]
+            for link in footer.select("a[href]")
+        )
 
 
 def test_index_auth(user_client, app):

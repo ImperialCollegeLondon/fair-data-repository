@@ -3,9 +3,8 @@
 import re
 from unittest.mock import patch
 
-from bs4 import BeautifulSoup
-
 import pytest
+from bs4 import BeautifulSoup
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers
 
@@ -26,7 +25,10 @@ def test_index_view(client, app):
 
     hero = soup.select_one("main#main .frontpage-hero")
     assert hero is not None
-    assert hero.select_one("h1").get_text(strip=True) == app.config["THEME_FRONTPAGE_TITLE"]
+    assert (
+        hero.select_one("h1").get_text(strip=True)
+        == app.config["THEME_FRONTPAGE_TITLE"]
+    )
 
     form = soup.select_one("#frontpage-search-bar form[role='search']")
     assert form is not None
@@ -35,9 +37,10 @@ def test_index_view(client, app):
 
     footer = soup.select_one("footer#rdm-footer-element .footer__meta")
     assert footer is not None
-    assert footer.select_one(
-        f"a[href='mailto:{app.config['SUPPORT_CONTACT_EMAIL']}']"
-    ) is not None
+    assert (
+        footer.select_one(f"a[href='mailto:{app.config['SUPPORT_CONTACT_EMAIL']}']")
+        is not None
+    )
     for setting in (
         "ACCESSIBILITY_STATEMENT_URL",
         "COOKIE_STATEMENT_URL",
@@ -45,8 +48,7 @@ def test_index_view(client, app):
         "USER_GUIDE_URL",
     ):
         assert any(
-            link.get("href") == app.config[setting]
-            for link in footer.select("a[href]")
+            link.get("href") == app.config[setting] for link in footer.select("a[href]")
         )
 
 

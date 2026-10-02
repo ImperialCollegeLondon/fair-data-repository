@@ -1,6 +1,5 @@
 """Tests for the views."""
 
-import re
 from unittest.mock import patch
 
 import pytest
@@ -65,14 +64,14 @@ def test_index_auth(user_client):
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")
 
-    search_bar = soup.find("div", id="frontpage-search-bar")
+    search_bar = soup.find(id="frontpage-search-bar")
     assert search_bar is not None
     notice_container = search_bar.find_next_sibling("div")
     assert notice_container is not None
     notice = notice_container.find("p", class_="header")
     assert notice is not None
     assert "You have read-only access." in notice.get_text(" ", strip=True)
-    assert soup.find("div", id="quick-create-dropdown") is None
+    assert soup.find(id="quick-create-dropdown") is None
 
 
 def test_deposit_view_permissions(user, user_client, db, vocabularies, app):
@@ -94,20 +93,30 @@ def test_ui_changes_for_depositors(user, user_client, db):
     # As seen by non-depositors.
     res = user_client.get("/")
     assert res.status_code == 200
+    soup = BeautifulSoup(res.data, "html.parser")
 
     # Check that non-depositor information is shown.
-    assert re.search(r"You have read-only access.", res.data.decode("utf-8"))
-
+    search_bar = soup.find(id="frontpage-search-bar")
+    assert search_bar is not None
+    notice_container = search_bar.find_next_sibling("div")
+    assert notice_container is not None
+    notice = notice_container.find("p", class_="header")
+    assert notice is not None
+    assert "You have read-only access." in notice.get_text(" ", strip=True)
     # Check that the deposit button is not visible.
-    assert not re.search(r"quick-create-dropdown", res.data.decode("utf-8"))
+    assert soup.find(id="quick-create-dropdown") is None
 
     # As seen by depositors.
     db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
     res = user_client.get("/")
     assert res.status_code == 200
+    soup = BeautifulSoup(res.data, "html.parser")
 
     # Check that non-depositor information is not shown.
-    assert not re.search(r"You have read-only access.", res.data.decode("utf-8"))
+    search_bar = soup.find(id="frontpage-search-bar")
+    assert search_bar is not None
+    assert search_bar.find_next_sibling("div") is None
+    assert "You have read-only access." not in soup.get_text(" ", strip=True)
 
     # Check that the deposit button is visible.
-    assert re.search(r"quick-create-dropdown", res.data.decode("utf-8"))
+    assert soup.find(id="quick-create-dropdown") is not None

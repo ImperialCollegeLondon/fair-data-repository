@@ -1,9 +1,9 @@
 """Tests for the views."""
 
-import re
 from unittest.mock import patch
 
 import pytest
+from bs4 import BeautifulSoup
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers
 
@@ -16,22 +16,62 @@ def mock_manifest():
         yield mock
 
 
-def test_index_view(client):
+def test_index_view(client, app):
     """Simple check that index view does not give an error when rendered."""
     res = client.get("/")
     assert res.status_code == 200
-    assert b"Imperial College London" in res.data
+    soup = BeautifulSoup(res.data, "html.parser")
+
+    main = soup.find("main", id="main")
+    assert main is not None
+    hero = main.find(class_="frontpage-hero")
+    assert hero is not None
+    title = hero.find("h1")
+    assert title is not None
+    assert title.get_text(strip=True) == app.config["THEME_FRONTPAGE_TITLE"]
+
+    search_bar = soup.find(id="frontpage-search-bar")
+    assert search_bar is not None
+    form = search_bar.find("form", attrs={"role": "search"})
+    assert form is not None
+    assert form.find("input", attrs={"name": "q"}) is not None
+    assert form.find("button", attrs={"type": "submit"}) is not None
+
+    page_footer = soup.find("footer", id="rdm-footer-element")
+    assert page_footer is not None
+    footer = page_footer.find(class_="footer__meta")
+    assert footer is not None
+    assert (
+        footer.find("a", href=f"mailto:{app.config['SUPPORT_CONTACT_EMAIL']}")
+        is not None
+    )
+
+    for setting in (
+        "ACCESSIBILITY_STATEMENT_URL",
+        "COOKIE_STATEMENT_URL",
+        "POLICY_DOCUMENTS_URL",
+        "USER_GUIDE_URL",
+    ):
+        assert any(
+            link.get("href") == app.config[setting]
+            for link in footer.find_all("a", href=True)
+        )
 
 
-def test_index_auth(user_client, app):
+def test_index_auth(user_client):
     """Check the index view with a logged in user."""
     res = user_client.get("/")
-
     assert res.status_code == 200
+    soup = BeautifulSoup(res.data, "html.parser")
 
-    # find any instances of the new upload url that don't include the community
-    # parameter, regex negative lookahead magic
-    assert not re.search(r"/uploads/new(?!\?community=icl)", res.data.decode("utf-8"))
+    search_bar = soup.find(id="frontpage-search-bar")
+    assert search_bar is not None
+    notice_container = search_bar.find_next_sibling("div")
+    assert notice_container is not None
+    notice = notice_container.find("p", class_="header")
+    assert notice is not None
+    assert "You have read-only access." in notice.get_text(" ", strip=True)
+    assert soup.find(id="quick-create-dropdown") is None
 
 
 def test_deposit_view_permissions(user, user_client, db, vocabularies, app):
@@ -53,20 +93,30 @@ def test_ui_changes_for_depositors(user, user_client, db):
     # As seen by non-depositors.
     res = user_client.get("/")
     assert res.status_code == 200
+    soup = BeautifulSoup(res.data, "html.parser")
 
     # Check that non-depositor information is shown.
-    assert re.search(r"You have read-only access.", res.data.decode("utf-8"))
-
+    search_bar = soup.find(id="frontpage-search-bar")
+    assert search_bar is not None
+    notice_container = search_bar.find_next_sibling("div")
+    assert notice_container is not None
+    notice = notice_container.find("p", class_="header")
+    assert notice is not None
+    assert "You have read-only access." in notice.get_text(" ", strip=True)
     # Check that the deposit button is not visible.
-    assert not re.search(r"quick-create-dropdown", res.data.decode("utf-8"))
+    assert soup.find(id="quick-create-dropdown") is None
 
     # As seen by depositors.
     db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
     res = user_client.get("/")
     assert res.status_code == 200
+    soup = BeautifulSoup(res.data, "html.parser")
 
     # Check that non-depositor information is not shown.
-    assert not re.search(r"You have read-only access.", res.data.decode("utf-8"))
+    search_bar = soup.find(id="frontpage-search-bar")
+    assert search_bar is not None
+    assert search_bar.find_next_sibling("div") is None
+    assert "You have read-only access." not in soup.get_text(" ", strip=True)
 
     # Check that the deposit button is visible.
-    assert re.search(r"quick-create-dropdown", res.data.decode("utf-8"))
+    assert soup.find(id="quick-create-dropdown") is not None

@@ -284,7 +284,7 @@ USERPROFILES_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 ACCOUNTS_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 OAUTHCLIENT_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 
-ENABLE_SYPLECTIC_SEARCH = False
+SYMPLECTIC_SEARCH_ENABLED = False
 APP_RDM_DEPOSIT_FORM_TEMPLATE = "ic_data_repo/deposit.html"
 POLICY_DOCUMENTS_URL = os.getenv(
     "POLICY_DOCUMENTS_URL",

@@ -1,50 +1,48 @@
 """Tests for records."""
 
 from invenio_access.permissions import system_identity
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_requests.proxies import current_requests_service
 
 
-def test_new_record_version(
-    user_client, location, vocabularies, user_depositor, api_headers, metadata, db
-):
+def test_new_record_version(vocabularies, user_depositor, metadata):
     """Test creating a new version of a record."""
-    record_v1_json = {
+    record_v1_data = {
         "metadata": metadata,
         "files": {"enabled": False},
         "custom_fields": {"imperial:dart_id": "123456789"},
     }
-    record_v1 = user_client.post(
-        "/records",
-        json=record_v1_json,
-        headers=api_headers,
+    record_v1 = current_rdm_records_service.create(
+        user_depositor.identity,
+        data=record_v1_data,
     )
-    assert record_v1.status_code == 201
-    record_v1_id = record_v1.json["id"]
+    assert record_v1["status"] == "draft_with_review"
 
     # Submit the record to the Imperial community for review.
-    comunity_review = user_client.post(
-        f"/records/{record_v1_id}/draft/actions/submit-review",
-        headers=api_headers,
+    review = current_rdm_records_service.review.submit(
+        user_depositor.identity,
+        record_v1.id,
+        data={},
+        require_review=True,
     )
-    assert comunity_review.status_code == 202
-    review_id = comunity_review.json["id"]
+    assert review["status"] == "submitted"
 
-    # Admin accepts the community submission.
+    # System accepts the community submission.
     current_requests_service.execute_action(
-        system_identity, review_id, "accept", data={}
+        system_identity,
+        review.id,
+        "accept",
+        data={},
     )
-    db.session.commit()
 
     # Create version 2 of the record.
-    record_v2 = user_client.post(
-        f"/records/{record_v1_id}/versions",
-        headers=api_headers,
+    record_v2 = current_rdm_records_service.new_version(
+        user_depositor.identity, record_v1.id
     )
-    assert record_v2.status_code == 201
-    record_v2_id = record_v2.json["id"]
+    assert record_v2["status"] == "new_version_draft"
 
-    record_v2_published = user_client.post(
-        f"/records/{record_v2_id}/draft/actions/publish",
-        headers=api_headers,
+    # Publish the new version of the record.
+    record_v2_published = current_rdm_records_service.publish(
+        user_depositor.identity, record_v2.id
     )
-    assert record_v2_published.status_code == 202
+    assert record_v2_published["status"] == "published"

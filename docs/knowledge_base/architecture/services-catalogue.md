@@ -78,6 +78,7 @@ For system-level operations (background tasks, CLI commands):
 
 ```python
 from invenio_access.permissions import system_identity
+
 result = current_rdm_records_service.publish(system_identity, id_)
 ```
 
@@ -88,8 +89,8 @@ result = current_rdm_records_service.publish(system_identity, id_)
 from invenio_rdm_records.proxies import current_rdm_records
 
 # Specific service shortcuts
-current_rdm_records.records_service        # RDMRecordService
-current_rdm_records.access_service         # RecordAccessService
+current_rdm_records.records_service  # RDMRecordService
+current_rdm_records.access_service  # RecordAccessService
 current_rdm_records.record_requests_service
 current_rdm_records.community_records_service
 current_rdm_records.iiif_service

@@ -2,9 +2,8 @@
 
 from flask_principal import Identity
 from invenio_access import Permission
-from invenio_access.permissions import system_identity, system_process
+from invenio_access.permissions import system_process
 from invenio_communities.proxies import current_communities
-from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_records_resources.services.files.components import FileServiceComponent
 from invenio_records_resources.services.records.components import ServiceComponent
@@ -28,19 +27,16 @@ class SymplecticComponent(ServiceComponent):
 class ForceCommunityComponent(ServiceComponent):
     """Service component to add records to the Imperial community."""
 
-    def create(self, identity, record=None, **kwargs):
+    def create(self, identity, data=None, **kwargs):
         """Open Imperial community review request on record creation."""
-        if identity is system_identity or record is None:
+        if system_process in identity.provides or data is None:
             return
 
         community = current_communities.service.read(identity, "icl")
-        request = {
+        data.setdefault("parent", {})["review"] = {
             "type": "community-submission",
             "receiver": {"community": community.data["id"]},
         }
-
-        # This is enough to make the UI use the review mechanism.
-        current_rdm_records_service.review.create(identity, data=request, record=record)
 
 
 class DescribedFilePermissionComponent(FileServiceComponent):

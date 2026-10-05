@@ -1,20 +1,25 @@
 """Tests for the license restriction functionality."""
 
+from contextlib import nullcontext
+
 import pytest
 from ic_data_repo.permissions import restricted_license_action
 from invenio_access.permissions import ActionUsers
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.records.models import RDMDraftMetadata
+from invenio_records_resources.services.errors import PermissionDeniedError
 
 
-@pytest.mark.parametrize("grant", [True, False])
+@pytest.mark.parametrize(
+    ("grant", "outcomes"),
+    [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
+)
 def test_restricted_license_permission_create(
-    grant,
-    user_client,
-    location,
     vocabularies,
     user_depositor,
-    api_headers,
     metadata,
+    grant,
+    outcomes,
     db,
 ):
     """Test that restricted license permissions are enforced."""
@@ -24,41 +29,33 @@ def test_restricted_license_permission_create(
             ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
         )
 
-    result = user_client.post(
-        "/records",
-        json={
-            "metadata": metadata,
-            "files": {"enabled": False},
-        },
-        headers=api_headers,
-    )
-    assert result.status_code == (201 if grant else 403)
-
+    # Raises PermissionDeniedError if not granted permission.
+    with outcomes:
+        current_rdm_records_service.create(
+            user_depositor.identity,
+            data={"metadata": metadata, "files": {"enabled": False}},
+        )
     assert RDMDraftMetadata.query.count() == (1 if grant else 0)
 
 
-@pytest.mark.parametrize("grant", [True, False])
+@pytest.mark.parametrize(
+    ("grant", "outcomes"),
+    [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
+)
 def test_restricted_license_permission_update(
-    grant,
-    user_client,
-    location,
     vocabularies,
     user_depositor,
-    api_headers,
     metadata,
+    grant,
+    outcomes,
     db,
 ):
     """Test that restricted license permissions are enforced."""
-    result = user_client.post(
-        "/records",
-        json={
-            "metadata": metadata,
-            "files": {"enabled": False},
-        },
-        headers=api_headers,
+    draft = current_rdm_records_service.create(
+        user_depositor.identity,
+        data={"metadata": metadata, "files": {"enabled": False}},
     )
-    assert result.status_code == 201
-    draft_id = result.json["id"]
+    assert draft["status"] == "draft_with_review"
 
     metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
     if grant:
@@ -66,19 +63,18 @@ def test_restricted_license_permission_update(
             ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
         )
 
-    result = user_client.put(
-        f"/records/{draft_id}/draft",
-        json={"metadata": metadata},
-        headers=api_headers,
-    )
-    assert result.status_code == (200 if grant else 403)
+    # Raises PermissionDeniedError if not granted permission.
+    with outcomes:
+        current_rdm_records_service.update_draft(
+            user_depositor.identity,
+            draft.id,
+            data={"metadata": metadata},
+        )
 
-    result = user_client.get(
-        f"/records/{draft_id}/draft",
-        headers=api_headers,
+    updated_draft = current_rdm_records_service.read_draft(
+        user_depositor.identity,
+        draft.id,
     )
-    assert result.status_code == 200
-
-    assert result.json["metadata"]["rights"][0]["id"] == (
+    assert updated_draft["metadata"]["rights"][0]["id"] == (
         "cc-by-nd-4.0" if grant else "cc-by-4.0"
     )

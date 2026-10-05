@@ -225,6 +225,28 @@ if ICL_GRAPH_API_ENABLED:
         "consumer_secret": ICL_OAUTH_CLIENT_SECRET,
     }
 
+# ORCID integration
+# ------------------
+
+ORCID_OAUTH_CLIENT_ID = os.getenv("ORCID_OAUTH_CLIENT_ID")
+ORCID_OAUTH_CLIENT_SECRET = os.getenv("ORCID_OAUTH_CLIENT_SECRET")
+
+ORCID_OAUTH_ENABLED = bool(ORCID_OAUTH_CLIENT_ID and ORCID_OAUTH_CLIENT_SECRET)
+
+if ORCID_OAUTH_ENABLED:
+    from invenio_oauthclient.contrib.orcid import ORCIDOAuthSettingsHelper
+
+    _orcid_remote_app = ORCIDOAuthSettingsHelper(
+        title="ORCID",
+        description="Link your Helix account to your ORCID iD.",
+    ).remote_app
+    _orcid_remote_app["hide"] = True
+    OAUTHCLIENT_REMOTE_APPS["orcid"] = _orcid_remote_app
+    ORCID_APP_CREDENTIALS = {
+        "consumer_key": ORCID_OAUTH_CLIENT_ID,
+        "consumer_secret": ORCID_OAUTH_CLIENT_SECRET,
+    }
+
 ACCOUNTS_LOGIN_VIEW_FUNCTION = (
     auto_redirect_login  # autoredirect to external login if enabled
 )

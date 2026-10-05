@@ -59,7 +59,7 @@ def icl_community(db, location):
             "review_policy": "members",
         },
     }
-    community = current_communities.service.create(identity=system_identity, data=data)
+    community = current_communities.service.create(system_identity, data)
     db.session.commit()
     return community
 

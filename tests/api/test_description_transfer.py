@@ -1,23 +1,22 @@
 """Tests for the Description file transfer type."""
 
+from io import BytesIO
+
+import pytest
 from ic_data_repo.permissions import described_file_action
 from invenio_access.permissions import ActionUsers
+from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_records_resources.services.errors import PermissionDeniedError
+from marshmallow.exceptions import ValidationError
 
 
-def test_description_transfer(
-    client,
-    location,
-    vocabularies,
-    user_depositor,
-    db,
-    api_headers,
-    api_file_upload_headers,
-    metadata,
-):
+def test_description_transfer(vocabularies, user_depositor, metadata, db):
     """Test creating a DescriptionTransfer file."""
-    record = client.post("/records", json={"metadata": metadata}, headers=api_headers)
-    assert record.status_code == 201
-    record_id = record.json["id"]
+    record = current_rdm_records_service.create(
+        user_depositor.identity,
+        data={"metadata": metadata},
+    )
+    assert record["status"] == "draft_with_review"
 
     # Grant permission to the user.
     db.session.add(
@@ -37,46 +36,41 @@ def test_description_transfer(
     ]
 
     # Adding the description transfer file.
-    r = client.post(
-        f"/records/{record_id}/draft/files",
-        json=file_metadata,
-        headers=api_headers,
+    r = current_rdm_records_service.draft_files.init_files(
+        user_depositor.identity,
+        record.id,
+        data=file_metadata,
     )
-    assert r.status_code == 201
-    assert len(r.json["entries"]) == 1
-    assert r.json["entries"][0]["key"] == "dataset.zip"
-    assert r.json["entries"][0]["transfer"]["type"] == "D"
-    assert len(r.json["entries"][0]["transfer"]["description"]) == 100
+    assert len(list(r.entries)) == 1
 
     # Upload the file.
-    r = client.put(
-        f"/records/{record_id}/draft/files/dataset.zip/content",
-        data=b"Test file content",
-        headers=api_file_upload_headers,
+    r = current_rdm_records_service.draft_files.set_file_content(
+        user_depositor.identity,
+        record.id,
+        file_metadata[0]["key"],
+        BytesIO(b"Test file content"),
     )
-    assert r.status_code == 200
+    assert r.errors is None
 
     # Commit the file.
-    r = client.post(
-        f"/records/{record_id}/draft/files/dataset.zip/commit",
-        headers=api_headers,
+    r = current_rdm_records_service.draft_files.commit_file(
+        user_depositor.identity,
+        record.id,
+        file_metadata[0]["key"],
     )
-    assert r.status_code == 200
+    assert r.errors is None
+    assert r["status"] == "completed"
+    assert r["key"] == file_metadata[0]["key"]
+    assert r["transfer"] == file_metadata[0]["transfer"]
 
 
-def test_description_transfer_mixed_files(
-    client,
-    location,
-    vocabularies,
-    user_depositor,
-    db,
-    api_headers,
-    metadata,
-):
+def test_description_transfer_mixed_files(vocabularies, user_depositor, metadata, db):
     """Test creating mixed DescriptionTransfer and Local files."""
-    record = client.post("/records", json={"metadata": metadata}, headers=api_headers)
-    assert record.status_code == 201
-    record_id = record.json["id"]
+    record = current_rdm_records_service.create(
+        user_depositor.identity,
+        data={"metadata": metadata},
+    )
+    assert record["status"] == "draft_with_review"
 
     # Grant permission to the user.
     db.session.add(
@@ -85,50 +79,59 @@ def test_description_transfer_mixed_files(
     db.session.flush()
 
     # Metadata for a description transfer file and a local transfer file.
-    file_metadata = []
-    file_metadata.append(
+    file_metadata = [
         {
             "key": "described_dataset.zip",
             "transfer": {
                 "type": "D",
                 "description": "a" * 100,
             },
-        }
-    )
-    file_metadata.append(
+        },
         {
             "key": "local_dataset.zip",
             "transfer": {"type": "L"},
-        }
-    )
+        },
+    ]
 
     # Adding the description transfer file.
-    r = client.post(
-        f"/records/{record_id}/draft/files",
-        json=file_metadata,
-        headers=api_headers,
+    r = current_rdm_records_service.draft_files.init_files(
+        user_depositor.identity,
+        record.id,
+        data=file_metadata,
     )
-    assert r.status_code == 201
-    assert len(r.json["entries"]) == 2
-    assert r.json["entries"][0]["key"] == "described_dataset.zip"
-    assert r.json["entries"][0]["transfer"]["type"] == "D"
-    assert r.json["entries"][1]["key"] == "local_dataset.zip"
-    assert r.json["entries"][1]["transfer"]["type"] == "L"
+    assert len(list(r.entries)) == 2
+
+    for meta in file_metadata:
+        # Upload the file.
+        r = current_rdm_records_service.draft_files.set_file_content(
+            user_depositor.identity,
+            record.id,
+            meta["key"],
+            BytesIO(b"Test file content"),
+        )
+        assert r.errors is None
+
+        # Commit the file.
+        r = current_rdm_records_service.draft_files.commit_file(
+            user_depositor.identity,
+            record.id,
+            meta["key"],
+        )
+        assert r.errors is None
+        assert r["status"] == "completed"
+        assert r["key"] == meta["key"]
+        assert r["transfer"] == meta["transfer"]
 
 
 def test_description_transfer_unauthorised_create(
-    client,
-    location,
-    vocabularies,
-    user_depositor,
-    db,
-    api_headers,
-    metadata,
+    vocabularies, user_depositor, metadata
 ):
     """Test creating a DescriptionTransfer file without permission."""
-    record = client.post("/records", json={"metadata": metadata}, headers=api_headers)
-    assert record.status_code == 201
-    record_id = record.json["id"]
+    record = current_rdm_records_service.create(
+        user_depositor.identity,
+        data={"metadata": metadata},
+    )
+    assert record["status"] == "draft_with_review"
 
     # Metadata for the description transfer file.
     file_metadata = [
@@ -142,28 +145,23 @@ def test_description_transfer_unauthorised_create(
     ]
 
     # Adding the description transfer file.
-    r = client.post(
-        f"/records/{record_id}/draft/files",
-        json=file_metadata,
-        headers=api_headers,
-    )
-    assert r.status_code == 403
+    with pytest.raises(PermissionDeniedError):
+        current_rdm_records_service.draft_files.init_files(
+            user_depositor.identity,
+            record.id,
+            data=file_metadata,
+        )
 
 
 def test_description_transfer_unauthorised_upload(
-    client,
-    location,
-    vocabularies,
-    user_depositor,
-    db,
-    api_headers,
-    api_file_upload_headers,
-    metadata,
+    vocabularies, user_depositor, metadata, db
 ):
     """Test uploading a DescriptionTransfer file without permission."""
-    record = client.post("/records", json={"metadata": metadata}, headers=api_headers)
-    assert record.status_code == 201
-    record_id = record.json["id"]
+    record = current_rdm_records_service.create(
+        user_depositor.identity,
+        data={"metadata": metadata},
+    )
+    assert record["status"] == "draft_with_review"
 
     grant = ActionUsers.allow(described_file_action, user_id=user_depositor.user.id)
 
@@ -183,40 +181,36 @@ def test_description_transfer_unauthorised_upload(
     ]
 
     # Adding the description transfer file.
-    r = client.post(
-        f"/records/{record_id}/draft/files",
-        json=file_metadata,
-        headers=api_headers,
+    r = current_rdm_records_service.draft_files.init_files(
+        user_depositor.identity,
+        record.id,
+        data=file_metadata,
     )
-    assert r.status_code == 201
+    assert len(list(r.entries)) == 1
 
     # Revoke the permission from the user.
     db.session.delete(grant)
     db.session.flush()
 
     # Try to upload the file.
-    r = client.put(
-        f"/records/{record_id}/draft/files/dataset.zip/content",
-        data=b"Test file content",
-        headers=api_file_upload_headers,
-    )
-    assert r.status_code == 403
+    with pytest.raises(PermissionDeniedError):
+        current_rdm_records_service.draft_files.set_file_content(
+            user_depositor.identity,
+            record.id,
+            file_metadata[0]["key"],
+            BytesIO(b"Test file content"),
+        )
 
 
 def test_description_transfer_unauthorised_commit(
-    client,
-    location,
-    vocabularies,
-    user_depositor,
-    db,
-    api_headers,
-    api_file_upload_headers,
-    metadata,
+    vocabularies, user_depositor, metadata, db
 ):
     """Test committing a DescriptionTransfer file without permission."""
-    record = client.post("/records", json={"metadata": metadata}, headers=api_headers)
-    assert record.status_code == 201
-    record_id = record.json["id"]
+    record = current_rdm_records_service.create(
+        user_depositor.identity,
+        data={"metadata": metadata},
+    )
+    assert record["status"] == "draft_with_review"
 
     grant = ActionUsers.allow(described_file_action, user_id=user_depositor.user.id)
 
@@ -236,46 +230,44 @@ def test_description_transfer_unauthorised_commit(
     ]
 
     # Adding the description transfer file.
-    r = client.post(
-        f"/records/{record_id}/draft/files",
-        json=file_metadata,
-        headers=api_headers,
+    r = current_rdm_records_service.draft_files.init_files(
+        user_depositor.identity,
+        record.id,
+        data=file_metadata,
     )
-    assert r.status_code == 201
+    assert len(list(r.entries)) == 1
 
     # Upload the file.
-    r = client.put(
-        f"/records/{record_id}/draft/files/dataset.zip/content",
-        data=b"Test file content",
-        headers=api_file_upload_headers,
+    r = current_rdm_records_service.draft_files.set_file_content(
+        user_depositor.identity,
+        record.id,
+        file_metadata[0]["key"],
+        BytesIO(b"Test file content"),
     )
-    assert r.status_code == 200
+    assert r.errors is None
 
     # Revoke the permission from the user.
     db.session.delete(grant)
     db.session.flush()
 
     # Try to commit the file.
-    r = client.post(
-        f"/records/{record_id}/draft/files/dataset.zip/commit",
-        headers=api_headers,
-    )
-    assert r.status_code == 403
+    with pytest.raises(PermissionDeniedError):
+        current_rdm_records_service.draft_files.commit_file(
+            user_depositor.identity,
+            record.id,
+            file_metadata[0]["key"],
+        )
 
 
 def test_description_transfer_oversized_description(
-    client,
-    location,
-    vocabularies,
-    user_depositor,
-    db,
-    api_headers,
-    metadata,
+    vocabularies, user_depositor, metadata, db
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
-    record = client.post("/records", json={"metadata": metadata}, headers=api_headers)
-    assert record.status_code == 201
-    record_id = record.json["id"]
+    record = current_rdm_records_service.create(
+        user_depositor.identity,
+        data={"metadata": metadata},
+    )
+    assert record["status"] == "draft_with_review"
 
     # Grant permission to the user.
     db.session.add(
@@ -294,10 +286,10 @@ def test_description_transfer_oversized_description(
         },
     ]
 
-    # Adding the description transfer file.
-    r = client.post(
-        f"/records/{record_id}/draft/files",
-        json=file_metadata,
-        headers=api_headers,
-    )
-    assert r.status_code == 400
+    # Adding the description transfer file with oversized description.
+    with pytest.raises(ValidationError, match="Longer than maximum length 100"):
+        current_rdm_records_service.draft_files.init_files(
+            user_depositor.identity,
+            record.id,
+            data=file_metadata,
+        )

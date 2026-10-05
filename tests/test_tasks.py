@@ -37,7 +37,6 @@ def record_metadata():
 def app_config(app_config):
     """Disable the unrelated Symplectic publish integration."""
     app_config["SYMPLECTIC_ENABLED"] = False
-    app_config["ICL_FORCE_COMMUNITY"] = False
     return app_config
 
 

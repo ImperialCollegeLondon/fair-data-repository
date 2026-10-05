@@ -344,8 +344,3 @@ THEME_SITENAME = "Helix"
 
 WEBPACKEXT_NPM_PKG_CLS = "pynpm:PNPMPackage"
 WEBPACKEXT_PROJECT = "invenio_assets.webpack:rspack_project"
-
-# Miscellaneous
-# ===============
-
-ICL_FORCE_COMMUNITY = True

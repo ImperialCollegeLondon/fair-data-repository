@@ -88,6 +88,7 @@ def _revoke_domain_metadata_permission(user_depositor, db):
 )
 def test_domain_metadata_custom_field(
     vocabularies,
+    icl_community,
     user_depositor,
     metadata,
     entries,
@@ -137,7 +138,7 @@ def test_domain_metadata_custom_field(
 
 
 def test_domain_metadata_custom_field_search(
-    vocabularies, user_depositor, metadata, db
+    vocabularies, icl_community, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: findable via the default free-text search.
 
@@ -211,7 +212,7 @@ def test_domain_metadata_custom_field_search(
 
 
 def test_domain_metadata_landing_page_shows_resolved_vocabulary(
-    user_client, vocabularies, user_depositor, api_headers, metadata, db
+    vocabularies, icl_community, user_client, user_depositor, api_headers, metadata, db
 ):
     """imperial:domain_metadata: landing-page (UI) display resolves terms."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -254,7 +255,7 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
 
 
 def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
-    user_client, vocabularies, user_depositor, api_headers, metadata
+    vocabularies, user_client, user_depositor, api_headers, metadata
 ):
     """imperial:domain_metadata: absent from the landing-page UI when unset."""
     record = current_rdm_records_service.create(
@@ -274,7 +275,7 @@ def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_create_requires_permission(
-    grant, outcome, vocabularies, user_depositor, metadata, db
+    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: create is gated by the permission."""
     if grant:
@@ -303,7 +304,7 @@ def test_domain_metadata_create_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_add_requires_permission(
-    grant, outcome, vocabularies, user_depositor, metadata, db
+    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: adding it later is gated by the permission."""
     plain = current_rdm_records_service.create(
@@ -337,7 +338,7 @@ def test_domain_metadata_add_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_reorder_requires_permission(
-    grant, outcome, vocabularies, user_depositor, metadata, db
+    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: reordering entries is gated by the permission."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -384,7 +385,7 @@ def test_domain_metadata_reorder_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_removal_requires_permission(
-    grant, outcome, vocabularies, user_depositor, metadata, db
+    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: removing all entries is gated by the permission."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -420,7 +421,7 @@ def test_domain_metadata_removal_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_unchanged_update_requires_permission(
-    grant, outcome, vocabularies, user_depositor, metadata, db
+    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: resubmitting it unchanged is still gated."""
     _grant_domain_metadata_permission(user_depositor, db)

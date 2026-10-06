@@ -9,6 +9,7 @@ import pytest
 import redis
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers, system_identity
+from invenio_communities.proxies import current_communities
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 
 
@@ -297,6 +298,27 @@ def db(db):
     if connection.dialect.name == "sqlite":
         connection.exec_driver_sql("BEGIN")
     return db
+
+
+@pytest.fixture
+def icl_community(db, location):
+    """Create the Imperial College London community."""
+    data = {
+        "slug": "icl",
+        "metadata": {
+            "title": "Imperial College London",
+            "description": "The Imperial College London community.",
+        },
+        "access": {
+            "visibility": "public",
+            "member_policy": "open",
+            "record_policy": "open",
+            "review_policy": "members",
+        },
+    }
+    community = current_communities.service.create(system_identity, data)
+    db.session.commit()
+    return community
 
 
 @pytest.fixture

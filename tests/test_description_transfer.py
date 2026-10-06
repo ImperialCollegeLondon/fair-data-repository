@@ -10,7 +10,9 @@ from invenio_records_resources.services.errors import PermissionDeniedError
 from marshmallow.exceptions import ValidationError
 
 
-def test_description_transfer(vocabularies, user_depositor, metadata, db):
+def test_description_transfer(
+    vocabularies, icl_community, user_depositor, metadata, db
+):
     """Test creating a DescriptionTransfer file."""
     record = current_rdm_records_service.create(
         user_depositor.identity,
@@ -64,7 +66,9 @@ def test_description_transfer(vocabularies, user_depositor, metadata, db):
     assert r["transfer"] == file_metadata[0]["transfer"]
 
 
-def test_description_transfer_mixed_files(vocabularies, user_depositor, metadata, db):
+def test_description_transfer_mixed_files(
+    vocabularies, icl_community, user_depositor, metadata, db
+):
     """Test creating mixed DescriptionTransfer and Local files."""
     record = current_rdm_records_service.create(
         user_depositor.identity,
@@ -124,7 +128,7 @@ def test_description_transfer_mixed_files(vocabularies, user_depositor, metadata
 
 
 def test_description_transfer_unauthorised_create(
-    vocabularies, user_depositor, metadata
+    vocabularies, icl_community, user_depositor, metadata
 ):
     """Test creating a DescriptionTransfer file without permission."""
     record = current_rdm_records_service.create(
@@ -154,7 +158,7 @@ def test_description_transfer_unauthorised_create(
 
 
 def test_description_transfer_unauthorised_upload(
-    vocabularies, user_depositor, metadata, db
+    vocabularies, icl_community, user_depositor, metadata, db
 ):
     """Test uploading a DescriptionTransfer file without permission."""
     record = current_rdm_records_service.create(
@@ -203,7 +207,7 @@ def test_description_transfer_unauthorised_upload(
 
 
 def test_description_transfer_unauthorised_commit(
-    vocabularies, user_depositor, metadata, db
+    vocabularies, icl_community, user_depositor, metadata, db
 ):
     """Test committing a DescriptionTransfer file without permission."""
     record = current_rdm_records_service.create(
@@ -260,7 +264,7 @@ def test_description_transfer_unauthorised_commit(
 
 
 def test_description_transfer_oversized_description(
-    vocabularies, user_depositor, metadata, db
+    vocabularies, icl_community, user_depositor, metadata, db
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
     record = current_rdm_records_service.create(

@@ -5,7 +5,7 @@ from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_requests.proxies import current_requests_service
 
 
-def test_new_record_version(vocabularies, user_depositor, metadata):
+def test_new_record_version(vocabularies, icl_community, user_depositor, metadata):
     """Test creating a new version of a record."""
     record_v1_data = {
         "metadata": metadata,

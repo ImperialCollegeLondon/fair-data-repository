@@ -5,8 +5,12 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from flask import url_for
+from ic_data_repo.auth.orcid import authorized_handler
 from invenio_oauthclient.models import RemoteAccount, RemoteToken
 from invenio_oauthclient.proxies import current_oauthclient
+
+LINKED_ACCOUNTS_URL = "/account/settings/linkedaccounts/"
 
 
 @pytest.fixture(scope="module")
@@ -18,6 +22,7 @@ def app_config(app_config):
         title="ORCID", description="Link your Helix account to your ORCID iD."
     ).remote_app
     orcid_app["hide"] = True
+    orcid_app["authorized_handler"] = "ic_data_repo.auth.orcid:authorized_handler"
 
     app_config["OAUTHCLIENT_REMOTE_APPS"]["orcid"] = orcid_app
     app_config["ORCID_OAUTH_ENABLED"] = True
@@ -51,6 +56,9 @@ def test_orcid_enabled_and_link_only(monkeypatch):
     assert settings["ORCID_OAUTH_ENABLED"] is True
     orcid_app = settings["OAUTHCLIENT_REMOTE_APPS"]["orcid"]
     assert orcid_app["hide"] is True
+    assert (
+        orcid_app["authorized_handler"] == "ic_data_repo.auth.orcid:authorized_handler"
+    )
 
     params = orcid_app["params"]
     assert params["authorize_url"] == "https://orcid.org/oauth/authorize"
@@ -68,11 +76,60 @@ def test_orcid_hidden_from_login_route(app, client):
     assert resp.status_code == 404
 
 
-def test_orcid_hidden_from_linked_accounts_page(user_client):
-    """ORCID is not listed as linkable on the standard linked-accounts page."""
-    resp = user_client.get("/account/settings/linkedaccounts/")
+def _start_link(user_client):
+    """Start the ORCID link flow and return the OAuth state token."""
+    resp = user_client.get("/account/settings/orcid/connect")
+    assert resp.status_code == 302
+    return parse_qs(urlparse(resp.headers["Location"]).query)["state"][0]
+
+
+def test_linked_accounts_unlinked(user_client):
+    """An unlinked user sees a Link ORCID action using the connect route."""
+    resp = user_client.get(LINKED_ACCOUNTS_URL)
     assert resp.status_code == 200
-    assert b"ORCID" not in resp.data
+    html = resp.data.decode("utf-8")
+
+    assert "Link ORCID" in html
+    assert 'href="/account/settings/orcid/connect"' in html
+    # ORCID is never offered via the generic login or disconnect routes
+    assert "/oauth/login/orcid" not in html
+    assert "/oauth/disconnect/orcid" not in html
+
+
+def test_linked_accounts_linked(db, user, user_client):
+    """A linked user sees their ORCID iD and no link or disconnect action."""
+    orcid_id = "0000-0002-1825-0097"
+    remote = current_oauthclient.oauth.remote_apps["orcid"]
+    RemoteAccount.create(
+        user_id=user.id,
+        client_id=remote.consumer_key,
+        extra_data={"orcid": orcid_id},
+    )
+    db.session.commit()
+
+    resp = user_client.get(LINKED_ACCOUNTS_URL)
+    assert resp.status_code == 200
+    html = resp.data.decode("utf-8")
+
+    assert "Link ORCID" not in html
+    assert f"https://orcid.org/{orcid_id}" in html
+    assert "/oauth/disconnect/orcid" not in html
+
+
+def test_linked_accounts_unavailable(app, user_client):
+    """No Link ORCID action is shown when ORCID is not configured."""
+    with patch.dict(app.config, {"ORCID_OAUTH_ENABLED": False}):
+        resp = user_client.get(LINKED_ACCOUNTS_URL)
+    assert resp.status_code == 200
+    assert b"Link ORCID" not in resp.data
+
+
+def test_settings_menu(user_client):
+    """Linked Accounts is in the settings menu; Applications stays hidden."""
+    resp = user_client.get(LINKED_ACCOUNTS_URL)
+    html = resp.data.decode("utf-8")
+    assert 'href="/account/settings/linkedaccounts/"' in html
+    assert 'href="/account/settings/applications/"' not in html
 
 
 def test_connect_requires_login(client):
@@ -106,12 +163,7 @@ def test_link_orcid_account(app, db, user, user_client):
         "name": "Ada Lovelace",
     }
 
-    start_resp = user_client.get("/account/settings/orcid/connect")
-    assert start_resp.status_code == 302
-
-    query = parse_qs(urlparse(start_resp.headers["Location"]).query)
-    state = query["state"][0]
-
+    state = _start_link(user_client)
     remote = current_oauthclient.oauth.remote_apps["orcid"]
 
     with patch.object(remote, "handle_oauth2_response", return_value=fake_response):
@@ -119,7 +171,8 @@ def test_link_orcid_account(app, db, user, user_client):
             f"/oauth/authorized/orcid/?state={state}&code=fake-code"
         )
 
-    assert callback_resp.status_code in (302, 200)
+    assert callback_resp.status_code == 302
+    assert urlparse(callback_resp.headers["Location"]).path == LINKED_ACCOUNTS_URL
 
     account = RemoteAccount.get(user_id=user.id, client_id=remote.consumer_key)
     assert account is not None
@@ -129,3 +182,41 @@ def test_link_orcid_account(app, db, user, user_client):
     token = RemoteToken.get(user_id=user.id, client_id=remote.consumer_key)
     assert token is not None
     assert token.access_token == fake_response["access_token"]
+
+
+def test_link_orcid_refused(user, user_client):
+    """Refusing on ORCID returns to Linked Accounts without linking."""
+    state = _start_link(user_client)
+
+    resp = user_client.get(
+        f"/oauth/authorized/orcid/?state={state}&error=access_denied"
+    )
+    assert resp.status_code == 302
+    assert urlparse(resp.headers["Location"]).path == LINKED_ACCOUNTS_URL
+
+    remote = current_oauthclient.oauth.remote_apps["orcid"]
+    assert RemoteAccount.get(user_id=user.id, client_id=remote.consumer_key) is None
+
+
+def test_link_orcid_invalid_state(user, user_client):
+    """A callback with a tampered state is rejected without linking."""
+    _start_link(user_client)
+
+    resp = user_client.get("/oauth/authorized/orcid/?state=invalid&code=fake-code")
+    assert resp.status_code == 403
+
+    remote = current_oauthclient.oauth.remote_apps["orcid"]
+    assert RemoteAccount.get(user_id=user.id, client_id=remote.consumer_key) is None
+
+
+def test_authorized_handler_requires_login(app):
+    """The ORCID callback handler never signs in or registers anonymous users."""
+    remote = current_oauthclient.oauth.remote_apps["orcid"]
+    with app.test_request_context("/oauth/authorized/orcid/"):
+        with patch("ic_data_repo.auth.orcid._authorized") as base_handler:
+            resp = authorized_handler({"access_token": "token"}, remote)
+            login_url = url_for("security.login")
+
+    base_handler.assert_not_called()
+    assert resp.status_code == 302
+    assert urlparse(resp.headers["Location"]).path == login_url

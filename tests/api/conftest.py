@@ -31,24 +31,3 @@ def icl_community(db, location):
     community = current_communities.service.create(system_identity, data)
     db.session.commit()
     return community
-
-
-@pytest.fixture
-def metadata():
-    """Simple record metadata."""
-    return {
-        "title": "Test Record",
-        "description": "This is a test record.",
-        "resource_type": {"id": "dataset"},
-        "creators": [
-            {
-                "person_or_org": {
-                    "type": "personal",
-                    "given_name": "Neo",
-                    "family_name": "Anderson",
-                },
-                "role": "the one",
-            },
-        ],
-        "rights": [{"id": "cc-by-4.0"}],
-    }

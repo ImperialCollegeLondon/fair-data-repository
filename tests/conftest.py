@@ -297,3 +297,24 @@ def db(db):
     if connection.dialect.name == "sqlite":
         connection.exec_driver_sql("BEGIN")
     return db
+
+
+@pytest.fixture
+def metadata():
+    """Simple record metadata."""
+    return {
+        "title": "Test Record",
+        "description": "This is a test record.",
+        "resource_type": {"id": "dataset"},
+        "creators": [
+            {
+                "person_or_org": {
+                    "type": "personal",
+                    "given_name": "Neo",
+                    "family_name": "Anderson",
+                },
+                "role": "the one",
+            },
+        ],
+        "rights": [{"id": "cc-by-4.0"}],
+    }

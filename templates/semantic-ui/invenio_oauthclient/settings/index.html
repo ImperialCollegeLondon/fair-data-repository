@@ -1,0 +1,108 @@
+{# -*- coding: utf-8 -*-
+
+  This file is part of Invenio.
+  Copyright (C) 2015-2018 CERN.
+
+  Invenio is free software; you can redistribute it and/or modify it
+  under the terms of the MIT License; see LICENSE file for more details.
+
+  Override of invenio_oauthclient/settings/index.html that adds a link-only
+  ORCID action. ORCID is a hidden remote app, so it is not in `services`; it can
+  be linked here but deliberately offers no disconnect action.
+#}
+
+{%- extends config.OAUTHCLIENT_SETTINGS_TEMPLATE %}
+
+{% set panel_title = _("Linked accounts") %}
+{% set panel_icon = "linkify icon" %}
+{% set num_linked_services = services|selectattr("account")|list|length %}
+{% set can_disconnect = (num_linked_services > 1 or not only_external_login) %}
+
+{% block settings_body %}
+
+  <ul class="ui segments no-border no-border-radius-top m-0 no-style-list p-0">
+    {%- for s in services %}
+      <li class="ui segment flex align-items-center justify-space-between">
+        <div>
+          {% if s.icon %}
+            <i class="{{s.icon}}" aria-hidden="true"></i>
+          {% endif %}
+
+          {{ s.title }}
+
+          {% if s.account %}
+            <i class="check icon green" aria-hidden="true"></i>
+          {% endif %}
+
+          <p><small>{{ s.description }}</small></p>
+        </div>
+
+        {% block oauth_controls scoped %}
+          {# we'll only show the "disconnect" button if it's not the only way for the user to log in #}
+          {%- if s.account and can_disconnect -%}
+            <a
+              role="button"
+              href="{{url_for('invenio_oauthclient.disconnect', remote_app=s.appid)}}"
+              class="ui compact button mini"
+            >
+              <i class="close icon" aria-hidden="true"></i>
+              {{ _('Disconnect') }}
+            </a>
+          {%- elif not s.account -%}
+            <a
+              role="button"
+              href="{{url_for('invenio_oauthclient.login', remote_app=s.appid)}}"
+              class="ui compact basic button mini"
+            >
+              <i class="linkify icon" aria-hidden="true"></i>
+              {{ _('Connect') }}
+            </a>
+          {%- endif -%}
+        {% endblock oauth_controls %}
+      </li>
+    {%- endfor %}
+
+    {%- if orcid_linking_available() %}
+      {%- set orcid_id = linked_orcid_id() %}
+      <li id="orcid-link" class="ui segment flex align-items-center justify-space-between">
+        <div>
+          <img
+            class="inline-id-icon"
+            src="{{ url_for('static', filename='images/orcid.svg') }}"
+            alt=""
+            aria-hidden="true"
+          />
+          ORCID
+
+          {% if orcid_id %}
+            <i class="check icon green" aria-hidden="true"></i>
+          {% endif %}
+
+          <p>
+            <small>
+              {%- if orcid_id %}
+                {{ _('Linked to ORCID iD') }}
+                <a href="https://orcid.org/{{ orcid_id }}" target="_blank" rel="noopener noreferrer">
+                  {{ orcid_id }}
+                </a>
+              {%- else %}
+                {{ _('Link your Helix account to your ORCID iD.') }}
+              {%- endif %}
+            </small>
+          </p>
+        </div>
+
+        {%- if not orcid_id %}
+          <a
+            role="button"
+            href="{{ url_for('ic_data_repo.connect_orcid') }}"
+            class="ui compact basic button mini"
+          >
+            <i class="linkify icon" aria-hidden="true"></i>
+            {{ _('Link ORCID') }}
+          </a>
+        {%- endif %}
+      </li>
+    {%- endif %}
+  </ul>
+{% endblock %}

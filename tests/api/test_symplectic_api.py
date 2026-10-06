@@ -55,7 +55,7 @@ def test_related_publications_endpoint(user_client, mock_symplectic_response):
     search_query = "test"
     search_type = "title-keywords"
 
-    with patch("requests.get") as mock_get:
+    with patch("requests.Session.get") as mock_get:
         mock_get.return_value = mock_symplectic_response()
 
         response = user_client.get(
@@ -109,7 +109,7 @@ def test_returning_error_from_symplectic(user_client, mock_symplectic_response):
     search_query = "test"
     search_type = "title-keywords"
 
-    with patch("requests.get") as mock_get:
+    with patch("requests.Session.get") as mock_get:
         mock_get.return_value = mock_symplectic_response(
             xml_content=b"<api:error>Invalid request</api:error>", status_code=500
         )

@@ -14,7 +14,9 @@ class SymplecticService(Service):
         super().__init__(config)
         # Initialize the Symplectic client from config
         self._client = SymplecticClient(
-            api_url=config.symplectic_api_url, api_key=config.symplectic_api_key
+            api_url=config.symplectic_api_url,
+            api_key=config.symplectic_api_key,
+            auth_header_name=config.symplectic_api_auth_header,
         )
 
     def fetch_related_publications(self, identity, search_query, search_type):

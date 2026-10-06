@@ -18,8 +18,7 @@ Does the following:
   - Creates a draft record by converting the Datacite metadata to the repository schema.
   - Uploads the files associated with the dataset to the draft record.
   - Publishes the record.
-  - Creates a community inclusion request.
-  - Accepts the record into the community.
+  - Creates a community inclusion request, which is accepted automatically.
 """
 
 import base64
@@ -37,7 +36,6 @@ from invenio_rdm_records.proxies import (
     current_rdm_records_service,
     current_record_communities_service,
 )
-from invenio_requests.proxies import current_requests_service
 
 FILE_URI_REGEX = re.compile(
     "https://data.hpc.imperial.ac.uk/resolve/\\?doi=\\d+\\&file=\\d+"
@@ -243,12 +241,10 @@ if __name__ == "__main__":
             record = current_rdm_records_service.publish(
                 id_=draft.id, identity=system_identity
             )
-            request_id = current_record_communities_service.add(
+            # With require_review=False the request is accepted automatically, as the
+            # system identity is permitted to include records directly.
+            current_record_communities_service.add(
                 system_identity,
                 record.id,
                 dict(communities=[dict(id=community_id, require_review=False)]),
-            )[0][0]["request_id"]
-
-            current_requests_service.execute_action(
-                system_identity, request_id, "accept"
             )

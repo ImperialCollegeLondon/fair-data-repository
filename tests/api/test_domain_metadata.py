@@ -1,9 +1,14 @@
 """Tests for domain metadata."""
 
+from contextlib import nullcontext
+
 import pytest
 from ic_data_repo.permissions import domain_metadata_action
-from invenio_access.permissions import ActionUsers
+from invenio_access.permissions import ActionUsers, system_identity
+from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_search.proxies import current_search
+from marshmallow.exceptions import ValidationError
 
 
 def _grant_domain_metadata_permission(user_depositor, db):
@@ -36,7 +41,7 @@ def _csrf_headers(client, api_headers):
 
 
 @pytest.mark.parametrize(
-    ("entries", "expected_stored", "expected_errors", "publish_status"),
+    ("entries", "expected_stored", "expected_errors", "publish_outcome"),
     [
         pytest.param(
             [
@@ -48,50 +53,47 @@ def _csrf_headers(client, api_headers):
                 {"id": "minimal-domain-term", "value": "A second subject"},
             ],
             [],
-            None,
+            nullcontext(),
             id="valid-pairs",
         ),
         pytest.param(
             [{"id": "does-not-exist", "value": "Some subject"}],
             [{"value": "Some subject"}],
             ["custom_fields.imperial:domain_metadata.0.id"],
-            400,
+            pytest.raises(ValidationError),
             id="unknown-id",
         ),
         pytest.param(
             [{"value": "Some subject"}],
             [{"value": "Some subject"}],
             ["custom_fields.imperial:domain_metadata.0.id"],
-            400,
+            pytest.raises(ValidationError),
             id="missing-id",
         ),
         pytest.param(
             [{"id": "example-domain-term", "value": ""}],
             [{"id": "example-domain-term"}],
             ["custom_fields.imperial:domain_metadata.0.value"],
-            400,
+            pytest.raises(ValidationError),
             id="blank-value",
         ),
         pytest.param(
             [{"id": "example-domain-term"}],
             [{"id": "example-domain-term"}],
             ["custom_fields.imperial:domain_metadata.0.value"],
-            400,
+            pytest.raises(ValidationError),
             id="missing-value",
         ),
     ],
 )
 def test_domain_metadata_custom_field(
-    user_client,
-    location,
     vocabularies,
     user_depositor,
-    api_headers,
     metadata,
     entries,
     expected_stored,
     expected_errors,
-    publish_status,
+    publish_outcome,
     db,
 ):
     """imperial:domain_metadata: persistence and validation.
@@ -104,7 +106,7 @@ def test_domain_metadata_custom_field(
 
     Drafts may be saved with validation errors (so work-in-progress can be
     saved incomplete) - the API surfaces this as a non-blocking `errors`
-    entry on an otherwise-201 response, rather than a hard rejection on
+    entry on an otherwise-fine response, rather than a hard rejection on
     create. Strict validation only happens at publish time - checked here
     for the invalid cases only (`publish_status` is None for valid-pairs,
     since actually succeeding at publish also requires a community
@@ -112,34 +114,30 @@ def test_domain_metadata_custom_field(
     already prove domain_metadata itself raises no error for valid input).
     """
     _grant_domain_metadata_permission(user_depositor, db)
-    record_json = {
+    record_data = {
         "metadata": metadata,
         "files": {"enabled": False},
         "custom_fields": {"imperial:domain_metadata": entries},
     }
-    record = user_client.post(
-        "/records",
-        json=record_json,
-        headers=api_headers,
-    )
-    assert record.status_code == 201
+    record = current_rdm_records_service.create(user_depositor.identity, record_data)
+    assert record["status"] == "draft_with_review"
 
-    error_fields = [e["field"] for e in record.json.get("errors", [])]
+    error_fields = [e["field"] for e in record.errors]
     assert sorted(error_fields) == sorted(expected_errors)
 
-    stored_entries = record.json["custom_fields"].get("imperial:domain_metadata", [])
+    stored_entries = record["custom_fields"].get("imperial:domain_metadata", [])
     assert stored_entries == expected_stored
 
-    if publish_status is not None:
-        publish = user_client.post(
-            f"/records/{record.json['id']}/draft/actions/publish",
-            headers=api_headers,
-        )
-        assert publish.status_code == publish_status
+    # Delete auto-created review for easier testing.
+    current_rdm_records_service.review.delete(system_identity, record.id)
+
+    # Publishing with invalid fields raises ValidationError.
+    with publish_outcome:
+        current_rdm_records_service.publish(system_identity, record.id)
 
 
 def test_domain_metadata_custom_field_search(
-    user_client, location, vocabularies, user_depositor, api_headers, metadata, db
+    vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: findable via the default free-text search.
 
@@ -160,59 +158,64 @@ def test_domain_metadata_custom_field_search(
             ]
         },
     }
-    other_metadata = {**metadata, "title": "Unrelated other record"}
     without_domain_metadata = {
-        "metadata": other_metadata,
+        "metadata": {**metadata, "title": "Unrelated other record"},
         "files": {"enabled": False},
     }
 
-    matching_record = user_client.post(
-        "/records", json=with_domain_metadata, headers=api_headers
+    matching_record = current_rdm_records_service.create(
+        user_depositor.identity, with_domain_metadata
     )
-    assert matching_record.status_code == 201
-    other_record = user_client.post(
-        "/records", json=without_domain_metadata, headers=api_headers
+    assert matching_record["status"] == "draft_with_review"
+
+    other_record = current_rdm_records_service.create(
+        user_depositor.identity, without_domain_metadata
     )
-    assert other_record.status_code == 201
+    assert other_record["status"] == "draft_with_review"
 
     current_search.flush_and_refresh("*")
 
     # matches on the entry's "value" (a word unique to this test) and finds
     # only this record, since nothing else in the suite uses it ...
     for q in ("quokka", "unicorn"):
-        result = user_client.get(f"/user/records?q={q}", headers=api_headers)
-        assert result.status_code == 200
-        hit_ids = [hit["id"] for hit in result.json["hits"]["hits"]]
-        assert hit_ids == [matching_record.json["id"]]
+        result = current_rdm_records_service.search_drafts(
+            user_depositor.identity, params={"q": q}
+        )
+        hit_ids = [hit["id"] for hit in result]
+        assert hit_ids == [matching_record["id"]]
 
     # ... and on the entry's "id" -- other tests' records may share this
     # vocabulary id, so only assert this record is among the matches (and
     # that the record with no domain metadata at all is not).
-    result = user_client.get("/user/records?q=example-domain-term", headers=api_headers)
-    assert result.status_code == 200
-    hit_ids = {hit["id"] for hit in result.json["hits"]["hits"]}
-    assert matching_record.json["id"] in hit_ids
-    assert other_record.json["id"] not in hit_ids
+    result = current_rdm_records_service.search_drafts(
+        user_depositor.identity, params={"q": "example-domain-term"}
+    )
+    hit_ids = [hit["id"] for hit in result]
+    assert matching_record["id"] in hit_ids
+    assert other_record["id"] not in hit_ids
 
     # a term present in neither record matches nothing.
-    result = user_client.get("/user/records?q=qwertyxyz999", headers=api_headers)
-    assert result.status_code == 200
-    assert result.json["hits"]["hits"] == []
+    result = current_rdm_records_service.search_drafts(
+        user_depositor.identity, params={"q": "qwertyxyz999"}
+    )
+    assert list(result) == []
 
     # sanity check: both records are otherwise listed (proves the filtering
     # above is the query doing its job, not the other record being hidden).
-    result = user_client.get("/user/records", headers=api_headers)
-    assert result.status_code == 200
-    all_ids = {hit["id"] for hit in result.json["hits"]["hits"]}
-    assert {matching_record.json["id"], other_record.json["id"]} <= all_ids
+    result = current_rdm_records_service.search_drafts(
+        user_depositor.identity, params={}
+    )
+    hit_ids = [hit["id"] for hit in result]
+    assert matching_record["id"] in hit_ids
+    assert other_record["id"] in hit_ids
 
 
 def test_domain_metadata_landing_page_shows_resolved_vocabulary(
-    user_client, location, vocabularies, user_depositor, api_headers, metadata, db
+    user_client, vocabularies, user_depositor, api_headers, metadata, db
 ):
     """imperial:domain_metadata: landing-page (UI) display resolves terms."""
     _grant_domain_metadata_permission(user_depositor, db)
-    record_json = {
+    record_data = {
         "metadata": metadata,
         "files": {"enabled": False},
         "custom_fields": {
@@ -222,11 +225,11 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
             ]
         },
     }
-    record = user_client.post("/records", json=record_json, headers=api_headers)
-    assert record.status_code == 201, record.json
+    record = current_rdm_records_service.create(user_depositor.identity, record_data)
+    assert record["status"] == "draft_with_review"
 
     ui_headers = {**api_headers, "Accept": "application/vnd.inveniordm.v1+json"}
-    result = user_client.get(f"/records/{record.json['id']}/draft", headers=ui_headers)
+    result = user_client.get(f"/records/{record.id}/draft", headers=ui_headers)
     assert result.status_code == 200
 
     entries = result.json["ui"]["custom_fields"]["imperial:domain_metadata"]
@@ -251,58 +254,62 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
 
 
 def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
-    user_client, location, vocabularies, user_depositor, api_headers, metadata
+    user_client, vocabularies, user_depositor, api_headers, metadata
 ):
     """imperial:domain_metadata: absent from the landing-page UI when unset."""
-    record = user_client.post(
-        "/records",
-        json={"metadata": metadata, "files": {"enabled": False}},
-        headers=api_headers,
+    record = current_rdm_records_service.create(
+        user_depositor.identity, {"metadata": metadata, "files": {"enabled": False}}
     )
-    assert record.status_code == 201, record.json
+    assert record["status"] == "draft_with_review"
 
     ui_headers = {**api_headers, "Accept": "application/vnd.inveniordm.v1+json"}
-    result = user_client.get(f"/records/{record.json['id']}/draft", headers=ui_headers)
+    result = user_client.get(f"/records/{record.id}/draft", headers=ui_headers)
     assert result.status_code == 200
 
     assert "imperial:domain_metadata" not in result.json["ui"]["custom_fields"]
 
 
-@pytest.mark.parametrize("grant", [True, False])
+@pytest.mark.parametrize(
+    ("grant", "outcome"),
+    [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
+)
 def test_domain_metadata_create_requires_permission(
-    grant, client, location, vocabularies, user_depositor, api_headers, metadata, db
+    grant, outcome, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: create is gated by the permission."""
     if grant:
         _grant_domain_metadata_permission(user_depositor, db)
 
-    record_json = {
+    record_data = {
         "metadata": metadata,
         "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
         },
     }
-    result = client.post("/records", json=record_json, headers=api_headers)
-    assert result.status_code == (201 if grant else 403)
-    if grant:
-        assert result.json["custom_fields"]["imperial:domain_metadata"] == [
+
+    # Raises PermissionDeniedError if not granted permission.
+    with outcome:
+        result = current_rdm_records_service.create(
+            user_depositor.identity, record_data
+        )
+        assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "example-domain-term", "value": "v1"}
         ]
 
 
-@pytest.mark.parametrize("grant", [True, False])
+@pytest.mark.parametrize(
+    ("grant", "outcome"),
+    [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
+)
 def test_domain_metadata_add_requires_permission(
-    grant, client, location, vocabularies, user_depositor, api_headers, metadata, db
+    grant, outcome, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: adding it later is gated by the permission."""
-    plain = client.post(
-        "/records",
-        json={"metadata": metadata, "files": {"enabled": False}},
-        headers=api_headers,
+    plain = current_rdm_records_service.create(
+        user_depositor.identity, {"metadata": metadata, "files": {"enabled": False}}
     )
-    assert plain.status_code == 201
-    rec_id = plain.json["id"]
+    assert plain["status"] == "draft_with_review"
 
     if grant:
         _grant_domain_metadata_permission(user_depositor, db)
@@ -314,21 +321,23 @@ def test_domain_metadata_add_requires_permission(
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
         },
     }
-    result = client.put(
-        f"/records/{rec_id}/draft",
-        json=update_json,
-        headers=_csrf_headers(client, api_headers),
-    )
-    assert result.status_code == (200 if grant else 403)
-    if grant:
-        assert result.json["custom_fields"]["imperial:domain_metadata"] == [
+
+    # Raises PermissionDeniedError if not granted permission.
+    with outcome:
+        result = current_rdm_records_service.update_draft(
+            user_depositor.identity, plain.id, update_json
+        )
+        assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "example-domain-term", "value": "v1"}
         ]
 
 
-@pytest.mark.parametrize("grant", [True, False])
+@pytest.mark.parametrize(
+    ("grant", "outcome"),
+    [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
+)
 def test_domain_metadata_reorder_requires_permission(
-    grant, client, location, vocabularies, user_depositor, api_headers, metadata, db
+    grant, outcome, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: reordering entries is gated by the permission."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -342,9 +351,9 @@ def test_domain_metadata_reorder_requires_permission(
             ]
         },
     }
-    created = client.post("/records", json=original_json, headers=api_headers)
-    assert created.status_code == 201
-    rec_id = created.json["id"]
+    created = current_rdm_records_service.create(user_depositor.identity, original_json)
+    assert created["status"] == "draft_with_review"
+
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)
 
@@ -358,22 +367,24 @@ def test_domain_metadata_reorder_requires_permission(
             ]
         },
     }
-    result = client.put(
-        f"/records/{rec_id}/draft",
-        json=reordered_json,
-        headers=_csrf_headers(client, api_headers),
-    )
-    assert result.status_code == (200 if grant else 403)
-    if grant:
-        assert result.json["custom_fields"]["imperial:domain_metadata"] == [
+
+    # Raises PermissionDeniedError if not granted permission.
+    with outcome:
+        result = current_rdm_records_service.update_draft(
+            user_depositor.identity, created.id, reordered_json
+        )
+        assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "minimal-domain-term", "value": "B"},
             {"id": "example-domain-term", "value": "A"},
         ]
 
 
-@pytest.mark.parametrize("grant", [True, False])
+@pytest.mark.parametrize(
+    ("grant", "outcome"),
+    [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
+)
 def test_domain_metadata_removal_requires_permission(
-    grant, client, location, vocabularies, user_depositor, api_headers, metadata, db
+    grant, outcome, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: removing all entries is gated by the permission."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -384,9 +395,9 @@ def test_domain_metadata_removal_requires_permission(
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
         },
     }
-    created = client.post("/records", json=original_json, headers=api_headers)
-    assert created.status_code == 201
-    rec_id = created.json["id"]
+    created = current_rdm_records_service.create(user_depositor.identity, original_json)
+    assert created["status"] == "draft_with_review"
+
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)
 
@@ -395,19 +406,21 @@ def test_domain_metadata_removal_requires_permission(
         "files": {"enabled": False},
         "custom_fields": {"imperial:domain_metadata": []},
     }
-    result = client.put(
-        f"/records/{rec_id}/draft",
-        json=removal_json,
-        headers=_csrf_headers(client, api_headers),
-    )
-    assert result.status_code == (200 if grant else 403)
-    if grant:
-        assert result.json["custom_fields"].get("imperial:domain_metadata", []) == []
+
+    # Raises PermissionDeniedError if not granted permission.
+    with outcome:
+        result = current_rdm_records_service.update_draft(
+            user_depositor.identity, created.id, removal_json
+        )
+        assert result["custom_fields"].get("imperial:domain_metadata", []) == []
 
 
-@pytest.mark.parametrize("grant", [True, False])
+@pytest.mark.parametrize(
+    ("grant", "outcome"),
+    [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
+)
 def test_domain_metadata_unchanged_update_requires_permission(
-    grant, client, location, vocabularies, user_depositor, api_headers, metadata, db
+    grant, outcome, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: resubmitting it unchanged is still gated."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -418,26 +431,22 @@ def test_domain_metadata_unchanged_update_requires_permission(
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
         },
     }
-    created = client.post("/records", json=original_json, headers=api_headers)
-    assert created.status_code == 201
-    rec_id = created.json["id"]
+    created = current_rdm_records_service.create(user_depositor.identity, original_json)
+    assert created["status"] == "draft_with_review"
+
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)
 
-    unchanged_metadata = {
-        **metadata,
-        "title": "Updated title, domain metadata untouched",
-    }
     unchanged_json = {
-        "metadata": unchanged_metadata,
+        "metadata": {**metadata, "title": "Updated title, domain metadata untouched"},
         "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
         },
     }
-    result = client.put(
-        f"/records/{rec_id}/draft",
-        json=unchanged_json,
-        headers=_csrf_headers(client, api_headers),
-    )
-    assert result.status_code == (200 if grant else 403)
+
+    # Raises PermissionDeniedError if not granted permission.
+    with outcome:
+        current_rdm_records_service.update_draft(
+            user_depositor.identity, created.id, unchanged_json
+        )

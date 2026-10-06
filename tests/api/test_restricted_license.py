@@ -11,7 +11,7 @@ from invenio_records_resources.services.errors import PermissionDeniedError
 
 
 @pytest.mark.parametrize(
-    ("grant", "outcomes"),
+    ("grant", "outcome"),
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_restricted_license_permission_create(
@@ -19,7 +19,7 @@ def test_restricted_license_permission_create(
     user_depositor,
     metadata,
     grant,
-    outcomes,
+    outcome,
     db,
 ):
     """Test that restricted license permissions are enforced."""
@@ -30,7 +30,7 @@ def test_restricted_license_permission_create(
         )
 
     # Raises PermissionDeniedError if not granted permission.
-    with outcomes:
+    with outcome:
         current_rdm_records_service.create(
             user_depositor.identity,
             data={"metadata": metadata, "files": {"enabled": False}},
@@ -39,7 +39,7 @@ def test_restricted_license_permission_create(
 
 
 @pytest.mark.parametrize(
-    ("grant", "outcomes"),
+    ("grant", "outcome"),
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_restricted_license_permission_update(
@@ -47,7 +47,7 @@ def test_restricted_license_permission_update(
     user_depositor,
     metadata,
     grant,
-    outcomes,
+    outcome,
     db,
 ):
     """Test that restricted license permissions are enforced."""
@@ -64,7 +64,7 @@ def test_restricted_license_permission_update(
         )
 
     # Raises PermissionDeniedError if not granted permission.
-    with outcomes:
+    with outcome:
         current_rdm_records_service.update_draft(
             user_depositor.identity,
             draft.id,

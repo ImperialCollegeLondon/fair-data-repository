@@ -9,14 +9,18 @@ ORCID_ID = "0000-0002-1825-0097"
 
 
 @pytest.fixture
-def profile_user(db, user):
+def profile_user(UserFixture, app, db):
     """A user with a full name and an Imperial affiliation in their profile."""
-    user.user.user_profile = {
-        "full_name": "Lovelace, Ada",
-        "affiliations": "Imperial College London",
-    }
-    db.session.commit()
-    return user.user
+    u = UserFixture(
+        email="ada@imperial.ac.uk",
+        password="password",
+        user_profile={
+            "full_name": "Lovelace, Ada",
+            "affiliations": "Imperial College London",
+        },
+    )
+    u.create(app, db)
+    return u.user
 
 
 def _expected_creator(**extra_person_or_org):

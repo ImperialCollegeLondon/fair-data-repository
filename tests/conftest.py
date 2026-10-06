@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 import pytest
 import redis
-from invenio_access.permissions import system_identity
+from ic_data_repo.permissions import deposit_action
+from invenio_access.permissions import ActionUsers, system_identity
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 
 
@@ -267,6 +268,14 @@ def user(UserFixture, app, db):
     )
     u.create(app, db)
     return u
+
+
+@pytest.fixture
+def user_depositor(user, db):
+    """Give the user fixture permission to create deposits."""
+    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
+    db.session.commit()
+    return user
 
 
 @pytest.fixture

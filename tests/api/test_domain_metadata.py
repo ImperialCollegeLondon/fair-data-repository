@@ -5,10 +5,24 @@ from contextlib import nullcontext
 import pytest
 from ic_data_repo.permissions import domain_metadata_action
 from invenio_access.permissions import ActionUsers, system_identity
+from invenio_oauth2server.models import Token
+from invenio_oauth2server.proxies import current_oauth2server
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_search.proxies import current_search
 from marshmallow.exceptions import ValidationError
+
+
+@pytest.fixture
+def api_headers(db, user_depositor):
+    """Headers for API requests, including API token."""
+    scopes = [s[0] for s in current_oauth2server.scope_choices()]
+    token = Token.create_personal("test_token", user_depositor.id, scopes=scopes)
+    db.session.commit()
+    return {
+        "Authorization": f"Bearer {token.access_token}",
+        "Content-Type": "application/json",
+    }
 
 
 def _grant_domain_metadata_permission(user_depositor, db):
@@ -24,20 +38,6 @@ def _revoke_domain_metadata_permission(user_depositor, db):
     ).one()
     db.session.delete(grant)
     db.session.commit()
-
-
-def _csrf_headers(client, api_headers):
-    """api_headers plus the X-CSRFToken header PUT/DELETE need.
-
-    Read from the csrftoken cookie set by an earlier write request in this
-    same client session (see invenio_rest.csrf) - required for PUT even
-    though the create endpoint doesn't seem to need it, since it's
-    exercised for the first time by these tests (see
-    test_domain_metadata_update_requires_permission's module-level
-    docstring note below).
-    """
-    cookie = client.get_cookie("csrftoken")
-    return {**api_headers, "X-CSRFToken": cookie.value if cookie else ""}
 
 
 @pytest.mark.parametrize(

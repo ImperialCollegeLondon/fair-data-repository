@@ -63,7 +63,7 @@
     {%- endfor %}
 
     {%- if orcid_linking_available() %}
-      {%- set orcid_account = linked_orcid_account() %}
+      {%- set orcid_id = linked_orcid_id() %}
       <li id="orcid-link" class="ui segment flex align-items-center justify-space-between">
         <div>
           <img
@@ -74,16 +74,16 @@
           />
           ORCID
 
-          {% if orcid_account %}
+          {% if orcid_id %}
             <i class="check icon green" aria-hidden="true"></i>
           {% endif %}
 
           <p>
             <small>
-              {%- if orcid_account and orcid_account.extra_data.orcid %}
+              {%- if orcid_id %}
                 {{ _('Linked to ORCID iD') }}
-                <a href="https://orcid.org/{{ orcid_account.extra_data.orcid }}" target="_blank" rel="noopener noreferrer">
-                  {{ orcid_account.extra_data.orcid }}
+                <a href="https://orcid.org/{{ orcid_id }}" target="_blank" rel="noopener noreferrer">
+                  {{ orcid_id }}
                 </a>
               {%- else %}
                 {{ _('Link your Helix account to your ORCID iD.') }}
@@ -92,7 +92,7 @@
           </p>
         </div>
 
-        {%- if not orcid_account %}
+        {%- if not orcid_id %}
           <a
             role="button"
             href="{{ url_for('ic_data_repo.connect_orcid') }}"

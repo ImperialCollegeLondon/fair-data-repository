@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from flask import url_for
 from ic_data_repo.auth.orcid import authorized_handler
+from invenio_accounts.models import UserIdentity
 from invenio_oauthclient.models import RemoteAccount, RemoteToken
 from invenio_oauthclient.proxies import current_oauthclient
 
@@ -99,12 +100,7 @@ def test_linked_accounts_unlinked(user_client):
 def test_linked_accounts_linked(db, user, user_client):
     """A linked user sees their ORCID iD and no link or disconnect action."""
     orcid_id = "0000-0002-1825-0097"
-    remote = current_oauthclient.oauth.remote_apps["orcid"]
-    RemoteAccount.create(
-        user_id=user.id,
-        client_id=remote.consumer_key,
-        extra_data={"orcid": orcid_id},
-    )
+    UserIdentity.create(user.user, "orcid", orcid_id)
     db.session.commit()
 
     resp = user_client.get(LINKED_ACCOUNTS_URL)
@@ -183,6 +179,9 @@ def test_link_orcid_account(app, db, user, user_client):
     assert token is not None
     assert token.access_token == fake_response["access_token"]
 
+    identity = UserIdentity.query.filter_by(id_user=user.id, method="orcid").one()
+    assert identity.id == orcid_id
+
 
 def test_link_orcid_refused(user, user_client):
     """Refusing on ORCID returns to Linked Accounts without linking."""
@@ -194,8 +193,7 @@ def test_link_orcid_refused(user, user_client):
     assert resp.status_code == 302
     assert urlparse(resp.headers["Location"]).path == LINKED_ACCOUNTS_URL
 
-    remote = current_oauthclient.oauth.remote_apps["orcid"]
-    assert RemoteAccount.get(user_id=user.id, client_id=remote.consumer_key) is None
+    assert UserIdentity.query.filter_by(id_user=user.id, method="orcid").count() == 0
 
 
 def test_link_orcid_invalid_state(user, user_client):
@@ -205,8 +203,7 @@ def test_link_orcid_invalid_state(user, user_client):
     resp = user_client.get("/oauth/authorized/orcid/?state=invalid&code=fake-code")
     assert resp.status_code == 403
 
-    remote = current_oauthclient.oauth.remote_apps["orcid"]
-    assert RemoteAccount.get(user_id=user.id, client_id=remote.consumer_key) is None
+    assert UserIdentity.query.filter_by(id_user=user.id, method="orcid").count() == 0
 
 
 def test_authorized_handler_requires_login(app):

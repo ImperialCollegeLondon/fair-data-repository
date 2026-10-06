@@ -2,7 +2,7 @@
 
 from flask import Blueprint, abort, current_app
 from flask_login import current_user, login_required
-from invenio_oauthclient.models import RemoteAccount
+from invenio_accounts.models import UserIdentity
 from invenio_oauthclient.proxies import current_oauthclient
 from invenio_oauthclient.views.client import _login as _oauthclient_login
 
@@ -23,13 +23,15 @@ def connect_orcid():
     return _oauthclient_login("orcid", "invenio_oauthclient.authorized")
 
 
-def linked_orcid_account():
-    """Return the current user's linked ORCID account, if any."""
-    if not current_user.is_authenticated or not orcid_linking_available():
+def linked_orcid_id():
+    """Return the ORCID iD the current user has linked, if any."""
+    if not current_user.is_authenticated:
         return None
 
-    remote = current_oauthclient.oauth.remote_apps["orcid"]
-    return RemoteAccount.get(user_id=current_user.id, client_id=remote.consumer_key)
+    identity = UserIdentity.query.filter_by(
+        id_user=current_user.id, method="orcid"
+    ).first()
+    return identity.id if identity else None
 
 
 #
@@ -52,6 +54,6 @@ def create_blueprint(app):
 
     # Template helpers for the Linked Accounts page
     blueprint.add_app_template_global(orcid_linking_available)
-    blueprint.add_app_template_global(linked_orcid_account)
+    blueprint.add_app_template_global(linked_orcid_id)
 
     return blueprint

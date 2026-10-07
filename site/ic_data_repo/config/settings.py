@@ -27,7 +27,6 @@ from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import (
     DescribedFilePermissionComponent,
     DomainMetadataPermissionComponent,
-    ForceCommunityComponent,
     RestrictedLicensePermissionComponent,
     SymplecticComponent,
 )
@@ -36,7 +35,11 @@ from .custom_fields import (  # noqa: F401
     RDM_CUSTOM_FIELDS_UI,
     RDM_NAMESPACES,
 )
-from .utils import get_user_form_default
+from .utils import (
+    get_user_form_default,
+    imperial_community_review,
+    imperial_community_review_receiver,
+)
 
 # Flask
 # =====
@@ -138,7 +141,9 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
         }
     ],
     "publisher": "Imperial College London",
-    "creators": lambda: get_user_form_default(),
+    "creators": get_user_form_default,
+    ".parent.review": imperial_community_review,
+    ".expanded.parent.review.receiver": imperial_community_review_receiver,
 }
 
 RECORDS_RESOURCES_TRANSFERS = [
@@ -290,7 +295,6 @@ RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 RDM_RECORDS_SERVICE_COMPONENTS = [
     DomainMetadataPermissionComponent,
     RestrictedLicensePermissionComponent,
-    ForceCommunityComponent,
     *DefaultRecordsComponents,
     SymplecticComponent,
 ]

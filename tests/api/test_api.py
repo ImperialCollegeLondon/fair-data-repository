@@ -9,8 +9,8 @@ from ic_data_repo.permissions import (
     restricted_license_action,
 )
 from invenio_access.permissions import ActionUsers, system_identity
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.records.models import RDMDraftMetadata
-from invenio_requests.proxies import current_requests_service
 from invenio_search.proxies import current_search
 
 
@@ -344,19 +344,11 @@ def test_new_record_version(
     assert record_v1.status_code == 201
     record_v1_id = record_v1.json["id"]
 
-    # Submit the record to the Imperial community for review.
-    comunity_review = user_client.post(
-        f"/records/{record_v1_id}/draft/actions/submit-review",
-        headers=api_headers,
-    )
-    assert comunity_review.status_code == 202
-    review_id = comunity_review.json["id"]
-
     # Admin accepts the community submission.
-    current_requests_service.execute_action(
-        system_identity, review_id, "accept", data={}
+    record_v1_published = current_rdm_records_service.publish(
+        system_identity, record_v1_id
     )
-    db.session.commit()
+    assert record_v1_published["status"] == "published"
 
     # Create version 2 of the record.
     record_v2 = user_client.post(
@@ -366,11 +358,10 @@ def test_new_record_version(
     assert record_v2.status_code == 201
     record_v2_id = record_v2.json["id"]
 
-    record_v2_published = user_client.post(
-        f"/records/{record_v2_id}/draft/actions/publish",
-        headers=api_headers,
+    record_v2_published = current_rdm_records_service.publish(
+        system_identity, record_v2_id
     )
-    assert record_v2_published.status_code == 202
+    assert record_v2_published["status"] == "published"
 
 
 def test_description_transfer(

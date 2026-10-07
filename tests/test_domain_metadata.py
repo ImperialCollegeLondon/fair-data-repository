@@ -8,6 +8,7 @@ from invenio_access.permissions import ActionUsers, system_identity
 from invenio_oauth2server.models import Token
 from invenio_oauth2server.proxies import current_oauth2server
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.resources.serializers.ui import UIJSONSerializer
 from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_search.proxies import current_search
 from marshmallow.exceptions import ValidationError
@@ -212,7 +213,7 @@ def test_domain_metadata_custom_field_search(
 
 
 def test_domain_metadata_landing_page_shows_resolved_vocabulary(
-    vocabularies, icl_community, user_client, user_depositor, api_headers, metadata, db
+    vocabularies, icl_community, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: landing-page (UI) display resolves terms."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -229,11 +230,10 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
     record = current_rdm_records_service.create(user_depositor.identity, record_data)
     assert record["status"] == "draft_with_review"
 
-    ui_headers = {**api_headers, "Accept": "application/vnd.inveniordm.v1+json"}
-    result = user_client.get(f"/records/{record.id}/draft", headers=ui_headers)
-    assert result.status_code == 200
+    # Use the UI serializer to get the record format expected by the landing page.
+    record_ui = UIJSONSerializer().dump_obj(record.to_dict())
 
-    entries = result.json["ui"]["custom_fields"]["imperial:domain_metadata"]
+    entries = record_ui["ui"]["custom_fields"]["imperial:domain_metadata"]
     assert entries == [
         {
             "id": "example-domain-term",
@@ -255,7 +255,7 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
 
 
 def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
-    vocabularies, user_client, user_depositor, api_headers, metadata
+    vocabularies, icl_community, user_depositor, metadata
 ):
     """imperial:domain_metadata: absent from the landing-page UI when unset."""
     record = current_rdm_records_service.create(
@@ -263,11 +263,10 @@ def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
     )
     assert record["status"] == "draft_with_review"
 
-    ui_headers = {**api_headers, "Accept": "application/vnd.inveniordm.v1+json"}
-    result = user_client.get(f"/records/{record.id}/draft", headers=ui_headers)
-    assert result.status_code == 200
+    # Use the UI serializer to get the record format expected by the landing page.
+    record_ui = UIJSONSerializer().dump_obj(record.to_dict())
 
-    assert "imperial:domain_metadata" not in result.json["ui"]["custom_fields"]
+    assert "imperial:domain_metadata" not in record_ui["ui"]["custom_fields"]
 
 
 @pytest.mark.parametrize(

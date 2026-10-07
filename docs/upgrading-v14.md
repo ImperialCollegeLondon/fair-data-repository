@@ -64,12 +64,26 @@ If you're happy to start again from an empty instance, skip this step.
 
 ### 3. Rebuild the virtual environment
 
+!!! danger "Back up your uploaded files first"
+
+    Locally, uploaded files are stored **inside the virtual environment** at
+    `.venv/var/instance/data`. Deleting `.venv` deletes them. Changing the Python version
+    has the same effect even if you don't delete it yourself: `uv sync` and
+    `invenio-cli install` throw away and recreate `.venv`. Without the files, record pages
+    fail with `FileNotFoundError` in the file previews.
+
+    If you're keeping your local data, move the files out of the way first and put them back
+    afterwards.
+
 Switch to the v14 code and recreate the virtual environment from scratch:
 
 ```console
+mv .venv/var/instance/data ../helix-files-backup  # skip if starting from scratch
 git switch <v14 branch>
 rm -rf .venv
 invenio-cli install
+mkdir -p .venv/var/instance
+mv ../helix-files-backup .venv/var/instance/data
 ```
 
 uv will download Python 3.14 if it isn't already available. Afterwards:

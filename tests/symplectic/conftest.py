@@ -1,4 +1,4 @@
-"""API test fixtures."""
+"""Symplectic test fixtures."""
 
 import pytest
 from invenio_app.factory import create_api

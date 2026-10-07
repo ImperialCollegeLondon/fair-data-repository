@@ -6,15 +6,16 @@ authors = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
-requires-python = "~=3.12.0"
+requires-python = "~=3.14.0"
 dependencies = [
-    "invenio-app-rdm[opensearch2]~=13.0.0",
+    "invenio-app-rdm[opensearch2]~=14.0.0",
     "ic-data-repo",
     "lxml",
     "msgraph-sdk",
     "pyuwsgi>=2.0",
     "sqlalchemy-continuum!=1.4.0",
     "types-lxml",
+    "types-PyYAML",
     "types-requests",
     "uwsgi-tools>=1.1.1",
     "uwsgitop>=0.11",
@@ -49,7 +50,7 @@ ic-data-repo = {workspace = true}
 members = ["site"]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [

@@ -4,6 +4,10 @@ Testing and development so far has only been done on native Linux. MacOS is supp
 InvenioRDM but has not been tested with this project. Development in WSL may be possible
 but working natively in Windows is not supported.
 
+!!! note
+
+    Upgrading an existing v13 environment? See [Upgrading to v14](upgrading-v14.md).
+
 ## Requirements
 
 The requirements for working with InvenioRDM are laid out in detail in the

@@ -5,7 +5,7 @@ import { Form } from "semantic-ui-react";
 
 export class DART extends Component {
   render() {
-    const { fieldPath, icon, description, label, ID } = this.props;
+    const { fieldPath, labelIcon, helpText, label, ID } = this.props;
 
     return (
       <Form.Field style={{ margin: "1rem 0" }}>

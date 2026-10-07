@@ -6,8 +6,8 @@
 
 ## Tech Stack
 
-- **Python 3.12** with uv for dependency management
-- **InvenioRDM ~13.0** (Flask-based, with Celery, PostgreSQL, Redis, RabbitMQ, OpenSearch)
+- **Python 3.14** with uv for dependency management
+- **InvenioRDM ~14.0** (Flask-based, with Celery, PostgreSQL, Redis, RabbitMQ, OpenSearch)
 - **Docker / Docker Compose** for local services
 - **Helm** for Kubernetes (AKS) deployment
 - **MkDocs + Material** for documentation (in `docs/`)
@@ -64,7 +64,7 @@ uv run invenio shell -c "print(app.config)"
 - **Formatter**: `black` (line length 88), **import sorter**: `isort`
 - **Linter**: `flake8` with `flake8-docstrings` (Google docstring convention)
 - **Type checking**: `mypy` (strict generics; run via pytest-mypy)
-- **Python style**: `pyupgrade --py312-plus`
+- **Python style**: `pyupgrade --py314-plus`
 - Pre-commit hooks enforce all of the above; run `pre-commit install` after checkout
 - Tests live in `tests/`; use `testcontainers` for integration tests requiring services
 

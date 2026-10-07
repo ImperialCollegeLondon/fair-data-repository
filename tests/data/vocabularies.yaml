@@ -39,3 +39,6 @@ datetypes:
 domainmetadatascheme:
   pid-type: dmsc
   data-file: vocabularies/domain_metadata_schemes.yaml
+removalreasons:
+  pid-type: rem
+  data-file: vocabularies/removal_reasons.yaml

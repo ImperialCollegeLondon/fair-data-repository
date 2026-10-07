@@ -36,3 +36,4 @@ plugins:
 nav:
   - Home: index.md
   - Customisation: customisation.md
+  - Upgrading to v14: upgrading-v14.md

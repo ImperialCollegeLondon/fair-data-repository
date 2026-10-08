@@ -1,11 +1,12 @@
 """Tests for the views."""
 
 import json
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
 from bs4 import BeautifulSoup
-from flask import render_template_string
+from flask import render_template, render_template_string
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers
 
@@ -118,6 +119,7 @@ def test_ui_changes_for_depositors(user, user_client, db):
     notice = notice_container.find("p", class_="header")
     assert notice is not None
     assert "You have read-only access." in notice.get_text(" ", strip=True)
+    assert soup.find("a", href="/uploads/new?community=icl") is None
     # Check that the deposit button is not visible.
     assert soup.find(id="quick-create-dropdown") is None
 
@@ -141,6 +143,21 @@ def test_ui_changes_for_depositors(user, user_client, db):
 
     # Check that the deposit button is visible.
     assert soup.find(id="quick-create-dropdown") is not None
+
+    # Check depositor menus
+    desktop_menu = soup.find(id="quick-create-menu")
+    assert desktop_menu is not None
+    upload_href = "/uploads/new?community=icl"
+    assert desktop_menu.find("a", href=upload_href) is not None
+
+    actions_heading = next(
+        (h for h in soup.find_all("h2") if h.get_text(strip=True) == "Actions"),
+        None,
+    )
+    assert actions_heading is not None
+    mobile_menu = actions_heading.find_parent("div", class_="sub-menu")
+    assert mobile_menu is not None
+    assert mobile_menu.find("a", href=upload_href) is not None
 
 
 @pytest.mark.parametrize(
@@ -211,3 +228,24 @@ def test_file_description_rendering(app, entries, has_description):
         if has_description:
             assert cells[1].get_text(strip=True) == file["transfer"]["description"]
             assert cells[1].find("strong") is None
+
+
+@pytest.mark.parametrize("description", [None, "<p>Dataset summary</p>"])
+def test_record_description_rendering(app, description):
+    """Check record description rendering."""
+    record = SimpleNamespace(ui=SimpleNamespace(additional_descriptions=[]))
+    with app.test_request_context():
+        markup = render_template(
+            "invenio_app_rdm/records/details/description.html",
+            metadata={"description": description},
+            record=record,
+        )
+
+    section = BeautifulSoup(markup, "html.parser").find("section", id="description")
+    assert (section is not None) == bool(description)
+    if section is not None:
+        content = section.find("div", style=True)
+        assert content is not None
+        assert "white-space: pre-wrap" in content["style"]
+        assert "word-wrap: break-word" in content["style"]
+        assert content.find("p").get_text(strip=True) == "Dataset summary"

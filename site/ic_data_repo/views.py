@@ -4,6 +4,7 @@ from flask import Blueprint, abort, current_app
 from flask_login import login_required
 from invenio_oauthclient.errors import OAuthRemoteNotFound
 from invenio_oauthclient.views.client import _login as _oauthclient_login
+from jinja2 import ChoiceLoader
 
 
 @login_required
@@ -27,6 +28,13 @@ def create_blueprint(app):
         "ic_data_repo",
         __name__,
         template_folder="./templates",
+    )
+
+    app.jinja_loader = ChoiceLoader(
+        [
+            blueprint.jinja_loader,
+            app.jinja_loader,
+        ]
     )
 
     # Add URL rules

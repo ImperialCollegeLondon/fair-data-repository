@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from bs4 import BeautifulSoup
+from flask import render_template_string
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers
 
@@ -129,8 +130,84 @@ def test_ui_changes_for_depositors(user, user_client, db):
     # Check that non-depositor information is not shown.
     search_bar = soup.find(id="frontpage-search-bar")
     assert search_bar is not None
-    assert search_bar.find_next_sibling("div") is None
+    notice_container = search_bar.find_next_sibling("div")
+    notice = (
+        notice_container.find("p", class_="header")
+        if notice_container is not None
+        else None
+    )
+    assert notice is None
     assert "You have read-only access." not in soup.get_text(" ", strip=True)
 
     # Check that the deposit button is visible.
     assert soup.find(id="quick-create-dropdown") is not None
+
+
+@pytest.mark.parametrize(
+    ("entries", "has_description"),
+    [
+        ([], False),
+        ([("plain.csv", "L", "", False)], False),
+        ([("described.csv", "D", "Column definitions", False)], True),
+        (
+            [
+                ("plain.csv", "L", "", False),
+                ("described.csv", "D", "Column definitions", False),
+            ],
+            True,
+        ),
+        ([("described.csv", "D", "<strong>Text</strong>", False)], True),
+        (
+            [
+                ("plain.csv", "L", "", False),
+                ("hidden.csv", "D", "Hidden description", True),
+            ],
+            True,
+        ),
+    ],
+)
+def test_file_description_rendering(app, entries, has_description):
+    """Check description columns, row alignment and escaping."""
+    files = [
+        {
+            "key": name,
+            "size": 1024,
+            "checksum": "sha256:test",
+            "access": {"hidden": hidden},
+            "transfer": {"type": transfer, "description": description},
+        }
+        for name, transfer, description, hidden in entries
+    ]
+    with app.test_request_context():
+        markup = render_template_string(
+            """
+            {% from "invenio_app_rdm/records/macros/files.html"
+               import file_list with context %}
+            {{ file_list(files, "record-1", false, false,
+                         record=record, with_preview=false) }}
+            """,
+            files=files,
+            record={"ui": {"access_status": {"id": "open"}}},
+            transfer_types={"REMOTE": "R"},
+            config={
+                "RDM_ARCHIVE_DOWNLOAD_ENABLED": False,
+                "APP_RDM_DISPLAY_DECIMAL_FILE_SIZES": False,
+            },
+        )
+    table = BeautifulSoup(markup, "html.parser").find("table", class_="files")
+    assert table is not None
+    headers = table.find("thead").find_all("th")
+    expected = (
+        ["Name", "Description", "Size", ""] if has_description else ["Name", "Size", ""]
+    )
+    assert [header.get_text(strip=True) for header in headers] == expected
+    rows = table.find("tbody").find_all("tr")
+    visible = [file for file in files if not file["access"]["hidden"]]
+    assert len(rows) == len(visible)
+    for row, file in zip(rows, visible, strict=True):
+        cells = row.find_all("td", recursive=False)
+        assert len(cells) == len(headers)
+        assert cells[0].find("a").get_text(strip=True) == file["key"]
+        if has_description:
+            assert cells[1].get_text(strip=True) == file["transfer"]["description"]
+            assert cells[1].find("strong") is None

@@ -146,6 +146,12 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     ".expanded.parent.review.receiver": imperial_community_review_receiver,
 }
 
+# NOTE: `imperial_community_review` and `imperial_community_review_receiver` above are
+# hacks to inject a default community review when creating new records via the UI. By
+# prepending a period `.` to fields, we can 'break out' of `metadata`, and set defaults
+# for `parent` and `expanded`. This is almost certainly a hack. Remove them if/when a
+# better mechanism is implemented upstream.
+
 RECORDS_RESOURCES_TRANSFERS = [
     *DEFAULT_TRANSFERS,
     "ic_data_repo.description_transfer:DescriptionTransfer",

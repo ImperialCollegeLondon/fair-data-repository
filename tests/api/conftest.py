@@ -2,9 +2,8 @@
 
 import pytest
 from ic_data_repo.permissions import deposit_action
-from invenio_access.permissions import ActionUsers, system_identity
+from invenio_access.permissions import ActionUsers
 from invenio_app.factory import create_api
-from invenio_communities.proxies import current_communities
 from invenio_oauth2server.models import Token
 from invenio_oauth2server.proxies import current_oauth2server
 
@@ -41,24 +40,3 @@ def api_file_upload_headers(api_headers):
         **api_headers,
         "Content-Type": "application/octet-stream",
     }
-
-
-@pytest.fixture(autouse=True)
-def icl_community(db, location):
-    """Create the Imperial College London community."""
-    data = {
-        "slug": "icl",
-        "metadata": {
-            "title": "Imperial College London",
-            "description": "The Imperial College London community.",
-        },
-        "access": {
-            "visibility": "public",
-            "member_policy": "open",
-            "record_policy": "open",
-            "review_policy": "members",
-        },
-    }
-    community = current_communities.service.create(system_identity, data)
-    db.session.commit()
-    return community

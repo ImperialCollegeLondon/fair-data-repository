@@ -123,6 +123,11 @@ def app_config(opensearch_container, redis_container, rabbitmq_container, app_co
             "SYMPLECTIC_API_URL": "",
             "SYMPLECTIC_API_SUBSCRIPTION_KEY": "",
             "SYMLECTIC_ENABLED": True,
+            "DATACITE_ENABLED": True,
+            "DATACITE_PREFIX": "testpref",
+            "DATACITE_USERNAME": "",
+            "DATACITE_PASSWORD": "",
+            "DATACITE_TEST_MODE": True,
         }
     )
 

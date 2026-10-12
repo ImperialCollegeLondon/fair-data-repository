@@ -116,6 +116,9 @@ def app_config(opensearch_container, redis_container, rabbitmq_container, app_co
     # Let us create records without files for testing purposes.
     app_config["RDM_ALLOW_METADATA_ONLY_RECORDS"] = True
 
+    # additional overrides below are to prevent configuration for external services
+    # from being used in testing. Note that DATACITE_ENABLED=True is a requirement
+    # even when working with unmanaged DOIs.
     return (
         settings.__dict__
         | app_config

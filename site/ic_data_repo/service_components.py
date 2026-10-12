@@ -19,7 +19,10 @@ class SymplecticComponent(ServiceComponent):
 
     def publish(self, identity, draft=None, record=None):
         """Enqueue celery task to publish a record to Symplectic."""
-        if record:
+        if (
+            record
+            and record.get("pids", {}).get("doi", {}).get("provider") == "datacite"
+        ):
             self.uow.register(TaskOp(export_record_to_symplectic, record))
 
 

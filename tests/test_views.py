@@ -3,7 +3,8 @@
 import re
 
 from ic_data_repo.permissions import deposit_action
-from invenio_access.permissions import ActionUsers
+from invenio_access.permissions import ActionUsers, system_identity
+from invenio_communities.proxies import current_communities
 
 
 def test_index_view(client):
@@ -19,8 +20,25 @@ def test_index_auth(user_client, app):
     assert res.status_code == 200
 
 
-def test_deposit_view_permissions(user, user_client, db, vocabularies, app):
+def test_deposit_view_permissions(user, user_client, db, location, vocabularies, app):
     """Check that only users with deposit permissions can access the deposit page."""
+    # We need the icl community to exist first to test deposit permissions against.
+    data = {
+        "slug": "icl",
+        "metadata": {
+            "title": "Imperial College London",
+            "description": "The Imperial College London community.",
+        },
+        "access": {
+            "visibility": "public",
+            "member_policy": "open",
+            "record_policy": "open",
+            "review_policy": "members",
+        },
+    }
+    current_communities.service.create(system_identity, data)
+    db.session.commit()
+
     # permission denied initially
     response = user_client.get("/uploads/new")
     assert response.status_code == 403

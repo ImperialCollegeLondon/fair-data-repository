@@ -35,7 +35,11 @@ from .custom_fields import (  # noqa: F401
     RDM_CUSTOM_FIELDS_UI,
     RDM_NAMESPACES,
 )
-from .utils import get_user_form_default
+from .utils import (
+    get_user_form_default,
+    imperial_community_review,
+    imperial_community_review_receiver,
+)
 
 # Flask
 # =====
@@ -137,8 +141,16 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
         }
     ],
     "publisher": "Imperial College London",
-    "creators": lambda: get_user_form_default(),
+    "creators": get_user_form_default,
+    ".parent.review": imperial_community_review,
+    ".expanded.parent.review.receiver": imperial_community_review_receiver,
 }
+
+# NOTE: `imperial_community_review` and `imperial_community_review_receiver` above are
+# hacks to inject a default community review when creating new records via the UI. By
+# prepending a period `.` to fields, we can 'break out' of `metadata`, and set defaults
+# for `parent` and `expanded`. This is almost certainly a hack. Remove them if/when a
+# better mechanism is implemented upstream.
 
 RECORDS_RESOURCES_TRANSFERS = [
     *DEFAULT_TRANSFERS,

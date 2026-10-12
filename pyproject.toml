@@ -97,6 +97,7 @@ module = [
        "invenio_pidstore.*",
        "invenio_records_permissions.*",
        "invenio_records_resources.*",
+       "invenio_requests.*",
        "invenio_rdm_records.*",
        "invenio_search.*",
        "invenio_vocabularies.*",

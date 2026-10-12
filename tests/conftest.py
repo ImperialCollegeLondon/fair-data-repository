@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 import pytest
 import redis
-from invenio_access.permissions import system_identity
+from ic_data_repo.permissions import deposit_action
+from invenio_access.permissions import ActionUsers, system_identity
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 
 
@@ -270,6 +271,14 @@ def user(UserFixture, app, db):
 
 
 @pytest.fixture
+def user_depositor(user, db):
+    """Give the user fixture permission to create deposits."""
+    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
 def user_client(user, client):
     """A client logged in as the user fixture."""
     return user.login(client)
@@ -288,3 +297,24 @@ def db(db):
     if connection.dialect.name == "sqlite":
         connection.exec_driver_sql("BEGIN")
     return db
+
+
+@pytest.fixture
+def metadata():
+    """Simple record metadata."""
+    return {
+        "title": "Test Record",
+        "description": "This is a test record.",
+        "resource_type": {"id": "dataset"},
+        "creators": [
+            {
+                "person_or_org": {
+                    "type": "personal",
+                    "given_name": "Neo",
+                    "family_name": "Anderson",
+                },
+                "role": "the one",
+            },
+        ],
+        "rights": [{"id": "cc-by-4.0"}],
+    }

@@ -15,7 +15,7 @@ from invenio_records_resources.services.errors import PermissionDeniedError
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_restricted_license_permission_create(
-    vocabularies, icl_community, user_depositor, metadata, grant, outcome, db
+    location, vocabularies, user_depositor, metadata, grant, outcome, db
 ):
     """Test that restricted license permissions are enforced."""
     metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
@@ -38,8 +38,8 @@ def test_restricted_license_permission_create(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_restricted_license_permission_update(
+    location,
     vocabularies,
-    icl_community,
     user_depositor,
     metadata,
     grant,
@@ -51,7 +51,7 @@ def test_restricted_license_permission_update(
         user_depositor.identity,
         data={"metadata": metadata, "files": {"enabled": False}},
     )
-    assert draft["status"] == "draft_with_review"
+    assert draft["status"] == "draft"
 
     metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
     if grant:

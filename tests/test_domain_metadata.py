@@ -74,8 +74,8 @@ def _revoke_domain_metadata_permission(user_depositor, db):
     ],
 )
 def test_domain_metadata_custom_field(
+    location,
     vocabularies,
-    icl_community,
     user_depositor,
     metadata,
     entries,
@@ -108,7 +108,7 @@ def test_domain_metadata_custom_field(
         "custom_fields": {"imperial:domain_metadata": entries},
     }
     record = current_rdm_records_service.create(user_depositor.identity, record_data)
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     error_fields = [e["field"] for e in record.errors]
     assert sorted(error_fields) == sorted(expected_errors)
@@ -116,16 +116,13 @@ def test_domain_metadata_custom_field(
     stored_entries = record["custom_fields"].get("imperial:domain_metadata", [])
     assert stored_entries == expected_stored
 
-    # Delete auto-created review for easier testing.
-    current_rdm_records_service.review.delete(system_identity, record.id)
-
     # Publishing with invalid fields raises ValidationError.
     with publish_outcome:
         current_rdm_records_service.publish(system_identity, record.id)
 
 
 def test_domain_metadata_custom_field_search(
-    vocabularies, icl_community, user_depositor, metadata, db
+    location, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: findable via the default free-text search.
 
@@ -154,12 +151,12 @@ def test_domain_metadata_custom_field_search(
     matching_record = current_rdm_records_service.create(
         user_depositor.identity, with_domain_metadata
     )
-    assert matching_record["status"] == "draft_with_review"
+    assert matching_record["status"] == "draft"
 
     other_record = current_rdm_records_service.create(
         user_depositor.identity, without_domain_metadata
     )
-    assert other_record["status"] == "draft_with_review"
+    assert other_record["status"] == "draft"
 
     current_search.flush_and_refresh("*")
 
@@ -199,7 +196,7 @@ def test_domain_metadata_custom_field_search(
 
 
 def test_domain_metadata_landing_page_shows_resolved_vocabulary(
-    vocabularies, icl_community, user_depositor, metadata, db
+    location, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: landing-page (UI) display resolves terms."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -214,7 +211,7 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
         },
     }
     record = current_rdm_records_service.create(user_depositor.identity, record_data)
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     # Use the UI serializer to get the record format expected by the landing page.
     record_ui = UIJSONSerializer().dump_obj(record.to_dict())
@@ -241,13 +238,13 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
 
 
 def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
-    vocabularies, icl_community, user_depositor, metadata
+    location, vocabularies, user_depositor, metadata
 ):
     """imperial:domain_metadata: absent from the landing-page UI when unset."""
     record = current_rdm_records_service.create(
         user_depositor.identity, {"metadata": metadata, "files": {"enabled": False}}
     )
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     # Use the UI serializer to get the record format expected by the landing page.
     record_ui = UIJSONSerializer().dump_obj(record.to_dict())
@@ -260,7 +257,7 @@ def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_create_requires_permission(
-    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
+    grant, outcome, location, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: create is gated by the permission."""
     if grant:
@@ -289,13 +286,13 @@ def test_domain_metadata_create_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_add_requires_permission(
-    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
+    grant, outcome, location, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: adding it later is gated by the permission."""
     plain = current_rdm_records_service.create(
         user_depositor.identity, {"metadata": metadata, "files": {"enabled": False}}
     )
-    assert plain["status"] == "draft_with_review"
+    assert plain["status"] == "draft"
 
     if grant:
         _grant_domain_metadata_permission(user_depositor, db)
@@ -323,7 +320,7 @@ def test_domain_metadata_add_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_reorder_requires_permission(
-    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
+    grant, outcome, location, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: reordering entries is gated by the permission."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -338,7 +335,7 @@ def test_domain_metadata_reorder_requires_permission(
         },
     }
     created = current_rdm_records_service.create(user_depositor.identity, original_json)
-    assert created["status"] == "draft_with_review"
+    assert created["status"] == "draft"
 
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)
@@ -370,7 +367,7 @@ def test_domain_metadata_reorder_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_removal_requires_permission(
-    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
+    grant, outcome, location, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: removing all entries is gated by the permission."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -382,7 +379,7 @@ def test_domain_metadata_removal_requires_permission(
         },
     }
     created = current_rdm_records_service.create(user_depositor.identity, original_json)
-    assert created["status"] == "draft_with_review"
+    assert created["status"] == "draft"
 
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)
@@ -406,7 +403,7 @@ def test_domain_metadata_removal_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_unchanged_update_requires_permission(
-    grant, outcome, vocabularies, icl_community, user_depositor, metadata, db
+    grant, outcome, location, vocabularies, user_depositor, metadata, db
 ):
     """imperial:domain_metadata: resubmitting it unchanged is still gated."""
     _grant_domain_metadata_permission(user_depositor, db)
@@ -418,7 +415,7 @@ def test_domain_metadata_unchanged_update_requires_permission(
         },
     }
     created = current_rdm_records_service.create(user_depositor.identity, original_json)
-    assert created["status"] == "draft_with_review"
+    assert created["status"] == "draft"
 
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)

@@ -10,15 +10,13 @@ from invenio_records_resources.services.errors import PermissionDeniedError
 from marshmallow.exceptions import ValidationError
 
 
-def test_description_transfer(
-    vocabularies, icl_community, user_depositor, metadata, db
-):
+def test_description_transfer(location, vocabularies, user_depositor, metadata, db):
     """Test creating a DescriptionTransfer file."""
     record = current_rdm_records_service.create(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     # Grant permission to the user.
     db.session.add(
@@ -67,14 +65,14 @@ def test_description_transfer(
 
 
 def test_description_transfer_mixed_files(
-    vocabularies, icl_community, user_depositor, metadata, db
+    location, vocabularies, user_depositor, metadata, db
 ):
     """Test creating mixed DescriptionTransfer and Local files."""
     record = current_rdm_records_service.create(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     # Grant permission to the user.
     db.session.add(
@@ -128,14 +126,14 @@ def test_description_transfer_mixed_files(
 
 
 def test_description_transfer_unauthorised_create(
-    vocabularies, icl_community, user_depositor, metadata
+    location, vocabularies, user_depositor, metadata
 ):
     """Test creating a DescriptionTransfer file without permission."""
     record = current_rdm_records_service.create(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     # Metadata for the description transfer file.
     file_metadata = [
@@ -158,14 +156,14 @@ def test_description_transfer_unauthorised_create(
 
 
 def test_description_transfer_unauthorised_upload(
-    vocabularies, icl_community, user_depositor, metadata, db
+    location, vocabularies, user_depositor, metadata, db
 ):
     """Test uploading a DescriptionTransfer file without permission."""
     record = current_rdm_records_service.create(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     grant = ActionUsers.allow(described_file_action, user_id=user_depositor.user.id)
 
@@ -207,14 +205,14 @@ def test_description_transfer_unauthorised_upload(
 
 
 def test_description_transfer_unauthorised_commit(
-    vocabularies, icl_community, user_depositor, metadata, db
+    location, vocabularies, user_depositor, metadata, db
 ):
     """Test committing a DescriptionTransfer file without permission."""
     record = current_rdm_records_service.create(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     grant = ActionUsers.allow(described_file_action, user_id=user_depositor.user.id)
 
@@ -264,14 +262,14 @@ def test_description_transfer_unauthorised_commit(
 
 
 def test_description_transfer_oversized_description(
-    vocabularies, icl_community, user_depositor, metadata, db
+    location, vocabularies, user_depositor, metadata, db
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
     record = current_rdm_records_service.create(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft_with_review"
+    assert record["status"] == "draft"
 
     # Grant permission to the user.
     db.session.add(

@@ -71,12 +71,12 @@ def test_related_records_valid(db, search_clear, location, vocabularies, record_
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r1.data["pids"]["doi"]["identifier"],
+            "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
             "relation_type": {"id": "haspart"},
             "scheme": "doi",
         },
         {
-            "identifier": r2.data["pids"]["doi"]["identifier"],
+            "identifier": r2.data["parent"]["pids"]["doi"]["identifier"],
             "relation_type": {"id": "haspart"},
             "scheme": "doi",
         },
@@ -89,14 +89,14 @@ def test_related_records_valid(db, search_clear, location, vocabularies, record_
     result.sort(key=lambda x: x["title"])
     assert len(result) == 2
     assert result[0] == {
-        "title": r1.data["metadata"]["title"],
+        "doi": r1.data["parent"]["pids"]["doi"]["identifier"],
         "url": r1.data["links"]["self_html"],
-        "doi": r1.data["pids"]["doi"]["identifier"],
+        "title": r1.data["metadata"]["title"],
     }
     assert result[1] == {
-        "title": r2.data["metadata"]["title"],
+        "doi": r2.data["parent"]["pids"]["doi"]["identifier"],
         "url": r2.data["links"]["self_html"],
-        "doi": r2.data["pids"]["doi"]["identifier"],
+        "title": r2.data["metadata"]["title"],
     }
 
 
@@ -113,7 +113,7 @@ def test_related_records_anonymous(
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r1.data["pids"]["doi"]["identifier"],
+            "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
             "relation_type": {"id": "haspart"},
             "scheme": "doi",
         },
@@ -128,14 +128,14 @@ def test_related_records_anonymous(
     result = get_collection_member_info(identity, c.id)
     assert len(result) == 1
     assert result[0] == {
-        "title": r1.data["metadata"]["title"],
+        "doi": r1.data["parent"]["pids"]["doi"]["identifier"],
         "url": r1.data["links"]["self_html"],
-        "doi": r1.data["pids"]["doi"]["identifier"],
+        "title": r1.data["metadata"]["title"],
     }
 
 
 def test_related_records_draft(db, search_clear, location, vocabularies, record_data):
-    """Test a collection with related draft records."""
+    """Test that related draft records are ignored."""
     r1_data = deepcopy(record_data)
     r1_draft = records_service.create(system_identity, r1_data)
     r1_draft = create_doi(r1_draft)
@@ -161,7 +161,7 @@ def test_related_records_draft(db, search_clear, location, vocabularies, record_
 def test_related_records_nonlocal(
     db, search_clear, location, vocabularies, record_data
 ):
-    """Test a collection with no locally-hosted related records."""
+    """Test that non-local related records are ignored."""
     c_data = deepcopy(record_data)
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
@@ -182,7 +182,7 @@ def test_related_records_nonlocal(
 def test_related_records_no_haspart(
     db, search_clear, location, vocabularies, record_data
 ):
-    """Test a collection with related records without relation_type=haspart."""
+    """Test that related records without relation_type=haspart are ignored."""
     r1_data = deepcopy(record_data)
     r1_draft = records_service.create(system_identity, r1_data)
     r1_draft = create_doi(r1_draft)
@@ -192,7 +192,7 @@ def test_related_records_no_haspart(
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r1.data["pids"]["doi"]["identifier"],
+            "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
             "relation_type": {"id": "cites"},
             "scheme": "doi",
         },
@@ -206,7 +206,7 @@ def test_related_records_no_haspart(
 
 
 def test_related_records_no_doi(db, search_clear, location, vocabularies, record_data):
-    """Test a collection with related records without scheme=doi."""
+    """Test that related records without scheme=doi are ignored."""
     r1_data = deepcopy(record_data)
     r1_draft = records_service.create(system_identity, r1_data)
     r1_draft = create_doi(r1_draft)
@@ -230,9 +230,9 @@ def test_related_records_no_doi(db, search_clear, location, vocabularies, record
 
 
 def test_related_records_restricted(
-    db, search_clear, location, vocabularies, user, record_data
+    db, search_clear, location, vocabularies, record_data, user
 ):
-    """Test restricted related records without permission."""
+    """Test that restricted related records are ignored without permission."""
     r1_data = deepcopy(record_data)
     r1_draft = records_service.create(system_identity, r1_data)
     r1_draft = create_doi(r1_draft)
@@ -248,7 +248,7 @@ def test_related_records_restricted(
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r1.data["pids"]["doi"]["identifier"],
+            "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
             "relation_type": {"id": "haspart"},
             "scheme": "doi",
         },
@@ -256,7 +256,9 @@ def test_related_records_restricted(
     c_draft = records_service.create(system_identity, c_data)
     c = records_service.publish(system_identity, c_draft.id)
 
-    # Use a different identity that does not have permission.
+    # Test identities that do and do not have permission.
     search_clear.indices.refresh()
+    result = get_collection_member_info(system_identity, c.id)
+    assert len(result) == 1
     result = get_collection_member_info(user.identity, c.id)
     assert len(result) == 0

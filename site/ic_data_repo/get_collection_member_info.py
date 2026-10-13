@@ -34,14 +34,16 @@ def get_collection_member_info(
         return []
 
     # Search published records.
-    q = " OR ".join(f'pids.doi.identifier.keyword:"{doi}"' for doi in member_dois)
+    q = " OR ".join(
+        f'parent.pids.doi.identifier.keyword:"{doi}"' for doi in member_dois
+    )
     members = records_service.search(identity, params={"q": q})
 
     return [
         {
-            "title": member["metadata"]["title"],
+            "doi": member["parent"]["pids"]["doi"]["identifier"],
             "url": member["links"]["self_html"],
-            "doi": member["pids"]["doi"]["identifier"],
+            "title": member["metadata"]["title"],
         }
         for member in members
     ]

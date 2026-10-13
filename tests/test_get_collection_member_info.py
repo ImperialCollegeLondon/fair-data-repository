@@ -53,30 +53,30 @@ def create_doi(draft):
     return draft
 
 
-def test_valid_related_records(db, search_clear, location, vocabularies, record_data):
+def test_related_records_valid(db, search_clear, location, vocabularies, record_data):
     """Test a collection with valid related records."""
-    r_1_data = deepcopy(record_data)
-    r_1_data["metadata"]["title"] = "Test Record 1"
-    r_1_draft = records_service.create(system_identity, r_1_data)
-    r_1_draft = create_doi(r_1_draft)
-    r_1 = records_service.publish(system_identity, r_1_draft.id)
+    r1_data = deepcopy(record_data)
+    r1_data["metadata"]["title"] = "Test Record 1"
+    r1_draft = records_service.create(system_identity, r1_data)
+    r1_draft = create_doi(r1_draft)
+    r1 = records_service.publish(system_identity, r1_draft.id)
 
-    r_2_data = deepcopy(record_data)
-    r_2_data["metadata"]["title"] = "Test Record 2"
-    r_2_draft = records_service.create(system_identity, r_2_data)
-    r_2_draft = create_doi(r_2_draft)
-    r_2 = records_service.publish(system_identity, r_2_draft.id)
+    r2_data = deepcopy(record_data)
+    r2_data["metadata"]["title"] = "Test Record 2"
+    r2_draft = records_service.create(system_identity, r2_data)
+    r2_draft = create_doi(r2_draft)
+    r2 = records_service.publish(system_identity, r2_draft.id)
 
     c_data = deepcopy(record_data)
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r_1.data["pids"]["doi"]["identifier"],
+            "identifier": r1.data["pids"]["doi"]["identifier"],
             "relation_type": {"id": "haspart"},
             "scheme": "doi",
         },
         {
-            "identifier": r_2.data["pids"]["doi"]["identifier"],
+            "identifier": r2.data["pids"]["doi"]["identifier"],
             "relation_type": {"id": "haspart"},
             "scheme": "doi",
         },
@@ -89,30 +89,31 @@ def test_valid_related_records(db, search_clear, location, vocabularies, record_
     result.sort(key=lambda x: x["title"])
     assert len(result) == 2
     assert result[0] == {
-        "title": r_1.data["metadata"]["title"],
-        "url": r_1.data["links"]["self_html"],
-        "doi": r_1.data["pids"]["doi"]["identifier"],
+        "title": r1.data["metadata"]["title"],
+        "url": r1.data["links"]["self_html"],
+        "doi": r1.data["pids"]["doi"]["identifier"],
     }
     assert result[1] == {
-        "title": r_2.data["metadata"]["title"],
-        "url": r_2.data["links"]["self_html"],
-        "doi": r_2.data["pids"]["doi"]["identifier"],
+        "title": r2.data["metadata"]["title"],
+        "url": r2.data["links"]["self_html"],
+        "doi": r2.data["pids"]["doi"]["identifier"],
     }
 
 
-def test_valid_related_draft_records(
+def test_related_records_anonymous(
     db, search_clear, location, vocabularies, record_data
 ):
-    """Test a collection with valid related draft records."""
-    r_1_data = deepcopy(record_data)
-    r_1_draft = records_service.create(system_identity, r_1_data)
-    r_1_draft = create_doi(r_1_draft)
+    """Test a collection as an anonymous user."""
+    r1_data = deepcopy(record_data)
+    r1_draft = records_service.create(system_identity, r1_data)
+    r1_draft = create_doi(r1_draft)
+    r1 = records_service.publish(system_identity, r1_draft.id)
 
     c_data = deepcopy(record_data)
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r_1_draft.data["pids"]["doi"]["identifier"],
+            "identifier": r1.data["pids"]["doi"]["identifier"],
             "relation_type": {"id": "haspart"},
             "scheme": "doi",
         },
@@ -120,17 +121,44 @@ def test_valid_related_draft_records(
     c_draft = records_service.create(system_identity, c_data)
     c = records_service.publish(system_identity, c_draft.id)
 
+    # Anonymous users should see published records.
     search_clear.indices.refresh()
-    result = get_collection_member_info(system_identity, c.id)
+    identity = AnonymousIdentity()
+    identity.provides.add(any_user)
+    result = get_collection_member_info(identity, c.id)
     assert len(result) == 1
     assert result[0] == {
-        "title": r_1_draft.data["metadata"]["title"],
-        "url": r_1_draft.data["links"]["self_html"],
-        "doi": r_1_draft.data["pids"]["doi"]["identifier"],
+        "title": r1.data["metadata"]["title"],
+        "url": r1.data["links"]["self_html"],
+        "doi": r1.data["pids"]["doi"]["identifier"],
     }
 
 
-def test_nonlocal_related_records(
+def test_related_records_draft(db, search_clear, location, vocabularies, record_data):
+    """Test a collection with related draft records."""
+    r1_data = deepcopy(record_data)
+    r1_draft = records_service.create(system_identity, r1_data)
+    r1_draft = create_doi(r1_draft)
+
+    c_data = deepcopy(record_data)
+    c_data["metadata"]["resource_type"]["id"] = "collection"
+    c_data["metadata"]["related_identifiers"] = [
+        {
+            "identifier": r1_draft.data["pids"]["doi"]["identifier"],
+            "relation_type": {"id": "haspart"},
+            "scheme": "doi",
+        },
+    ]
+    c_draft = records_service.create(system_identity, c_data)
+    c = records_service.publish(system_identity, c_draft.id)
+
+    # Draft records should be ignored.
+    search_clear.indices.refresh()
+    result = get_collection_member_info(system_identity, c.id)
+    assert len(result) == 0
+
+
+def test_related_records_nonlocal(
     db, search_clear, location, vocabularies, record_data
 ):
     """Test a collection with no locally-hosted related records."""
@@ -155,16 +183,16 @@ def test_related_records_no_haspart(
     db, search_clear, location, vocabularies, record_data
 ):
     """Test a collection with related records without relation_type=haspart."""
-    r_1_data = deepcopy(record_data)
-    r_1_draft = records_service.create(system_identity, r_1_data)
-    r_1_draft = create_doi(r_1_draft)
-    r_1 = records_service.publish(system_identity, r_1_draft.id)
+    r1_data = deepcopy(record_data)
+    r1_draft = records_service.create(system_identity, r1_data)
+    r1_draft = create_doi(r1_draft)
+    r1 = records_service.publish(system_identity, r1_draft.id)
 
     c_data = deepcopy(record_data)
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r_1.data["pids"]["doi"]["identifier"],
+            "identifier": r1.data["pids"]["doi"]["identifier"],
             "relation_type": {"id": "cites"},
             "scheme": "doi",
         },
@@ -179,16 +207,16 @@ def test_related_records_no_haspart(
 
 def test_related_records_no_doi(db, search_clear, location, vocabularies, record_data):
     """Test a collection with related records without scheme=doi."""
-    r_1_data = deepcopy(record_data)
-    r_1_draft = records_service.create(system_identity, r_1_data)
-    r_1_draft = create_doi(r_1_draft)
-    r_1 = records_service.publish(system_identity, r_1_draft.id)
+    r1_data = deepcopy(record_data)
+    r1_draft = records_service.create(system_identity, r1_data)
+    r1_draft = create_doi(r1_draft)
+    r1 = records_service.publish(system_identity, r1_draft.id)
 
     c_data = deepcopy(record_data)
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r_1.data["links"]["self_html"],
+            "identifier": r1.data["links"]["self_html"],
             "relation_type": {"id": "haspart"},
             "scheme": "url",
         },
@@ -205,22 +233,22 @@ def test_related_records_restricted(
     db, search_clear, location, vocabularies, user, record_data
 ):
     """Test restricted related records without permission."""
-    r_1_data = deepcopy(record_data)
-    r_1_draft = records_service.create(system_identity, r_1_data)
-    r_1_draft = create_doi(r_1_draft)
+    r1_data = deepcopy(record_data)
+    r1_draft = records_service.create(system_identity, r1_data)
+    r1_draft = create_doi(r1_draft)
 
     # We need a restricted record. Normally Imperial's schema disallows them.
-    r_1_draft._record.access.protection.record = "restricted"
-    r_1_draft._record.commit()
+    r1_draft._record.access.protection.record = "restricted"
+    r1_draft._record.commit()
     db.session.commit()
-    r_1 = records_service.publish(system_identity, r_1_draft.id)
-    assert r_1.data["access"]["record"] == "restricted"
+    r1 = records_service.publish(system_identity, r1_draft.id)
+    assert r1.data["access"]["record"] == "restricted"
 
     c_data = deepcopy(record_data)
     c_data["metadata"]["resource_type"]["id"] = "collection"
     c_data["metadata"]["related_identifiers"] = [
         {
-            "identifier": r_1.data["pids"]["doi"]["identifier"],
+            "identifier": r1.data["pids"]["doi"]["identifier"],
             "relation_type": {"id": "haspart"},
             "scheme": "doi",
         },
@@ -232,46 +260,3 @@ def test_related_records_restricted(
     search_clear.indices.refresh()
     result = get_collection_member_info(user.identity, c.id)
     assert len(result) == 0
-
-
-def test_related_records_anonymous_user(
-    db, search_clear, location, vocabularies, record_data
-):
-    """Test a collection as an anonymous user."""
-    r_1_data = deepcopy(record_data)
-    r_1_draft = records_service.create(system_identity, r_1_data)
-    r_1_draft = create_doi(r_1_draft)
-    r_1 = records_service.publish(system_identity, r_1_draft.id)
-
-    r_2_data = deepcopy(record_data)
-    r_2_draft = records_service.create(system_identity, r_2_data)
-    r_2_draft = create_doi(r_2_draft)
-
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": r_1.data["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
-        },
-        {
-            "identifier": r_2_draft.data["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
-        },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
-
-    # Anonymous users should see published records, but not drafts.
-    search_clear.indices.refresh()
-    identity = AnonymousIdentity()
-    identity.provides.add(any_user)
-    result = get_collection_member_info(identity, c.id)
-    assert len(result) == 1
-    assert result[0] == {
-        "title": r_1.data["metadata"]["title"],
-        "url": r_1.data["links"]["self_html"],
-        "doi": r_1.data["pids"]["doi"]["identifier"],
-    }

@@ -158,6 +158,45 @@ def test_related_records_draft(db, search_clear, location, vocabularies, record_
     assert len(result) == 0
 
 
+def test_related_records_latest_version(
+    db, search_clear, location, vocabularies, record_data
+):
+    """Test that only the latest version of related records is returned."""
+    r1_v1_data = deepcopy(record_data)
+    r1_v1_draft = records_service.create(system_identity, r1_v1_data)
+    r1_v1_draft = create_doi(r1_v1_draft)
+    r1_v1 = records_service.publish(system_identity, r1_v1_draft.id)
+
+    r1_v2_draft = records_service.new_version(system_identity, r1_v1.id)
+    r1_v2_draft = create_doi(r1_v2_draft)
+    r1_v2 = records_service.publish(system_identity, r1_v2_draft.id)
+
+    c_data = deepcopy(record_data)
+    c_data["metadata"]["resource_type"]["id"] = "collection"
+    c_data["metadata"]["related_identifiers"] = [
+        {
+            "identifier": r1_v1.data["parent"]["pids"]["doi"]["identifier"],
+            "relation_type": {"id": "haspart"},
+            "scheme": "doi",
+        },
+    ]
+    c_draft = records_service.create(system_identity, c_data)
+    c = records_service.publish(system_identity, c_draft.id)
+
+    # Only the latest version of the related record should be returned.
+    search_clear.indices.refresh()
+    result = get_collection_member_info(system_identity, c.id)
+    assert len(result) == 1
+
+    # The DOI should be the same as the parent DOI for v1 and v2.
+    assert result[0]["doi"] == r1_v1.data["parent"]["pids"]["doi"]["identifier"]
+    assert result[0]["doi"] == r1_v2.data["parent"]["pids"]["doi"]["identifier"]
+
+    # The URL should point to v2, which is different from v1.
+    assert result[0]["url"] != r1_v1.data["links"]["self_html"]
+    assert result[0]["url"] == r1_v2.data["links"]["self_html"]
+
+
 def test_related_records_nonlocal(
     db, search_clear, location, vocabularies, record_data
 ):

@@ -37,7 +37,7 @@ def get_collection_member_info(
     q = " OR ".join(
         f'parent.pids.doi.identifier.keyword:"{doi}"' for doi in member_dois
     )
-    members = records_service.search(identity, params={"q": q})
+    members = records_service.scan(identity, params={"q": q})
 
     return [
         {

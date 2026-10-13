@@ -1,18 +1,29 @@
 """Tests for get_collection_member_info.py."""
 
-from copy import deepcopy
-
-import pytest
 from flask_principal import AnonymousIdentity
 from ic_data_repo.get_collection_member_info import get_collection_member_info
 from invenio_access.permissions import any_user, system_identity
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
 
 
-@pytest.fixture
-def record_data():
-    """Fixture for record data."""
-    return {
+def _create_doi(draft):
+    """Create and reserve a DOI for a draft record."""
+    draft = records_service.pids.create(
+        system_identity,
+        draft.id,
+        "doi",
+        provider="datacite",
+    )
+    draft = records_service.pids.reserve(
+        system_identity,
+        draft.id,
+    )
+    return draft
+
+
+def _create_record(mint_doi=True, publish=True, extra_metadata=None):
+    """Create a new record."""
+    data = {
         "metadata": {
             "title": "Test Record",
             "description": "This is a test record.",
@@ -36,53 +47,48 @@ def record_data():
             "enabled": False,
         },
     }
-
-
-def create_doi(draft):
-    """Create and reserve a DOI for a draft record."""
-    draft = records_service.pids.create(
-        system_identity,
-        draft.id,
-        "doi",
-        provider="datacite",
-    )
-    draft = records_service.pids.reserve(
-        system_identity,
-        draft.id,
-    )
+    if extra_metadata:
+        data["metadata"].update(extra_metadata)
+    draft = records_service.create(system_identity, data)
+    if mint_doi:
+        draft = _create_doi(draft)
+    if publish:
+        return records_service.publish(system_identity, draft.id)
     return draft
 
 
-def test_related_records_valid(db, search_clear, location, vocabularies, record_data):
+def _create_new_record_version(record_id, mint_doi=True, publish=True):
+    """Create a new version of a record."""
+    draft = records_service.new_version(system_identity, record_id)
+    if mint_doi:
+        draft = _create_doi(draft)
+    if publish:
+        return records_service.publish(system_identity, draft.id)
+    return draft
+
+
+def test_related_records_valid(db, search_clear, location, vocabularies):
     """Test a collection with valid related records."""
-    r1_data = deepcopy(record_data)
-    r1_data["metadata"]["title"] = "Test Record 1"
-    r1_draft = records_service.create(system_identity, r1_data)
-    r1_draft = create_doi(r1_draft)
-    r1 = records_service.publish(system_identity, r1_draft.id)
-
-    r2_data = deepcopy(record_data)
-    r2_data["metadata"]["title"] = "Test Record 2"
-    r2_draft = records_service.create(system_identity, r2_data)
-    r2_draft = create_doi(r2_draft)
-    r2 = records_service.publish(system_identity, r2_draft.id)
-
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
+    r1 = _create_record(extra_metadata={"title": "Test Record 1"})
+    r2 = _create_record(extra_metadata={"title": "Test Record 2"})
+    c = _create_record(
+        mint_doi=False,
+        extra_metadata={
+            "resource_type": {"id": "collection"},
+            "related_identifiers": [
+                {
+                    "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
+                    "relation_type": {"id": "haspart"},
+                    "scheme": "doi",
+                },
+                {
+                    "identifier": r2.data["parent"]["pids"]["doi"]["identifier"],
+                    "relation_type": {"id": "haspart"},
+                    "scheme": "doi",
+                },
+            ],
         },
-        {
-            "identifier": r2.data["parent"]["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
-        },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
+    )
 
     search_clear.indices.refresh()
     result = get_collection_member_info(system_identity, c.id)
@@ -100,26 +106,22 @@ def test_related_records_valid(db, search_clear, location, vocabularies, record_
     }
 
 
-def test_related_records_anonymous(
-    db, search_clear, location, vocabularies, record_data
-):
+def test_related_records_anonymous(db, search_clear, location, vocabularies):
     """Test a collection as an anonymous user."""
-    r1_data = deepcopy(record_data)
-    r1_draft = records_service.create(system_identity, r1_data)
-    r1_draft = create_doi(r1_draft)
-    r1 = records_service.publish(system_identity, r1_draft.id)
-
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
+    r1 = _create_record()
+    c = _create_record(
+        mint_doi=False,
+        extra_metadata={
+            "resource_type": {"id": "collection"},
+            "related_identifiers": [
+                {
+                    "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
+                    "relation_type": {"id": "haspart"},
+                    "scheme": "doi",
+                },
+            ],
         },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
+    )
 
     # Anonymous users should see published records.
     search_clear.indices.refresh()
@@ -134,23 +136,22 @@ def test_related_records_anonymous(
     }
 
 
-def test_related_records_draft(db, search_clear, location, vocabularies, record_data):
+def test_related_records_draft(db, search_clear, location, vocabularies):
     """Test that related draft records are ignored."""
-    r1_data = deepcopy(record_data)
-    r1_draft = records_service.create(system_identity, r1_data)
-    r1_draft = create_doi(r1_draft)
-
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": r1_draft.data["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
+    r1_draft = _create_record(publish=False)
+    c = _create_record(
+        mint_doi=False,
+        extra_metadata={
+            "resource_type": {"id": "collection"},
+            "related_identifiers": [
+                {
+                    "identifier": r1_draft.data["pids"]["doi"]["identifier"],
+                    "relation_type": {"id": "haspart"},
+                    "scheme": "doi",
+                },
+            ],
         },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
+    )
 
     # Draft records should be ignored.
     search_clear.indices.refresh()
@@ -158,30 +159,23 @@ def test_related_records_draft(db, search_clear, location, vocabularies, record_
     assert len(result) == 0
 
 
-def test_related_records_latest_version(
-    db, search_clear, location, vocabularies, record_data
-):
+def test_related_records_latest_version(db, search_clear, location, vocabularies):
     """Test that only the latest version of related records is returned."""
-    r1_v1_data = deepcopy(record_data)
-    r1_v1_draft = records_service.create(system_identity, r1_v1_data)
-    r1_v1_draft = create_doi(r1_v1_draft)
-    r1_v1 = records_service.publish(system_identity, r1_v1_draft.id)
-
-    r1_v2_draft = records_service.new_version(system_identity, r1_v1.id)
-    r1_v2_draft = create_doi(r1_v2_draft)
-    r1_v2 = records_service.publish(system_identity, r1_v2_draft.id)
-
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": r1_v1.data["parent"]["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
+    r1_v1 = _create_record()
+    r1_v2 = _create_new_record_version(r1_v1.id)
+    c = _create_record(
+        mint_doi=False,
+        extra_metadata={
+            "resource_type": {"id": "collection"},
+            "related_identifiers": [
+                {
+                    "identifier": r1_v1.data["parent"]["pids"]["doi"]["identifier"],
+                    "relation_type": {"id": "haspart"},
+                    "scheme": "doi",
+                },
+            ],
         },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
+    )
 
     # Only the latest version of the related record should be returned.
     search_clear.indices.refresh()
@@ -197,103 +191,95 @@ def test_related_records_latest_version(
     assert result[0]["url"] == r1_v2.data["links"]["self_html"]
 
 
-def test_related_records_nonlocal(
-    db, search_clear, location, vocabularies, record_data
-):
+def test_related_records_nonlocal(db, search_clear, location, vocabularies):
     """Test that non-local related records are ignored."""
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": "10.1234/nonlocal",
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
+    c = _create_record(
+        mint_doi=False,
+        extra_metadata={
+            "resource_type": {"id": "collection"},
+            "related_identifiers": [
+                {
+                    "identifier": "10.1234/nonlocal",
+                    "relation_type": {"id": "haspart"},
+                    "scheme": "doi",
+                },
+            ],
         },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
+    )
 
     search_clear.indices.refresh()
     result = get_collection_member_info(system_identity, c.id)
     assert len(result) == 0
 
 
-def test_related_records_no_haspart(
-    db, search_clear, location, vocabularies, record_data
-):
+def test_related_records_no_haspart(db, search_clear, location, vocabularies):
     """Test that related records without relation_type=haspart are ignored."""
-    r1_data = deepcopy(record_data)
-    r1_draft = records_service.create(system_identity, r1_data)
-    r1_draft = create_doi(r1_draft)
-    r1 = records_service.publish(system_identity, r1_draft.id)
-
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "cites"},
-            "scheme": "doi",
+    r1 = _create_record()
+    c = _create_record(
+        mint_doi=False,
+        extra_metadata={
+            "resource_type": {"id": "collection"},
+            "related_identifiers": [
+                {
+                    "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
+                    "relation_type": {"id": "cites"},
+                    "scheme": "doi",
+                },
+            ],
         },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
+    )
 
     search_clear.indices.refresh()
     result = get_collection_member_info(system_identity, c.id)
     assert len(result) == 0
 
 
-def test_related_records_no_doi(db, search_clear, location, vocabularies, record_data):
+def test_related_records_no_doi(db, search_clear, location, vocabularies):
     """Test that related records without scheme=doi are ignored."""
-    r1_data = deepcopy(record_data)
-    r1_draft = records_service.create(system_identity, r1_data)
-    r1_draft = create_doi(r1_draft)
-    r1 = records_service.publish(system_identity, r1_draft.id)
-
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": r1.data["links"]["self_html"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "url",
+    r1 = _create_record()
+    c = _create_record(
+        mint_doi=False,
+        extra_metadata={
+            "resource_type": {"id": "collection"},
+            "related_identifiers": [
+                {
+                    "identifier": r1.data["links"]["self_html"],
+                    "relation_type": {"id": "haspart"},
+                    "scheme": "url",
+                },
+            ],
         },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
+    )
 
     search_clear.indices.refresh()
     result = get_collection_member_info(system_identity, c.id)
     assert len(result) == 0
 
 
-def test_related_records_restricted(
-    db, search_clear, location, vocabularies, record_data, user
-):
+def test_related_records_restricted(db, search_clear, location, vocabularies, user):
     """Test that restricted related records are ignored without permission."""
-    r1_data = deepcopy(record_data)
-    r1_draft = records_service.create(system_identity, r1_data)
-    r1_draft = create_doi(r1_draft)
+    r1_draft = _create_record(publish=False)
 
-    # We need a restricted record. Normally Imperial's schema disallows them.
+    # We need a restricted record. Normally Imperial's schema won't allow that.
     r1_draft._record.access.protection.record = "restricted"
     r1_draft._record.commit()
     db.session.commit()
     r1 = records_service.publish(system_identity, r1_draft.id)
     assert r1.data["access"]["record"] == "restricted"
 
-    c_data = deepcopy(record_data)
-    c_data["metadata"]["resource_type"]["id"] = "collection"
-    c_data["metadata"]["related_identifiers"] = [
-        {
-            "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
-            "relation_type": {"id": "haspart"},
-            "scheme": "doi",
+    c = _create_record(
+        mint_doi=False,
+        extra_metadata={
+            "resource_type": {"id": "collection"},
+            "related_identifiers": [
+                {
+                    "identifier": r1.data["parent"]["pids"]["doi"]["identifier"],
+                    "relation_type": {"id": "haspart"},
+                    "scheme": "doi",
+                },
+            ],
         },
-    ]
-    c_draft = records_service.create(system_identity, c_data)
-    c = records_service.publish(system_identity, c_draft.id)
+    )
 
     # Test identities that do and do not have permission.
     search_clear.indices.refresh()

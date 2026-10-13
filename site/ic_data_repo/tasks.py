@@ -5,6 +5,7 @@ In particular, this includes tasks to be run periodically in the background.
 
 from io import BytesIO
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
 import requests
 from celery import shared_task
@@ -166,42 +167,65 @@ def update_imperial_awards_from_symplectic() -> None:
     import_imperial_awards_from_symplectic(current_app.logger)
 
 
+class FileMetadata(TypedDict):
+    """Metadata for a file to be downloaded and attached to a record."""
+
+    filename: str
+    url: str
+    transfer: NotRequired[dict[str, object]]
+
+
 @shared_task
 def create_system_record_and_download_files(
-    metadata: dict[str, object],
-    files: list[tuple[str, str]],
-    community="",
-) -> None:
+    record: dict[str, object],
+    files: list[FileMetadata],
+    community: str = "",
+    tombstone: bool = False,
+) -> str:
     """Create a record owned by system_identity and download files from given URLs.
 
     This task is primarily intended to be used for the legacy repository migration
     but may be useful for other purposes.
 
     Args:
-        metadata: The metadata for the record to be created.
-        files: A list of tuples of filename and download URL pairs.
+        record: The metadata for the record to be created.
+        files: The files to download and attach to the record.
         community: If provided, record is added to the community with this ID.
+        tombstone: If True, the record is immediately tombstoned after creation.
     """
-    draft = current_rdm_records_service.create(system_identity, metadata)
+    draft = current_rdm_records_service.create(system_identity, record)
+
+    if draft.errors:
+        raise ValueError(
+            f"Metadata does not pass validation for draft {draft.id}: {draft.errors}"
+        )
 
     draft_file_service = current_rdm_records_service.draft_files
-    for filename, file_url in files:
-        file_data = [dict(key=filename)]
+    for f in files:
+        file_data = [dict(key=f["filename"], transfer=f.get("transfer", {}))]
         draft_file_service.init_files(system_identity, draft.id, file_data)
-        with requests.get(file_url, stream=True) as response:
+
+        with requests.get(f["url"], stream=True) as response:
             response.raise_for_status()
             # response.raw provides a buffered file like interface for streaming data
             # suitable for use with set_file_content
             draft_file_service.set_file_content(
-                system_identity, draft.id, filename, response.raw
+                system_identity, draft.id, f["filename"], response.raw
             )
-        draft_file_service.commit_file(system_identity, draft.id, filename)
+        draft_file_service.commit_file(system_identity, draft.id, f["filename"])
 
-    record = current_rdm_records_service.publish(system_identity, draft.id)
+    current_rdm_records_service.publish(system_identity, draft.id)
 
     if community:
         current_record_communities_service.add(
             system_identity,
-            record.id,
+            draft.id,
             data=dict(communities=[dict(id=community, require_review=False)]),
         )
+
+    if tombstone:
+        current_rdm_records_service.delete_record(
+            system_identity, draft.id, dict(removal_reason=dict(id="retracted"))
+        )
+
+    return draft.id

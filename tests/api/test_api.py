@@ -1,6 +1,7 @@
 """Tests for the API."""
 
 from datetime import date
+from unittest.mock import patch
 
 import pytest
 from ic_data_repo.permissions import (
@@ -1005,3 +1006,66 @@ def test_domain_metadata_unchanged_update_requires_permission(
         headers=_csrf_headers(client, api_headers),
     )
     assert result.status_code == (200 if grant else 403)
+
+
+def test_publish_unmanaged_doi_not_exported_to_symplectic(
+    app,
+    user_client,
+    location,
+    vocabularies,
+    user_depositor,
+    api_headers,
+    metadata,
+):
+    """Publishing a record with an unmanaged DOI does not register a Symplectic task."""
+    doi_data = {
+        "identifier": "10.1234/external.1",
+        "provider": "external",
+    }
+    record_json = {
+        "metadata": metadata,
+        "files": {"enabled": False},
+        "custom_fields": {"imperial:dart_id": "123456789"},
+        "pids": {"doi": doi_data},
+    }
+    draft = user_client.post("/records", json=record_json, headers=api_headers)
+    assert draft.status_code == 201
+    assert draft.json["pids"]["doi"] == doi_data
+
+    # create record
+    community = user_client.post(
+        "/communities",
+        json={
+            "slug": "icl",
+            "metadata": {"title": "Imperial College London"},
+            "access": {"visibility": "public"},
+        },
+        headers=api_headers,
+    )
+    assert community.status_code == 201
+
+    # create review
+    review = user_client.put(
+        f"/records/{draft.json['id']}/draft/review",
+        json={
+            "receiver": {"community": community.json["id"]},
+            "type": "community-submission",
+        },
+        headers=api_headers,
+    )
+    assert review.status_code == 200
+    submitted = user_client.post(
+        f"/records/{draft.json['id']}/draft/actions/submit-review",
+        headers=api_headers,
+    )
+    assert submitted.status_code == 202
+
+    # Accepting the community submission publishes the record
+    with patch("ic_data_repo.service_components.TaskOp") as task_op:
+        accepted = user_client.post(
+            f"/requests/{review.json['id']}/actions/accept", headers=api_headers
+        )
+
+    assert accepted.status_code == 200, accepted.json
+    assert accepted.json["status"] == "accepted"
+    task_op.assert_not_called()

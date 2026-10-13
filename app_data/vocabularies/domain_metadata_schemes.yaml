@@ -83,6 +83,13 @@
     subjectScheme: Gibs_Energy
     schemeURI: https://doi.org/10.1351/goldbook.G02629
     valueURI: http://gaussian.com/thermo/
+- id: Gibbs+Energy-legacy
+  title:
+    en: Gibbs Energy
+  props:
+    subjectScheme: Gibs_Energy
+    schemeURI: https://doi.org/10.1351/goldbook.G02629
+    valueURI: http://gaussian.com/thermo/
 - id: IFD-legacy
   title:
     en: IFD
@@ -148,6 +155,12 @@
     subjectScheme: Inchi
     schemeURI: http://www.inchi-trust.org/
 - id: Inchikey-legacy
+  title:
+    en: Inchikey
+  props:
+    subjectScheme: Inchikey
+    schemeURI: http://www.inchi-trust.org/
+- id: InChI_Key-legacy
   title:
     en: Inchikey
   props:

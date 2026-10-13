@@ -320,3 +320,9 @@ THEME_SITENAME = "Helix"
 
 WEBPACKEXT_NPM_PKG_CLS = "pynpm:PNPMPackage"
 WEBPACKEXT_PROJECT = "invenio_assets.webpack:rspack_project"
+
+# These are settings on a temporary basis as we need to relax some of the standard
+# restrictions to support migration of legacy records.
+DESCRIPTION_MIN_LENGTH = 3
+TITLE_MIN_LENGTH = 3
+FILE_DESCRIPTION_MAX_LENGTH = 100

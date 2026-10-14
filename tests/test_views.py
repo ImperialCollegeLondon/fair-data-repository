@@ -26,12 +26,7 @@ def test_index_view(client, app):
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")
 
-    main = soup.find("main", id="main")
-    assert main is not None
-    hero = main.find(class_="frontpage-hero")
-    assert hero is not None
-    title = hero.find("h1")
-    assert title is not None
+    [title] = soup.select("main .frontpage-hero h1")
     assert title.get_text(strip=True) == app.config["THEME_FRONTPAGE_TITLE"]
 
     search_bar = soup.find(id="frontpage-search-bar")

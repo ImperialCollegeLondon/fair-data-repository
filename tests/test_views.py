@@ -165,7 +165,7 @@ def test_ui_changes_for_depositors(user, user_client, db):
     # Check depositor menus
     desktop_menu = soup.find(id="quick-create-menu")
     assert desktop_menu is not None
-    upload_href = "/uploads/new?community=icl"
+    upload_href = "/uploads/new"
     assert desktop_menu.find("a", href=upload_href) is not None
 
     actions_heading = next(

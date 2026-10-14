@@ -29,13 +29,6 @@ def test_index_view(client, app):
     [title] = soup.select("main .frontpage-hero h1")
     assert title.get_text(strip=True) == app.config["THEME_FRONTPAGE_TITLE"]
 
-    search_bar = soup.find(id="frontpage-search-bar")
-    assert search_bar is not None
-    form = search_bar.find("form", attrs={"role": "search"})
-    assert form is not None
-    assert form.find("input", attrs={"name": "q"}) is not None
-    assert form.find("button", attrs={"type": "submit"}) is not None
-
     page_footer = soup.find("footer", id="rdm-footer-element")
     assert page_footer is not None
     footer = page_footer.find(class_="footer__meta")

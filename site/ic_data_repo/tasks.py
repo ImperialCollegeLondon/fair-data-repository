@@ -11,6 +11,7 @@ import requests
 from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
+from invenio_db import db
 from invenio_rdm_records.proxies import (
     current_rdm_records_service,
     current_record_communities_service,
@@ -173,6 +174,7 @@ class FileMetadata(TypedDict):
     filename: str
     url: str
     transfer: NotRequired[dict[str, object]]
+    mimetype: str
 
 
 @shared_task
@@ -202,7 +204,13 @@ def create_system_record_and_download_files(
 
     draft_file_service = current_rdm_records_service.draft_files
     for f in files:
-        file_data = [dict(key=f["filename"], transfer=f.get("transfer", {}))]
+        file_data = [
+            dict(
+                key=f["filename"],
+                transfer=f.get("transfer", {}),
+                metadata=f.get("metadata", {}),
+            )
+        ]
         draft_file_service.init_files(system_identity, draft.id, file_data)
 
         with requests.get(f["url"], stream=True) as response:
@@ -213,6 +221,17 @@ def create_system_record_and_download_files(
                 system_identity, draft.id, f["filename"], response.raw
             )
         draft_file_service.commit_file(system_identity, draft.id, f["filename"])
+
+    # Unfortunately the service layer does not provide a way to provide the mimetype so
+    # we have to peel the curtains back and set it directly in the database via the
+    # object_version.
+    draft_record_obj = current_rdm_records_service.draft_cls.pid.resolve(
+        draft.id, registered_only=False
+    )
+    for f in files:
+        object_version = draft_record_obj.files[f["filename"]].object_version
+        object_version.mimetype = f["mimetype"]
+        db.session.add(object_version)
 
     current_rdm_records_service.publish(system_identity, draft.id)
 

@@ -91,11 +91,15 @@ def test_create_system_record_downloads_and_publishes_files(
     file_content = b"column,value\nexample,42\n"
     file_name = "example.csv"
     file_url = "https://files.example.org/blah"
+    file_mimetype = "text/testval"
     mock_requests.get().__enter__().raw = BytesIO(file_content)
 
     create_system_record_and_download_files(
         record_metadata,
-        [{"filename": file_name, "url": file_url} | transfer_in],
+        [
+            {"filename": file_name, "url": file_url, "mimetype": file_mimetype}
+            | transfer_in
+        ],
     )
 
     record = _get_created_record()
@@ -107,6 +111,7 @@ def test_create_system_record_downloads_and_publishes_files(
     assert record.data["status"] == "published"
     assert [f["key"] for f in files.entries] == [file_name]
     assert [f["transfer"] for f in files.entries] == [transfer_out]
+    assert [f["mimetype"] for f in files.entries] == [file_mimetype]
     with downloaded_file.open_stream("rb") as stream:
         assert stream.read() == file_content
     mock_requests.get.assert_called_with(file_url, stream=True)

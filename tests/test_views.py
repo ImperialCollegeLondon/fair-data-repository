@@ -67,14 +67,11 @@ def test_index_auth(user_client):
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")
 
-    search_bar = soup.find(id="frontpage-search-bar")
-    assert search_bar is not None
-    notice_container = search_bar.find_next_sibling("div")
-    assert notice_container is not None
-    notice = notice_container.find("p", class_="header")
-    assert notice is not None
+    [notice] = soup.select("#frontpage-search-bar ~ div p.ui.header")
     assert "You have read-only access." in notice.get_text(" ", strip=True)
-    assert soup.find(id="quick-create-dropdown") is None
+    assert soup.select("#quick-create-dropdown") == []
+    assert soup.select("#quick-create-menu a[href='/uploads/new']") == []
+    assert soup.select("div.sub-menu.mobile.tablet.only a[href='/uploads/new']") == []
 
 
 def test_deposit_view_permissions(user, user_client, db, location, vocabularies, app):
@@ -122,59 +119,29 @@ def test_deposit_view_permissions(user, user_client, db, location, vocabularies,
 
 
 def test_ui_changes_for_depositors(user, user_client, db):
-    """Check that the UI changes for users with deposit permissions."""
-    # As seen by non-depositors.
-    res = user_client.get("/")
-    assert res.status_code == 200
-    soup = BeautifulSoup(res.data, "html.parser")
-
-    # Check that non-depositor information is shown.
-    search_bar = soup.find(id="frontpage-search-bar")
-    assert search_bar is not None
-    notice_container = search_bar.find_next_sibling("div")
-    assert notice_container is not None
-    notice = notice_container.find("p", class_="header")
-    assert notice is not None
-    assert "You have read-only access." in notice.get_text(" ", strip=True)
-    assert soup.find("a", href="/uploads/new?community=icl") is None
-    # Check that the deposit button is not visible.
-    assert soup.find(id="quick-create-dropdown") is None
-
+    """Check customised front page menus for a depositor."""
     # As seen by depositors.
     db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
+
     res = user_client.get("/")
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")
 
-    # Check that non-depositor information is not shown.
-    search_bar = soup.find(id="frontpage-search-bar")
-    assert search_bar is not None
-    notice_container = search_bar.find_next_sibling("div")
-    notice = (
-        notice_container.find("p", class_="header")
-        if notice_container is not None
-        else None
+    assert soup.select("#frontpage-search-bar ~ div p.ui.header") == []
+
+    [dropdown] = soup.select("#quick-create-dropdown")
+    [desktop_menu] = dropdown.select("#quick-create-menu[role='menu']")
+    assert len(desktop_menu.select("a[role='menuitem'][href='/uploads/new']")) == 1
+
+    assert (
+        len(
+            soup.select(
+                "div.sub-menu.mobile.tablet.only "
+                "a[role='menuitem'][href='/uploads/new']"
+            )
+        )
+        == 1
     )
-    assert notice is None
-    assert "You have read-only access." not in soup.get_text(" ", strip=True)
-
-    # Check that the deposit button is visible.
-    assert soup.find(id="quick-create-dropdown") is not None
-
-    # Check depositor menus
-    desktop_menu = soup.find(id="quick-create-menu")
-    assert desktop_menu is not None
-    upload_href = "/uploads/new"
-    assert desktop_menu.find("a", href=upload_href) is not None
-
-    actions_heading = next(
-        (h for h in soup.find_all("h2") if h.get_text(strip=True) == "Actions"),
-        None,
-    )
-    assert actions_heading is not None
-    mobile_menu = actions_heading.find_parent("div", class_="sub-menu")
-    assert mobile_menu is not None
-    assert mobile_menu.find("a", href=upload_href) is not None
 
 
 @pytest.mark.parametrize(

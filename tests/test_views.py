@@ -29,13 +29,27 @@ def test_index_view(client, app):
     [title] = soup.select("main .frontpage-hero h1")
     assert title.get_text(strip=True) == app.config["THEME_FRONTPAGE_TITLE"]
 
-    page_footer = soup.find("footer", id="rdm-footer-element")
-    assert page_footer is not None
-    footer = page_footer.find(class_="footer__meta")
-    assert footer is not None
-    assert (
-        footer.find("a", href=f"mailto:{app.config['SUPPORT_CONTACT_EMAIL']}")
-        is not None
+    [subtitle] = soup.select("main .frontpage-hero h2")
+    assert subtitle.get_text(strip=True) == app.config["THEME_FRONTPAGE_SUBTITLE"]
+
+    [search_records] = soup.select("main #frontpage-search-bar .search--label")
+    assert search_records.get_text(strip=True) == "Search records"
+
+    [page_footer] = soup.select("footer#rdm-footer-element")
+    [contact] = page_footer.select("div.footer__contact")
+    [brand] = contact.select("a.footer__brand")
+    [brand_name] = brand.select("span[itemprop='name']")
+    assert brand_name.get_text(strip=True) == "Imperial College London"
+
+    [address] = contact.select("div.address")
+    [street] = address.select("span[itemprop='streetAddress']")
+    assert street.get_text(strip=True) == "South Kensington Campus"
+
+    [footer_links] = page_footer.select("ul.footer__meta")
+    links = footer_links.select("a[href]")
+    assert any(
+        link["href"] == f"mailto:{app.config['SUPPORT_CONTACT_EMAIL']}"
+        for link in links
     )
 
     for setting in (
@@ -44,10 +58,7 @@ def test_index_view(client, app):
         "POLICY_DOCUMENTS_URL",
         "USER_GUIDE_URL",
     ):
-        assert any(
-            link.get("href") == app.config[setting]
-            for link in footer.find_all("a", href=True)
-        )
+        assert any(link["href"] == app.config[setting] for link in links)
 
 
 def test_index_auth(user_client):

@@ -67,7 +67,7 @@ def test_index_auth(user_client):
     res = user_client.get("/")
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")
-    
+
     search_bar = soup.find(id="frontpage-search-bar")
     assert search_bar is not None
     notice_container = search_bar.find_next_sibling("div")

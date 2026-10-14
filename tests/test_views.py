@@ -8,7 +8,8 @@ import pytest
 from bs4 import BeautifulSoup
 from flask import render_template, render_template_string
 from ic_data_repo.permissions import deposit_action
-from invenio_access.permissions import ActionUsers
+from invenio_access.permissions import ActionUsers, system_identity
+from invenio_communities.proxies import current_communities
 
 
 @pytest.fixture(autouse=True)
@@ -66,7 +67,7 @@ def test_index_auth(user_client):
     res = user_client.get("/")
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")
-
+    
     search_bar = soup.find(id="frontpage-search-bar")
     assert search_bar is not None
     notice_container = search_bar.find_next_sibling("div")
@@ -77,8 +78,25 @@ def test_index_auth(user_client):
     assert soup.find(id="quick-create-dropdown") is None
 
 
-def test_deposit_view_permissions(user, user_client, db, vocabularies, app):
+def test_deposit_view_permissions(user, user_client, db, location, vocabularies, app):
     """Check that only users with deposit permissions can access the deposit page."""
+    # We need the icl community to exist first to test deposit permissions against.
+    data = {
+        "slug": "icl",
+        "metadata": {
+            "title": "Imperial College London",
+            "description": "The Imperial College London community.",
+        },
+        "access": {
+            "visibility": "public",
+            "member_policy": "open",
+            "record_policy": "open",
+            "review_policy": "members",
+        },
+    }
+    current_communities.service.create(system_identity, data)
+    db.session.commit()
+
     # permission denied initially
     response = user_client.get("/uploads/new")
     assert response.status_code == 403

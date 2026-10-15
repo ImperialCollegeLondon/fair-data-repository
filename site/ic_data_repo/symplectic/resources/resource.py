@@ -1,5 +1,7 @@
 """Imperial College Data Repository Symplectic Resource."""
 
+from typing import ClassVar
+
 import marshmallow as ma
 from flask import g
 from flask_resources import (
@@ -19,7 +21,7 @@ class SymplecticResource(Resource):
     """Resource for Symplectic API interactions."""
 
     # Map service errors to HTTP errors
-    error_handlers = {
+    error_handlers: ClassVar = {
         SymplecticServiceError: create_error_handler(
             HTTPJSONException(
                 code=500,

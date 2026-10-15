@@ -19,7 +19,7 @@ import requests
 
 def get_filename_from_scheme_uri(uri):
     """Get filename from b64 encoded URI."""
-    encoded = uri.lstrip("filename://")
+    encoded = uri.removeprefix("filename://")
     return base64.b64decode(encoded.encode("ascii")).decode("ascii")
 
 

@@ -121,7 +121,6 @@ class InvenioVocabEntry(ABC):
     @abstractmethod
     def as_invenio_record(self) -> dict[str, Any]:
         """Serialisation method."""
-        pass
 
 
 @dataclass
@@ -190,7 +189,7 @@ def _get_request_config_for_roles(
     Note that we have to add the count parameter and the ConsistencyLevel header to make
     this work for some reason. See:
         https://stackoverflow.com/questions/49764678/microsoft-graph-filter-for-onpremisesextensionattributes
-    """  # noqa: E501
+    """
     # Include only some role types and exclude certain job families
     role_type_filter = _filter_expr_in_set(_ROLE_TYPE_ATTR_NAME, include_role_types)
     job_family_filter = (

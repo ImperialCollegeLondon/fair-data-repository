@@ -13,11 +13,12 @@ from invenio_rdm_records.services.schemas.metadata import (
     ReferenceSchema,
     RightsSchema,
 )
-from invenio_vocabularies.services.schema import VocabularyRelationSchema
 from marshmallow import validate
 from marshmallow.fields import List, Nested, String
 from marshmallow_utils.fields import NestedAttribute, SanitizedHTML
 from werkzeug.local import LocalProxy
+
+from .utils import length_validator_factory
 
 
 class CreatorsValue(List):
@@ -38,17 +39,6 @@ class ReferenceValue(List):
     def deserialize(self, value, attr=None, data=None, **kwargs):
         """Return empty list."""
         return []
-
-
-class ResourceValue(Nested):
-    """Resource type set to default from config."""
-
-    def deserialize(self, value, attr=None, data=None, **kwargs):
-        """Return default resource type."""
-        resource_type = current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"][
-            "resource_type"
-        ]
-        return {"id": str(resource_type)}
 
 
 class PublisherValue(String):
@@ -74,13 +64,18 @@ class PublicationDateValue(String):
 class ImperialMetadataSchema(MetadataSchema):
     """Imperial Metadata Schema."""
 
-    resource_type = ResourceValue(VocabularyRelationSchema, required=True)
     creators = CreatorsValue(
         Nested(CreatorSchema),
         required=True,
         validate=validate.Length(min=1, error=_("Missing data for required field.")),
     )
-    description = SanitizedHTML(required=True, validate=validate.Length(min=3))
+    description = SanitizedHTML(
+        required=True,
+        validate=length_validator_factory("DESCRIPTION_MIN_LENGTH"),
+    )
+    title = SanitizedHTML(
+        required=True, validate=length_validator_factory("TITLE_MIN_LENGTH")
+    )
     publisher = PublisherValue()
     publication_date = PublicationDateValue(
         load_default=lambda: current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"][

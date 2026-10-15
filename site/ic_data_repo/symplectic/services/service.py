@@ -29,5 +29,5 @@ class SymplecticService(Service):
             return self.config.result_item_cls(self, identity, search_results)
         except Exception as e:
             raise SymplecticServiceError(
-                f"Failed to fetch related objects: {str(e)}"
+                f"Failed to fetch related objects: {e!s}"
             ) from e

@@ -1,0 +1,17 @@
+# Test fixture, mirrors app_data/vocabularies/domain_metadata_schemes.yaml.
+# The imperial:domain_metadata custom field only reads a term's `id` -
+# title/props are irrelevant to it, kept here only as realistic-looking
+# vocabulary data. `id` must be unique across the whole vocabulary (it's a
+# single flat namespace, not partitioned per scheme) - see the header
+# comment in app_data/vocabularies/domain_metadata_schemes.yaml for the
+# scheme-prefix convention used to avoid collisions between schemes.
+- id: example-domain-term
+  title:
+    en: Example domain term
+  props:
+    subjectScheme: Example Scheme
+    schemeURI: "https://example.org/schemes/example-scheme"
+    valueURI: "https://example.org/schemes/example-scheme/example-domain-term"
+- id: minimal-domain-term
+  title:
+    en: Minimal domain term

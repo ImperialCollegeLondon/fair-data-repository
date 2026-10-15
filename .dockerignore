@@ -1,8 +1,8 @@
 # Ignore local virtualenv (if present)
 *
 !site
-!Pipfile
-!Pipfile.lock
+!pyproject.toml
+!uv.lock
 !docker/uwsgi
 !invenio.cfg
 !templates

@@ -31,6 +31,8 @@ const ModalActions = {
   ADD: "add",
 };
 
+const restrictedLicenseQuery = "-tags:restricted";
+
 export class LimitedLicenseModal extends LicenseModal {
   render() {
     const {
@@ -41,6 +43,10 @@ export class LimitedLicenseModal extends LicenseModal {
     const { open } = this.state;
 
     const searchApi = new InvenioSearchApi(searchConfig.searchApi);
+    const initialQueryState = {
+      ...searchConfig.initialQueryState,
+      queryString: restrictedLicenseQuery,
+    };
     return (
       <Formik
         initialValues={{
@@ -76,7 +82,7 @@ export class LimitedLicenseModal extends LicenseModal {
                     searchApi={searchApi}
                     appName="licenses"
                     urlHandlerApi={{ enabled: false }}
-                    initialQueryState={searchConfig.initialQueryState}
+                    initialQueryState={initialQueryState}
                   >
                     <Grid>
                       <Grid.Row verticalAlign="middle">

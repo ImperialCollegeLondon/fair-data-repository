@@ -4,6 +4,8 @@ from invenio_records_resources.services.custom_fields import TextCF
 from marshmallow import validate
 from marshmallow_utils.fields import ISOLangString
 
+from ic_data_repo.domain_metadata import DomainMetadataCF
+
 RDM_NAMESPACES = {
     "imperial": "https://www.imperial.ac.uk",
 }
@@ -30,6 +32,9 @@ RDM_CUSTOM_FIELDS = [
             },
         },
         multiple=False,
+    ),
+    DomainMetadataCF(
+        name="imperial:domain_metadata",
     ),
 ]
 
@@ -71,6 +76,16 @@ RDM_CUSTOM_FIELDS_UI = [
                     clearable=True,
                     required=False,
                 ),
+            ),
+        ],
+    },
+    {
+        "section": "Domain metadata",
+        "hide_from_upload_form": True,
+        "fields": [
+            dict(
+                field="imperial:domain_metadata",
+                template="domain_metadata.html",
             ),
         ],
     },

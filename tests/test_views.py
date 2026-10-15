@@ -104,15 +104,13 @@ def test_deposit_view_permissions(user, user_client, db, location, vocabularies,
     response = user_client.get("/uploads/new")
     assert response.status_code == 200
     soup = BeautifulSoup(response.data, "html.parser")
-    symplectic = soup.find(
-        "input",
-        attrs={"type": "hidden", "name": "symplectic_search_enabled"},
+    symplectic = soup.select_one(
+        'input[type="hidden"][name="symplectic_search_enabled"]'
     )
     assert symplectic is not None
     assert json.loads(symplectic["value"]) == app.config["SYMPLECTIC_SEARCH_ENABLED"]
-    agreement = soup.find(
-        "input",
-        attrs={"type": "hidden", "name": "data_deposit_agreement_url"},
+    agreement = soup.select_one(
+        'input[type="hidden"][name="data_deposit_agreement_url"]'
     )
     assert agreement is not None
     assert json.loads(agreement["value"]) == app.config["DATA_DEPOSIT_AGREEMENT_URL"]

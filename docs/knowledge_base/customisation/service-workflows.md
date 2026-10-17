@@ -20,6 +20,7 @@ For user-context operations (e.g. in a view or Celery task with user info):
 
 ```python
 from flask import g
+
 identity = g.identity  # or construct from user
 ```
 
@@ -29,30 +30,46 @@ This is the simplest path — no community review required.
 
 ```python
 # 1. Create a draft
-draft = service.create(identity, data={
-    "metadata": {
-        "title": "My Dataset",
-        "resource_type": {"id": "dataset"},
-        "creators": [{"person_or_org": {"family_name": "Smith", "given_name": "John", "type": "personal"}}],
-        "publication_date": "2024-01-15",
-        "publisher": "Imperial College London",
+draft = service.create(
+    identity,
+    data={
+        "metadata": {
+            "title": "My Dataset",
+            "resource_type": {"id": "dataset"},
+            "creators": [
+                {
+                    "person_or_org": {
+                        "family_name": "Smith",
+                        "given_name": "John",
+                        "type": "personal",
+                    }
+                }
+            ],
+            "publication_date": "2024-01-15",
+            "publisher": "Imperial College London",
+        },
+        "access": {
+            "record": "public",
+            "files": "public",
+        },
+        "files": {"enabled": True},
     },
-    "access": {
-        "record": "public",
-        "files": "public",
-    },
-    "files": {"enabled": True},
-})
+)
 draft_id = draft.id
 
 # 2. Upload files (three-step process)
 # 2a. Initialize file entry (declares intent to upload)
-service.draft_files.init_files(identity, draft_id, data=[
-    {"key": "data.csv"},  # filename
-])
+service.draft_files.init_files(
+    identity,
+    draft_id,
+    data=[
+        {"key": "data.csv"},  # filename
+    ],
+)
 
 # 2b. Upload file content
 from io import BytesIO
+
 content = BytesIO(b"col1,col2\n1,2\n")
 service.draft_files.set_file_content(identity, draft_id, "data.csv", content)
 
@@ -101,10 +118,9 @@ review_service.submit(identity, draft_id)
 
 # 5. Curator accepts (from curator's identity)
 from invenio_requests.proxies import current_requests_service
+
 request_id = review.id
-current_requests_service.execute_action(
-    curator_identity, request_id, "accept", uow=uow
-)
+current_requests_service.execute_action(curator_identity, request_id, "accept", uow=uow)
 # Accepting automatically publishes the record and adds it to the community
 ```
 
@@ -144,11 +160,15 @@ new_draft = service.new_version(identity, record_id)
 new_draft_id = new_draft.id
 
 # 2. Update metadata if needed
-service.update_draft(identity, new_draft_id, data={
-    "metadata": {
-        ...  # updated metadata
-    }
-})
+service.update_draft(
+    identity,
+    new_draft_id,
+    data={
+        "metadata": {
+            ...  # updated metadata
+        }
+    },
+)
 
 # 3. Optionally upload new/updated files
 # (new version starts with files copied from previous version)
@@ -215,12 +235,15 @@ print(link.data["token"])  # share this token
 
 ```python
 # Public search (all published records the identity can see)
-results = service.search(identity, params={
-    "q": "climate change",
-    "sort": "newest",
-    "size": 10,
-    "page": 1,
-})
+results = service.search(
+    identity,
+    params={
+        "q": "climate change",
+        "sort": "newest",
+        "size": 10,
+        "page": 1,
+    },
+)
 
 for hit in results.hits:
     print(hit["metadata"]["title"])
@@ -230,6 +253,7 @@ drafts = service.search_drafts(identity, params={"q": ""})
 
 # Search within a community
 from invenio_rdm_records.proxies import current_community_records_service
+
 community_records = current_community_records_service.search(
     identity,
     community_id="<community-id>",

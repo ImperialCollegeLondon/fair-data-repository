@@ -35,7 +35,11 @@ from .custom_fields import (  # noqa: F401
     RDM_CUSTOM_FIELDS_UI,
     RDM_NAMESPACES,
 )
-from .utils import get_user_form_default
+from .utils import (
+    get_user_form_default,
+    imperial_community_review,
+    imperial_community_review_receiver,
+)
 
 # Flask
 # =====
@@ -137,8 +141,16 @@ APP_RDM_DEPOSIT_FORM_DEFAULTS = {
         }
     ],
     "publisher": "Imperial College London",
-    "creators": lambda: get_user_form_default(),
+    "creators": get_user_form_default,
+    ".parent.review": imperial_community_review,
+    ".expanded.parent.review.receiver": imperial_community_review_receiver,
 }
+
+# NOTE: `imperial_community_review` and `imperial_community_review_receiver` above are
+# hacks to inject a default community review when creating new records via the UI. By
+# prepending a period `.` to fields, we can 'break out' of `metadata`, and set defaults
+# for `parent` and `expanded`. This is almost certainly a hack. Remove them if/when a
+# better mechanism is implemented upstream.
 
 RECORDS_RESOURCES_TRANSFERS = [
     *DEFAULT_TRANSFERS,
@@ -223,6 +235,28 @@ if ICL_GRAPH_API_ENABLED:
     ICL_APP_CREDENTIALS = {
         "consumer_key": ICL_OAUTH_CLIENT_ID,
         "consumer_secret": ICL_OAUTH_CLIENT_SECRET,
+    }
+
+# ORCID integration
+# ------------------
+
+ORCID_OAUTH_CLIENT_ID = os.getenv("ORCID_OAUTH_CLIENT_ID")
+ORCID_OAUTH_CLIENT_SECRET = os.getenv("ORCID_OAUTH_CLIENT_SECRET")
+
+ORCID_OAUTH_ENABLED = bool(ORCID_OAUTH_CLIENT_ID and ORCID_OAUTH_CLIENT_SECRET)
+
+if ORCID_OAUTH_ENABLED:
+    from invenio_oauthclient.contrib.orcid import ORCIDOAuthSettingsHelper
+
+    _orcid_remote_app = ORCIDOAuthSettingsHelper(
+        title="ORCID",
+        description="Link your Helix account to your ORCID iD.",
+    ).remote_app
+    _orcid_remote_app["hide"] = True
+    OAUTHCLIENT_REMOTE_APPS["orcid"] = _orcid_remote_app
+    ORCID_APP_CREDENTIALS = {
+        "consumer_key": ORCID_OAUTH_CLIENT_ID,
+        "consumer_secret": ORCID_OAUTH_CLIENT_SECRET,
     }
 
 ACCOUNTS_LOGIN_VIEW_FUNCTION = (

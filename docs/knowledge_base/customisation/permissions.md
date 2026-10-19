@@ -23,6 +23,7 @@
 from invenio_records_permissions.policies.records import RecordPermissionPolicy
 from invenio_records_permissions.generators import AnyUser, SystemProcess
 
+
 class MyPermissionPolicy(RecordPermissionPolicy):
     # High-level composable permissions
     can_manage = [RecordOwners(), SystemProcess()]
@@ -30,7 +31,9 @@ class MyPermissionPolicy(RecordPermissionPolicy):
 
     # Action permissions
     can_create = [AuthenticatedUser(), SystemProcess()]
-    can_read = [IfRestricted("record", then_=SameAs("can_view"), else_=SameAs("can_all"))]
+    can_read = [
+        IfRestricted("record", then_=SameAs("can_view"), else_=SameAs("can_all"))
+    ]
     can_update_draft = SameAs("can_review")
     can_publish = SameAs("can_review")
     can_delete = [Administration(), SystemProcess()]
@@ -124,6 +127,7 @@ Actions reference these levels:
 ```python
 # invenio.cfg
 from my_site.permissions import MyPermissionPolicy
+
 RDM_PERMISSION_POLICY = MyPermissionPolicy
 ```
 
@@ -134,6 +138,7 @@ from invenio_rdm_records.services.permissions import RDMRecordPermissionPolicy
 from invenio_records_permissions.generators import SystemProcess
 from my_site.generators import MyCustomGenerator
 
+
 class MyPermissionPolicy(RDMRecordPermissionPolicy):
     can_create = [MyCustomGenerator(), SystemProcess()]
 ```
@@ -143,6 +148,7 @@ class MyPermissionPolicy(RDMRecordPermissionPolicy):
 ```python
 from invenio_records_permissions.generators import Generator
 from flask_principal import ActionNeed
+
 
 class AbleToDeposit(Generator):
     def needs(self, **kwargs):
@@ -174,6 +180,7 @@ self.service.require_permission(identity, "use_subject_field")
 
 # ❌ Wrong — flask_principal.Permission never matches ActionNeed in identity
 from flask_principal import Permission, ActionNeed
+
 if not Permission(ActionNeed("subject-action")).allows(identity):
     raise PermissionDenied()
 ```
@@ -189,12 +196,14 @@ from flask_principal import ActionNeed
 
 subject_metadata_action = ActionNeed("subject-metadata-action")
 
+
 class AbleToUseSubjectField(Generator):
     def needs(self, **kwargs):
         return [subject_metadata_action]
 
     def query_filter(self, **kwargs):
         return []  # not used for search filtering
+
 
 class MyPermissionPolicy(RDMRecordPermissionPolicy):
     can_use_subject_field = [AbleToUseSubjectField(), SystemProcess()]
@@ -204,6 +213,7 @@ Grant the action to a user via the database (in tests or admin CLI):
 
 ```python
 from invenio_access.permissions import ActionUsers
+
 db.session.add(ActionUsers.allow(subject_metadata_action, user_id=user.id))
 db.session.commit()
 ```

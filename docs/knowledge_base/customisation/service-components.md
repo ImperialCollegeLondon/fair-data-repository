@@ -21,6 +21,7 @@ Inherit from `ServiceComponent` and override whichever methods you need:
 ```python
 from invenio_records_resources.services.records.components import ServiceComponent
 
+
 class MyComponent(ServiceComponent):
     def create(self, identity, data=None, record=None, **kwargs):
         """Called during service.create(), after the record object exists."""
@@ -52,6 +53,7 @@ Use `self.service.require_permission()` — **not** `flask_principal.Permission`
 
 ```python
 from invenio_records_resources.services.errors import PermissionDeniedError
+
 
 class SubjectFieldComponent(ServiceComponent):
     def _check_subject_permission(self, identity, data):
@@ -104,11 +106,15 @@ metadata is replaced (for example, to authorize a change to a specific field), i
 before the default components:
 
 ```python
-RDM_RECORDS_SERVICE_COMPONENTS = [
-    MetadataChangeAuthorizationComponent,
-] + DefaultRecordsComponents + [
-    SymplecticComponent,
-]
+RDM_RECORDS_SERVICE_COMPONENTS = (
+    [
+        MetadataChangeAuthorizationComponent,
+    ]
+    + DefaultRecordsComponents
+    + [
+        SymplecticComponent,
+    ]
+)
 ```
 
 Keep components that only consume the final record state after
@@ -118,6 +124,7 @@ Keep components that only consume the final record state after
 
 ```python
 from invenio_rdm_records.proxies import current_rdm_records_service
+
 
 class MyComponent(ServiceComponent):
     def publish(self, identity, draft=None, record=None, **kwargs):

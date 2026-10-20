@@ -54,7 +54,7 @@ def test_index_view(client, app):
         assert any(link["href"] == app.config[setting] for link in links)
 
 
-def test_index_auth(user_client):
+def test_index_auth(user_client, app):
     """Check the index view with a logged in user."""
     res = user_client.get("/")
     assert res.status_code == 200
@@ -62,6 +62,10 @@ def test_index_auth(user_client):
 
     [notice] = soup.select("#frontpage-search-bar ~ div p.ui.header")
     assert "You have read-only access." in notice.get_text(" ", strip=True)
+    [contact_link] = notice.select("a[href]")
+    email = app.config["SUPPORT_CONTACT_EMAIL"]
+    assert contact_link["href"] == f"mailto:{email}"
+    assert contact_link.get_text(strip=True) == email
     assert soup.select("#quick-create-dropdown") == []
     assert soup.select("#quick-create-menu a[href='/uploads/new']") == []
     assert soup.select("div.sub-menu.mobile.tablet.only a[href='/uploads/new']") == []
@@ -97,16 +101,12 @@ def test_deposit_view_permissions(user, user_client, db, location, vocabularies,
     response = user_client.get("/uploads/new")
     assert response.status_code == 200
     soup = BeautifulSoup(response.data, "html.parser")
-    symplectic = soup.select_one(
-        'input[type="hidden"][name="symplectic_search_enabled"]'
-    )
-    assert symplectic is not None
-    assert json.loads(symplectic["value"]) == app.config["SYMPLECTIC_SEARCH_ENABLED"]
-    agreement = soup.select_one(
-        'input[type="hidden"][name="data_deposit_agreement_url"]'
-    )
-    assert agreement is not None
-    assert json.loads(agreement["value"]) == app.config["DATA_DEPOSIT_AGREEMENT_URL"]
+    for name, setting in (
+        ("symplectic_search_enabled", "SYMPLECTIC_SEARCH_ENABLED"),
+        ("data_deposit_agreement_url", "DATA_DEPOSIT_AGREEMENT_URL"),
+    ):
+        [field] = soup.select(f'main input[type="hidden"][name="{name}"]')
+        assert json.loads(field["value"]) == app.config[setting]
 
 
 def test_ui_changes_for_depositors(user, user_client, db):

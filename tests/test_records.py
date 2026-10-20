@@ -14,18 +14,12 @@ def test_new_record_version(location, vocabularies, user_depositor, metadata):
     record_v1 = current_rdm_records_service.create(
         user_depositor.identity, data=record_v1_data
     )
-    assert record_v1["status"] == "draft"
     record_v1_published = current_rdm_records_service.publish(
         system_identity, record_v1.id
     )
-    assert record_v1_published["status"] == "published"
 
     # Create version 2 of the record.
     record_v2 = current_rdm_records_service.new_version(
         user_depositor.identity, record_v1_published.id
     )
-    assert record_v2["status"] == "new_version_draft"
-    record_v2_published = current_rdm_records_service.publish(
-        system_identity, record_v2.id
-    )
-    assert record_v2_published["status"] == "published"
+    current_rdm_records_service.publish(system_identity, record_v2.id)

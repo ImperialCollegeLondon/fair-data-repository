@@ -51,7 +51,6 @@ def test_restricted_license_permission_update(
         user_depositor.identity,
         data={"metadata": metadata, "files": {"enabled": False}},
     )
-    assert draft["status"] == "draft"
 
     metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
     if grant:

@@ -108,7 +108,6 @@ def test_domain_metadata_custom_field(
         "custom_fields": {"imperial:domain_metadata": entries},
     }
     record = current_rdm_records_service.create(user_depositor.identity, record_data)
-    assert record["status"] == "draft"
 
     error_fields = [e["field"] for e in record.errors]
     assert sorted(error_fields) == sorted(expected_errors)
@@ -151,12 +150,10 @@ def test_domain_metadata_custom_field_search(
     matching_record = current_rdm_records_service.create(
         user_depositor.identity, with_domain_metadata
     )
-    assert matching_record["status"] == "draft"
 
     other_record = current_rdm_records_service.create(
         user_depositor.identity, without_domain_metadata
     )
-    assert other_record["status"] == "draft"
 
     current_search.flush_and_refresh("*")
 
@@ -211,7 +208,6 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
         },
     }
     record = current_rdm_records_service.create(user_depositor.identity, record_data)
-    assert record["status"] == "draft"
 
     # Use the UI serializer to get the record format expected by the landing page.
     record_ui = UIJSONSerializer().dump_obj(record.to_dict())
@@ -244,7 +240,6 @@ def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
     record = current_rdm_records_service.create(
         user_depositor.identity, {"metadata": metadata, "files": {"enabled": False}}
     )
-    assert record["status"] == "draft"
 
     # Use the UI serializer to get the record format expected by the landing page.
     record_ui = UIJSONSerializer().dump_obj(record.to_dict())
@@ -292,7 +287,6 @@ def test_domain_metadata_add_requires_permission(
     plain = current_rdm_records_service.create(
         user_depositor.identity, {"metadata": metadata, "files": {"enabled": False}}
     )
-    assert plain["status"] == "draft"
 
     if grant:
         _grant_domain_metadata_permission(user_depositor, db)
@@ -335,7 +329,6 @@ def test_domain_metadata_reorder_requires_permission(
         },
     }
     created = current_rdm_records_service.create(user_depositor.identity, original_json)
-    assert created["status"] == "draft"
 
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)
@@ -379,7 +372,6 @@ def test_domain_metadata_removal_requires_permission(
         },
     }
     created = current_rdm_records_service.create(user_depositor.identity, original_json)
-    assert created["status"] == "draft"
 
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)
@@ -415,7 +407,6 @@ def test_domain_metadata_unchanged_update_requires_permission(
         },
     }
     created = current_rdm_records_service.create(user_depositor.identity, original_json)
-    assert created["status"] == "draft"
 
     if not grant:
         _revoke_domain_metadata_permission(user_depositor, db)

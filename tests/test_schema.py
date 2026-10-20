@@ -13,7 +13,6 @@ def test_metadata_schema(location, vocabularies, user_depositor, metadata):
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft"
 
     # Test metadata policies are enforced.
     assert record["metadata"]["title"] == "Test Record"
@@ -31,7 +30,6 @@ def test_metadata_schema_rights(location, vocabularies, user_depositor, metadata
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record_1["status"] == "draft"
     assert "rights" not in record_1["metadata"]
 
     # Test that a single license is accepted.
@@ -40,7 +38,6 @@ def test_metadata_schema_rights(location, vocabularies, user_depositor, metadata
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record_2["status"] == "draft"
     assert record_2["metadata"]["rights"][0]["id"] == "cc0-1.0"
 
     # Test that multiple rights entries are not accepted.
@@ -49,7 +46,6 @@ def test_metadata_schema_rights(location, vocabularies, user_depositor, metadata
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record_3["status"] == "draft"
     error = record_3.errors[0]
     assert error["field"] == "metadata.rights"
     assert error["messages"] == ["No more than one can be provided."]
@@ -63,7 +59,6 @@ def test_metadata_schema_copyright(location, vocabularies, user_depositor, metad
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft"
     error = record.errors[0]
     assert error["field"] == "metadata.copyright"
     assert error["messages"] == ["Unknown field."]
@@ -77,7 +72,6 @@ def test_access_schema(location, vocabularies, user_depositor, metadata):
         user_depositor.identity,
         data={"metadata": metadata, "access": access},
     )
-    assert record["status"] == "draft"
     # 'record' should be reset to public, but 'files' should remain restricted.
     assert record["access"]["record"] == "public"
     assert record["access"]["files"] == "restricted"

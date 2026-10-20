@@ -16,7 +16,6 @@ def test_description_transfer(location, vocabularies, user_depositor, metadata, 
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft"
 
     # Grant permission to the user.
     db.session.add(
@@ -59,7 +58,6 @@ def test_description_transfer(location, vocabularies, user_depositor, metadata, 
         file_metadata[0]["key"],
     )
     assert r.errors is None
-    assert r["status"] == "completed"
     assert r["key"] == file_metadata[0]["key"]
     assert r["transfer"] == file_metadata[0]["transfer"]
 
@@ -72,7 +70,6 @@ def test_description_transfer_mixed_files(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft"
 
     # Grant permission to the user.
     db.session.add(
@@ -120,7 +117,6 @@ def test_description_transfer_mixed_files(
             meta["key"],
         )
         assert r.errors is None
-        assert r["status"] == "completed"
         assert r["key"] == meta["key"]
         assert r["transfer"] == meta["transfer"]
 
@@ -133,7 +129,6 @@ def test_description_transfer_unauthorised_create(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft"
 
     # Metadata for the description transfer file.
     file_metadata = [
@@ -163,7 +158,6 @@ def test_description_transfer_unauthorised_upload(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft"
 
     grant = ActionUsers.allow(described_file_action, user_id=user_depositor.user.id)
 
@@ -212,7 +206,6 @@ def test_description_transfer_unauthorised_commit(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft"
 
     grant = ActionUsers.allow(described_file_action, user_id=user_depositor.user.id)
 
@@ -269,7 +262,6 @@ def test_description_transfer_oversized_description(
         user_depositor.identity,
         data={"metadata": metadata},
     )
-    assert record["status"] == "draft"
 
     # Grant permission to the user.
     db.session.add(

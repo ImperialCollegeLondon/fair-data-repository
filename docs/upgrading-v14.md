@@ -114,7 +114,8 @@ workers must be running.
 The dev and prod instances run on AKS using the image built from this repository and the
 [ImperialCollegeLondon/helm-invenio] chart. Merging to `develop` deploys to dev and
 merging to `main` deploys to prod (see `.github/workflows/publish.yml` and
-`deploy.yml`). The chart runs the `web`, `worker` and `worker-beat` Deployments in the
+`deploy.yml`). The chart runs the `web`, `worker`, `worker-beat` and `worker-scheduler`
+(the invenio-jobs scheduler, added with the v14 chart update) Deployments in the
 `invenio` namespace.
 
 !!! warning
@@ -163,6 +164,7 @@ alias k="kubectl -n invenio"
     k rollout status deploy/web
     k rollout status deploy/worker
     k rollout status deploy/worker-beat
+    k rollout status deploy/worker-scheduler
     ```
 
 1. **Stop the Celery workers** so nothing touches the database mid-migration. Note the
@@ -170,7 +172,7 @@ alias k="kubectl -n invenio"
 
     ```console
     k get deploy worker -o jsonpath='{.spec.replicas}'
-    k scale deploy worker worker-beat --replicas=0
+    k scale deploy worker worker-beat worker-scheduler --replicas=0
     ```
 
 1. **Open a shell in a web pod** (the remaining commands run inside it):
@@ -184,7 +186,7 @@ alias k="kubectl -n invenio"
 
     ```console
     k scale deploy worker --replicas=<previous count>
-    k scale deploy worker-beat --replicas=1
+    k scale deploy worker-beat worker-scheduler --replicas=1
     ```
 
     A subsequent deploy will also reset the replica counts to the values in the chart.

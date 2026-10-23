@@ -2,34 +2,14 @@
 
 import pytest
 from ic_data_repo.permissions import described_file_action
-from invenio_access.permissions import ActionUsers
 from invenio_records_resources.services.errors import PermissionDeniedError
 from marshmallow.exceptions import ValidationError
 
 
-@pytest.fixture
-def described_file_permission(db, user_depositor):
-    """Fixture for granting and revoking described file permissions."""
-
-    class _DescribedFilePermission:
-        def __init__(self):
-            self.action_user = ActionUsers.allow(
-                described_file_action, user_id=user_depositor.user.id
-            )
-
-        def grant(self):
-            db.session.add(self.action_user)
-            db.session.flush()
-
-        def revoke(self):
-            db.session.delete(self.action_user)
-            db.session.flush()
-
-    return _DescribedFilePermission()
-
-
-def test_description_transfer(described_file_permission, record, draft_files):
+def test_description_transfer(permission_manager, record, draft_files):
     """Test creating a DescriptionTransfer file."""
+    described_file_permission = permission_manager(described_file_action)
+
     record = record(data_override={"files": {"enabled": True}})
     record.create()
 
@@ -63,10 +43,10 @@ def test_description_transfer(described_file_permission, record, draft_files):
     assert result[0]["transfer"] == files_data[0]["transfer"]
 
 
-def test_description_transfer_mixed_files(
-    described_file_permission, record, draft_files
-):
+def test_description_transfer_mixed_files(permission_manager, record, draft_files):
     """Test creating mixed DescriptionTransfer and Local files."""
+    described_file_permission = permission_manager(described_file_action)
+
     record = record(data_override={"files": {"enabled": True}})
     record.create()
 
@@ -129,9 +109,11 @@ def test_description_transfer_unauthorised_create(record, draft_files):
 
 
 def test_description_transfer_unauthorised_upload(
-    described_file_permission, record, draft_files
+    permission_manager, record, draft_files
 ):
     """Test uploading a DescriptionTransfer file without permission."""
+    described_file_permission = permission_manager(described_file_action)
+
     record = record(data_override={"files": {"enabled": True}})
     record.create()
 
@@ -162,9 +144,11 @@ def test_description_transfer_unauthorised_upload(
 
 
 def test_description_transfer_unauthorised_commit(
-    described_file_permission, record, draft_files
+    permission_manager, record, draft_files
 ):
     """Test committing a DescriptionTransfer file without permission."""
+    described_file_permission = permission_manager(described_file_action)
+
     record = record(data_override={"files": {"enabled": True}})
     record.create()
 
@@ -198,9 +182,11 @@ def test_description_transfer_unauthorised_commit(
 
 
 def test_description_transfer_oversized_description(
-    described_file_permission, record, draft_files
+    permission_manager, record, draft_files
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
+    described_file_permission = permission_manager(described_file_action)
+
     record = record(data_override={"files": {"enabled": True}})
     record.create()
 

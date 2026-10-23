@@ -390,3 +390,22 @@ def draft_files(user_depositor):
             ]
 
     return _DraftFiles
+
+
+@pytest.fixture
+def permission_manager(db, user_depositor):
+    """Fixture for granting and revoking described file permissions."""
+
+    class _DescribedFilePermission:
+        def __init__(self, action):
+            self.action_user = ActionUsers.allow(action, user_id=user_depositor.user.id)
+
+        def grant(self):
+            db.session.add(self.action_user)
+            db.session.flush()
+
+        def revoke(self):
+            db.session.delete(self.action_user)
+            db.session.flush()
+
+    return _DescribedFilePermission

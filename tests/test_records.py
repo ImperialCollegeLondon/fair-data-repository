@@ -1,25 +1,14 @@
 """Tests for records."""
 
 from invenio_access.permissions import system_identity
-from invenio_rdm_records.proxies import current_rdm_records_service
 
 
-def test_new_record_version(location, vocabularies, user_depositor, metadata):
+def test_new_record_version(record):
     """Test creating a new version of a record."""
-    record_v1_data = {
-        "metadata": metadata,
-        "files": {"enabled": False},
-        "custom_fields": {"imperial:dart_id": "123456789"},
-    }
-    record_v1 = current_rdm_records_service.create(
-        user_depositor.identity, data=record_v1_data
-    )
-    record_v1_published = current_rdm_records_service.publish(
-        system_identity, record_v1.id
-    )
+    record = record()
+    record.create()
+    record.publish(identity=system_identity)
 
     # Create version 2 of the record.
-    record_v2 = current_rdm_records_service.new_version(
-        user_depositor.identity, record_v1_published.id
-    )
-    current_rdm_records_service.publish(system_identity, record_v2.id)
+    record.new_version()
+    record.publish(identity=system_identity)

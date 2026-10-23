@@ -30,7 +30,7 @@ def described_file_permission(db, user_depositor):
 
 def test_description_transfer(described_file_permission, record, draft_files):
     """Test creating a DescriptionTransfer file."""
-    record = record()
+    record = record(data_override={"files": {"enabled": True}})
     record.create()
 
     # Grant permission to the user.
@@ -67,7 +67,7 @@ def test_description_transfer_mixed_files(
     described_file_permission, record, draft_files
 ):
     """Test creating mixed DescriptionTransfer and Local files."""
-    record = record()
+    record = record(data_override={"files": {"enabled": True}})
     record.create()
 
     # Grant permission to the user.
@@ -108,7 +108,7 @@ def test_description_transfer_mixed_files(
 
 def test_description_transfer_unauthorised_create(record, draft_files):
     """Test creating a DescriptionTransfer file without permission."""
-    record = record()
+    record = record(data_override={"files": {"enabled": True}})
     record.create()
 
     # Data for the description transfer file.
@@ -132,7 +132,7 @@ def test_description_transfer_unauthorised_upload(
     described_file_permission, record, draft_files
 ):
     """Test uploading a DescriptionTransfer file without permission."""
-    record = record()
+    record = record(data_override={"files": {"enabled": True}})
     record.create()
 
     # Grant permission to the user.
@@ -165,7 +165,7 @@ def test_description_transfer_unauthorised_commit(
     described_file_permission, record, draft_files
 ):
     """Test committing a DescriptionTransfer file without permission."""
-    record = record()
+    record = record(data_override={"files": {"enabled": True}})
     record.create()
 
     # Grant permission to the user.
@@ -201,7 +201,7 @@ def test_description_transfer_oversized_description(
     described_file_permission, record, draft_files
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
-    record = record()
+    record = record(data_override={"files": {"enabled": True}})
     record.create()
 
     # Grant permission to the user.

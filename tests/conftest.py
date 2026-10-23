@@ -302,34 +302,37 @@ def db(db):
 
 
 @pytest.fixture
-def metadata():
-    """Simple record metadata."""
+def record_data():
+    """Simple record data."""
     return {
-        "title": "Test Record",
-        "description": "This is a test record.",
-        "resource_type": {"id": "dataset"},
-        "creators": [
-            {
-                "person_or_org": {
-                    "type": "personal",
-                    "given_name": "Neo",
-                    "family_name": "Anderson",
+        "metadata": {
+            "title": "Test Record",
+            "description": "This is a test record.",
+            "resource_type": {"id": "dataset"},
+            "creators": [
+                {
+                    "person_or_org": {
+                        "type": "personal",
+                        "given_name": "Neo",
+                        "family_name": "Anderson",
+                    },
+                    "role": "the one",
                 },
-                "role": "the one",
-            },
-        ],
-        "rights": [{"id": "cc-by-4.0"}],
+            ],
+            "rights": [{"id": "cc-by-4.0"}],
+        },
+        "files": {"enabled": False},
     }
 
 
 @pytest.fixture
-def record(location, vocabularies, metadata, user_depositor):
+def record(location, vocabularies, record_data, user_depositor):
     """Return a factory class to test creating a new record."""
 
     class _Record:
-        def __init__(self, metadata_override={}):
+        def __init__(self, data_override={}):
             self.id = None
-            self.data = {"metadata": metadata | metadata_override}
+            self.data = record_data | data_override
 
         def create(self, identity=user_depositor.identity):
             draft = current_rdm_records_service.create(identity, self.data)

@@ -28,9 +28,10 @@ def described_file_permission(db, user_depositor):
     return _DescribedFilePermission()
 
 
-def test_description_transfer(described_file_permission, record_factory, draft_files):
+def test_description_transfer(described_file_permission, record, draft_files):
     """Test creating a DescriptionTransfer file."""
-    record = record_factory()
+    record = record()
+    record.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -63,10 +64,11 @@ def test_description_transfer(described_file_permission, record_factory, draft_f
 
 
 def test_description_transfer_mixed_files(
-    described_file_permission, record_factory, draft_files
+    described_file_permission, record, draft_files
 ):
     """Test creating mixed DescriptionTransfer and Local files."""
-    record = record_factory()
+    record = record()
+    record.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -104,9 +106,10 @@ def test_description_transfer_mixed_files(
     assert result[1]["transfer"] == files_data[1]["transfer"]
 
 
-def test_description_transfer_unauthorised_create(record_factory, draft_files):
+def test_description_transfer_unauthorised_create(record, draft_files):
     """Test creating a DescriptionTransfer file without permission."""
-    record = record_factory()
+    record = record()
+    record.create()
 
     # Data for the description transfer file.
     files_data = [
@@ -126,10 +129,11 @@ def test_description_transfer_unauthorised_create(record_factory, draft_files):
 
 
 def test_description_transfer_unauthorised_upload(
-    described_file_permission, record_factory, draft_files
+    described_file_permission, record, draft_files
 ):
     """Test uploading a DescriptionTransfer file without permission."""
-    record = record_factory()
+    record = record()
+    record.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -158,10 +162,11 @@ def test_description_transfer_unauthorised_upload(
 
 
 def test_description_transfer_unauthorised_commit(
-    described_file_permission, record_factory, draft_files
+    described_file_permission, record, draft_files
 ):
     """Test committing a DescriptionTransfer file without permission."""
-    record = record_factory()
+    record = record()
+    record.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -193,10 +198,11 @@ def test_description_transfer_unauthorised_commit(
 
 
 def test_description_transfer_oversized_description(
-    described_file_permission, record_factory, draft_files
+    described_file_permission, record, draft_files
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
-    record = record_factory()
+    record = record()
+    record.create()
 
     # Grant permission to the user.
     described_file_permission.grant()

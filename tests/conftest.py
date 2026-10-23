@@ -327,24 +327,28 @@ def record(location, vocabularies, metadata, user_depositor):
     """Return a factory class to test creating a new record."""
 
     class _Record:
-        def __init__(self, metadata_override={}, identity=user_depositor.identity):
+        def __init__(self, metadata_override={}):
             self.id = None
             self.data = {"metadata": metadata | metadata_override}
-            self.identity = identity
 
-        def create(self):
-            draft = current_rdm_records_service.create(self.identity, self.data)
+        def create(self, identity=user_depositor.identity):
+            draft = current_rdm_records_service.create(identity, self.data)
             self.id = draft.id
             return draft
 
-        def publish(self):
-            return current_rdm_records_service.publish(self.identity, self.id)
+        def publish(self, identity=user_depositor.identity):
+            return current_rdm_records_service.publish(identity, self.id)
 
-        def create_doi(self):
+        def new_version(self, identity=user_depositor.identity):
+            draft = current_rdm_records_service.new_version(identity, self.id)
+            self.id = draft.id
+            return draft
+
+        def create_doi(self, identity=user_depositor.identity):
             current_rdm_records_service.pids.create(
-                self.identity, self.id, "doi", provider="datacite"
+                identity, self.id, "doi", provider="datacite"
             )
-            return current_rdm_records_service.pids.reserve(self.identity, self.id)
+            return current_rdm_records_service.pids.reserve(identity, self.id)
 
     return _Record
 
@@ -354,20 +358,19 @@ def draft_files(user_depositor):
     """Return a factory class to test adding files to a draft record."""
 
     class _DraftFiles:
-        def __init__(self, record_id, files_data, identity=user_depositor.identity):
+        def __init__(self, record_id, files_data):
             self.record_id = record_id
             self.data = files_data
-            self.identity = identity
 
-        def init(self):
+        def init(self, identity=user_depositor.identity):
             return current_rdm_records_service.draft_files.init_files(
-                self.identity, self.record_id, data=self.data
+                identity, self.record_id, data=self.data
             )
 
-        def upload(self):
+        def upload(self, identity=user_depositor.identity):
             return [
                 current_rdm_records_service.draft_files.set_file_content(
-                    self.identity,
+                    identity,
                     self.record_id,
                     data["key"],
                     BytesIO(b"Test file content"),
@@ -375,10 +378,10 @@ def draft_files(user_depositor):
                 for data in self.data
             ]
 
-        def commit(self):
+        def commit(self, identity=user_depositor.identity):
             return [
                 current_rdm_records_service.draft_files.commit_file(
-                    self.identity, self.record_id, data["key"]
+                    identity, self.record_id, data["key"]
                 )
                 for data in self.data
             ]

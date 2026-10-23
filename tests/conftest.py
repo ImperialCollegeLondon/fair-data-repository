@@ -357,19 +357,20 @@ def draft_files(user_depositor):
     """Return a factory class to test adding files to a draft record."""
 
     class _DraftFiles:
-        def __init__(self, record_id, files_data):
+        def __init__(self, record_id, files_data, identity=user_depositor.identity):
             self.record_id = record_id
             self.files_data = files_data
+            self.identity = identity
 
         def init(self):
             return current_rdm_records_service.draft_files.init_files(
-                user_depositor.identity, self.record_id, data=self.files_data
+                self.identity, self.record_id, data=self.files_data
             )
 
         def upload(self):
             return [
                 current_rdm_records_service.draft_files.set_file_content(
-                    user_depositor.identity,
+                    self.identity,
                     self.record_id,
                     data["key"],
                     BytesIO(b"Test file content"),
@@ -380,7 +381,7 @@ def draft_files(user_depositor):
         def commit(self):
             return [
                 current_rdm_records_service.draft_files.commit_file(
-                    user_depositor.identity, self.record_id, data["key"]
+                    self.identity, self.record_id, data["key"]
                 )
                 for data in self.files_data
             ]

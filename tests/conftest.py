@@ -326,8 +326,8 @@ def record_data():
 
 
 @pytest.fixture
-def record(location, vocabularies, record_data, user_depositor):
-    """Return a factory class to test creating a new record."""
+def record_tester(location, vocabularies, record_data, user_depositor):
+    """Return a class to test creating a new record."""
 
     class _Record:
         def __init__(self, data_override={}):
@@ -357,8 +357,8 @@ def record(location, vocabularies, record_data, user_depositor):
 
 
 @pytest.fixture
-def draft_files(user_depositor):
-    """Return a factory class to test adding files to a draft record."""
+def draft_files_tester(user_depositor):
+    """Return a class to test adding files to a draft record."""
 
     class _DraftFiles:
         def __init__(self, record_id, files_data):

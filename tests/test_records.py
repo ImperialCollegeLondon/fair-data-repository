@@ -3,9 +3,9 @@
 from invenio_access.permissions import system_identity
 
 
-def test_new_record_version(record):
+def test_new_record_version(record_tester):
     """Test creating a new version of a record."""
-    record = record()
+    record = record_tester()
     record.create()
     record.publish(identity=system_identity)
 

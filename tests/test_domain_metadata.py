@@ -74,15 +74,12 @@ def _revoke_domain_metadata_permission(user_depositor, db):
     ],
 )
 def test_domain_metadata_custom_field(
-    location,
-    vocabularies,
-    user_depositor,
-    metadata,
+    permission_manager,
+    record_tester,
     entries,
     expected_stored,
     expected_errors,
     publish_outcome,
-    db,
 ):
     """imperial:domain_metadata: persistence and validation.
 
@@ -101,13 +98,13 @@ def test_domain_metadata_custom_field(
     submission unrelated to domain_metadata; the draft-level checks above
     already prove domain_metadata itself raises no error for valid input).
     """
-    _grant_domain_metadata_permission(user_depositor, db)
-    record_data = {
-        "metadata": metadata,
-        "files": {"enabled": False},
-        "custom_fields": {"imperial:domain_metadata": entries},
-    }
-    record = current_rdm_records_service.create(user_depositor.identity, record_data)
+    domain_metadata_permission = permission_manager(domain_metadata_action)
+    domain_metadata_permission.grant()
+
+    record_test = record_tester(
+        data_override={"custom_fields": {"imperial:domain_metadata": entries}}
+    )
+    record = record_test.create()
 
     error_fields = [e["field"] for e in record.errors]
     assert sorted(error_fields) == sorted(expected_errors)

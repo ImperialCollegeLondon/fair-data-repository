@@ -357,7 +357,7 @@ def record_tester(location, vocabularies, record_data, user_depositor):
 
 
 @pytest.fixture
-def draft_files_tester(user_depositor):
+def files_tester(user_depositor):
     """Return a class to test adding files to a draft record."""
 
     class _DraftFiles:

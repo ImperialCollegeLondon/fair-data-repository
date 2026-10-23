@@ -6,12 +6,12 @@ from invenio_records_resources.services.errors import PermissionDeniedError
 from marshmallow.exceptions import ValidationError
 
 
-def test_description_transfer(permission_manager, record_tester, draft_files_tester):
+def test_description_transfer(permission_manager, record_tester, files_tester):
     """Test creating a DescriptionTransfer file."""
     described_file_permission = permission_manager(described_file_action)
 
-    record = record_tester(data_override={"files": {"enabled": True}})
-    record.create()
+    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record = record_test.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -26,31 +26,31 @@ def test_description_transfer(permission_manager, record_tester, draft_files_tes
             },
         },
     ]
-    files = draft_files_tester(record.id, files_data)
+    files_test = files_tester(record.id, files_data)
 
     # Test initialising the draft files.
-    result = files.init()
+    result = files_test.init()
     assert len(list(result.entries)) == len(files_data)
 
     # Test uploading the draft files.
-    result = files.upload()
+    result = files_test.upload()
     assert result[0].errors is None
 
     # Test committing the draft files.
-    result = files.commit()
+    result = files_test.commit()
     assert result[0].errors is None
     assert result[0]["key"] == files_data[0]["key"]
     assert result[0]["transfer"] == files_data[0]["transfer"]
 
 
 def test_description_transfer_mixed_files(
-    permission_manager, record_tester, draft_files_tester
+    permission_manager, record_tester, files_tester
 ):
     """Test creating mixed DescriptionTransfer and Local files."""
     described_file_permission = permission_manager(described_file_action)
 
-    record = record_tester(data_override={"files": {"enabled": True}})
-    record.create()
+    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record = record_test.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -69,18 +69,18 @@ def test_description_transfer_mixed_files(
             "transfer": {"type": "L"},
         },
     ]
-    files = draft_files_tester(record.id, files_data)
+    files_test = files_tester(record.id, files_data)
 
     # Test initialising the draft files.
-    result = files.init()
+    result = files_test.init()
     assert len(list(result.entries)) == len(files_data)
 
     # Test uploading the draft files.
-    result = files.upload()
+    result = files_test.upload()
     assert all(r.errors is None for r in result)
 
     # Test committing the draft files.
-    result = files.commit()
+    result = files_test.commit()
     assert all(r.errors is None for r in result)
     assert result[0]["key"] == files_data[0]["key"]
     assert result[0]["transfer"] == files_data[0]["transfer"]
@@ -88,10 +88,10 @@ def test_description_transfer_mixed_files(
     assert result[1]["transfer"] == files_data[1]["transfer"]
 
 
-def test_description_transfer_unauthorised_create(record_tester, draft_files_tester):
+def test_description_transfer_unauthorised_create(record_tester, files_tester):
     """Test creating a DescriptionTransfer file without permission."""
-    record = record_tester(data_override={"files": {"enabled": True}})
-    record.create()
+    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record = record_test.create()
 
     # Data for the description transfer file.
     files_data = [
@@ -103,21 +103,21 @@ def test_description_transfer_unauthorised_create(record_tester, draft_files_tes
             },
         },
     ]
-    files = draft_files_tester(record.id, files_data)
+    files_test = files_tester(record.id, files_data)
 
     # Adding the description transfer file.
     with pytest.raises(PermissionDeniedError):
-        files.init()
+        files_test.init()
 
 
 def test_description_transfer_unauthorised_upload(
-    permission_manager, record_tester, draft_files_tester
+    permission_manager, record_tester, files_tester
 ):
     """Test uploading a DescriptionTransfer file without permission."""
     described_file_permission = permission_manager(described_file_action)
 
-    record = record_tester(data_override={"files": {"enabled": True}})
-    record.create()
+    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record = record_test.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -132,27 +132,27 @@ def test_description_transfer_unauthorised_upload(
             },
         },
     ]
-    files = draft_files_tester(record.id, files_data)
+    files_test = files_tester(record.id, files_data)
 
     # Adding the description transfer file.
-    files.init()
+    files_test.init()
 
     # Revoke the permission from the user.
     described_file_permission.revoke()
 
     # Try to upload the file.
     with pytest.raises(PermissionDeniedError):
-        files.upload()
+        files_test.upload()
 
 
 def test_description_transfer_unauthorised_commit(
-    permission_manager, record_tester, draft_files_tester
+    permission_manager, record_tester, files_tester
 ):
     """Test committing a DescriptionTransfer file without permission."""
     described_file_permission = permission_manager(described_file_action)
 
-    record = record_tester(data_override={"files": {"enabled": True}})
-    record.create()
+    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record = record_test.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -167,30 +167,30 @@ def test_description_transfer_unauthorised_commit(
             },
         },
     ]
-    files = draft_files_tester(record.id, files_data)
+    files_test = files_tester(record.id, files_data)
 
     # Adding the description transfer file.
-    files.init()
+    files_test.init()
 
     # Upload the file.
-    files.upload()
+    files_test.upload()
 
     # Revoke the permission from the user.
     described_file_permission.revoke()
 
     # Try to commit the file.
     with pytest.raises(PermissionDeniedError):
-        files.commit()
+        files_test.commit()
 
 
 def test_description_transfer_oversized_description(
-    permission_manager, record_tester, draft_files_tester
+    permission_manager, record_tester, files_tester
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
     described_file_permission = permission_manager(described_file_action)
 
-    record = record_tester(data_override={"files": {"enabled": True}})
-    record.create()
+    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record = record_test.create()
 
     # Grant permission to the user.
     described_file_permission.grant()
@@ -205,8 +205,8 @@ def test_description_transfer_oversized_description(
             },
         },
     ]
-    files = draft_files_tester(record.id, files_data)
+    files_test = files_tester(record.id, files_data)
 
     # Adding the description transfer file with oversized description.
     with pytest.raises(ValidationError, match="Longer than maximum length 100"):
-        files.init()
+        files_test.init()

@@ -81,6 +81,7 @@ module = [
        "flask_oauthlib.*",
        "flask_principal.*",
        "ic_data_repo.config.*",
+       "ic_data_repo.get_collection_member_info.*",
        "ic_data_repo.permissions.*",
        "invenio_access.*",
        "invenio_accounts.*",

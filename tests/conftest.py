@@ -2,6 +2,7 @@
 
 import json
 import os
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -10,6 +11,7 @@ import redis
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers, system_identity
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
+from invenio_rdm_records.proxies import current_rdm_records_service
 
 
 @pytest.fixture(autouse=True)
@@ -318,3 +320,69 @@ def metadata():
         ],
         "rights": [{"id": "cc-by-4.0"}],
     }
+
+
+def _create_doi(identity, draft):
+    """Create and reserve a DOI for a draft record."""
+    draft = current_rdm_records_service.pids.create(
+        identity, draft.id, "doi", provider="datacite"
+    )
+    draft = current_rdm_records_service.pids.reserve(identity, draft.id)
+    return draft
+
+
+@pytest.fixture
+def record_factory(location, vocabularies, metadata, user_depositor):
+    """Return a factory function to create a new record."""
+
+    def _record_factory(
+        identity=user_depositor.identity,
+        mint_doi=False,
+        publish=False,
+        metadata_override={},
+    ):
+        data = {"metadata": metadata | metadata_override}
+        draft = current_rdm_records_service.create(identity, data)
+        if mint_doi:
+            draft = _create_doi(identity, draft)
+        if publish:
+            return current_rdm_records_service.publish(identity, draft.id)
+        return draft
+
+    return _record_factory
+
+
+@pytest.fixture
+def draft_files(user_depositor):
+    """Return a factory class to test adding files to a draft record."""
+
+    class _DraftFiles:
+        def __init__(self, record_id, files_data):
+            self.record_id = record_id
+            self.files_data = files_data
+
+        def init(self):
+            return current_rdm_records_service.draft_files.init_files(
+                user_depositor.identity, self.record_id, data=self.files_data
+            )
+
+        def upload(self):
+            return [
+                current_rdm_records_service.draft_files.set_file_content(
+                    user_depositor.identity,
+                    self.record_id,
+                    data["key"],
+                    BytesIO(b"Test file content"),
+                )
+                for data in self.files_data
+            ]
+
+        def commit(self):
+            return [
+                current_rdm_records_service.draft_files.commit_file(
+                    user_depositor.identity, self.record_id, data["key"]
+                )
+                for data in self.files_data
+            ]
+
+    return _DraftFiles

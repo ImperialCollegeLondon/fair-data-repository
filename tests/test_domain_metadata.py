@@ -4,27 +4,12 @@ from contextlib import nullcontext
 
 import pytest
 from ic_data_repo.permissions import domain_metadata_action
-from invenio_access.permissions import ActionUsers, system_identity
+from invenio_access.permissions import system_identity
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.resources.serializers.ui import UIJSONSerializer
 from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_search.proxies import current_search
 from marshmallow.exceptions import ValidationError
-
-
-def _grant_domain_metadata_permission(user_depositor, db):
-    """Grant user_depositor the domain-metadata-action permission."""
-    db.session.add(ActionUsers.allow(domain_metadata_action, user_id=user_depositor.id))
-    db.session.commit()
-
-
-def _revoke_domain_metadata_permission(user_depositor, db):
-    """Revoke a previously-granted domain-metadata-action permission."""
-    grant = ActionUsers.query.filter_by(
-        action=domain_metadata_action.value, user_id=user_depositor.id
-    ).one()
-    db.session.delete(grant)
-    db.session.commit()
 
 
 @pytest.mark.parametrize(
@@ -98,8 +83,7 @@ def test_domain_metadata_custom_field(
     submission unrelated to domain_metadata; the draft-level checks above
     already prove domain_metadata itself raises no error for valid input).
     """
-    domain_metadata_permission = permission_manager(domain_metadata_action)
-    domain_metadata_permission.grant()
+    permission_manager(domain_metadata_action).grant()
 
     record_test = record_tester(
         data_override={"custom_fields": {"imperial:domain_metadata": entries}}
@@ -118,7 +102,7 @@ def test_domain_metadata_custom_field(
 
 
 def test_domain_metadata_custom_field_search(
-    location, vocabularies, user_depositor, metadata, db
+    permission_manager, record_tester, user_depositor
 ):
     """imperial:domain_metadata: findable via the default free-text search.
 
@@ -129,28 +113,20 @@ def test_domain_metadata_custom_field_search(
     match is actually driven by the custom field's content rather than
     every record matching every query.
     """
-    _grant_domain_metadata_permission(user_depositor, db)
+    permission_manager(domain_metadata_action).grant()
+
     with_domain_metadata = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [
                 {"id": "example-domain-term", "value": "Zebra unicorn quokka"}
             ]
         },
     }
-    without_domain_metadata = {
-        "metadata": {**metadata, "title": "Unrelated other record"},
-        "files": {"enabled": False},
-    }
+    with_domain_metadata_test = record_tester(data_override=with_domain_metadata)
+    matching_record = with_domain_metadata_test.create()
 
-    matching_record = current_rdm_records_service.create(
-        user_depositor.identity, with_domain_metadata
-    )
-
-    other_record = current_rdm_records_service.create(
-        user_depositor.identity, without_domain_metadata
-    )
+    without_domain_metadata_test = record_tester()
+    other_record = without_domain_metadata_test.create()
 
     current_search.flush_and_refresh("*")
 
@@ -190,13 +166,12 @@ def test_domain_metadata_custom_field_search(
 
 
 def test_domain_metadata_landing_page_shows_resolved_vocabulary(
-    location, vocabularies, user_depositor, metadata, db
+    permission_manager, record_tester
 ):
     """imperial:domain_metadata: landing-page (UI) display resolves terms."""
-    _grant_domain_metadata_permission(user_depositor, db)
+    permission_manager(domain_metadata_action).grant()
+
     record_data = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [
                 {"id": "example-domain-term", "value": "Full props term"},
@@ -204,7 +179,8 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
             ]
         },
     }
-    record = current_rdm_records_service.create(user_depositor.identity, record_data)
+    record_test = record_tester(data_override=record_data)
+    record = record_test.create()
 
     # Use the UI serializer to get the record format expected by the landing page.
     record_ui = UIJSONSerializer().dump_obj(record.to_dict())
@@ -230,13 +206,10 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
     ]
 
 
-def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
-    location, vocabularies, user_depositor, metadata
-):
+def test_domain_metadata_absent_from_landing_page_ui_when_not_set(record_tester):
     """imperial:domain_metadata: absent from the landing-page UI when unset."""
-    record = current_rdm_records_service.create(
-        user_depositor.identity, {"metadata": metadata, "files": {"enabled": False}}
-    )
+    record_test = record_tester()
+    record = record_test.create()
 
     # Use the UI serializer to get the record format expected by the landing page.
     record_ui = UIJSONSerializer().dump_obj(record.to_dict())
@@ -249,25 +222,22 @@ def test_domain_metadata_absent_from_landing_page_ui_when_not_set(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_create_requires_permission(
-    grant, outcome, location, vocabularies, user_depositor, metadata, db
+    permission_manager, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: create is gated by the permission."""
     if grant:
-        _grant_domain_metadata_permission(user_depositor, db)
+        permission_manager(domain_metadata_action).grant()
 
     record_data = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
         },
     }
+    record_test = record_tester(data_override=record_data)
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        result = current_rdm_records_service.create(
-            user_depositor.identity, record_data
-        )
+        result = record_test.create()
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "example-domain-term", "value": "v1"}
         ]
@@ -278,19 +248,16 @@ def test_domain_metadata_create_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_add_requires_permission(
-    grant, outcome, location, vocabularies, user_depositor, metadata, db
+    permission_manager, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: adding it later is gated by the permission."""
-    plain = current_rdm_records_service.create(
-        user_depositor.identity, {"metadata": metadata, "files": {"enabled": False}}
-    )
+    record_test = record_tester()
+    record_test.create()
 
     if grant:
-        _grant_domain_metadata_permission(user_depositor, db)
+        permission_manager(domain_metadata_action).grant()
 
     update_json = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
         },
@@ -298,9 +265,7 @@ def test_domain_metadata_add_requires_permission(
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        result = current_rdm_records_service.update_draft(
-            user_depositor.identity, plain.id, update_json
-        )
+        result = record_test.update_draft(update_json)
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "example-domain-term", "value": "v1"}
         ]
@@ -311,13 +276,12 @@ def test_domain_metadata_add_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_reorder_requires_permission(
-    grant, outcome, location, vocabularies, user_depositor, metadata, db
+    permission_manager, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: reordering entries is gated by the permission."""
-    _grant_domain_metadata_permission(user_depositor, db)
+    domain_metadata_permission = permission_manager(domain_metadata_action).grant()
+
     original_json = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [
                 {"id": "example-domain-term", "value": "A"},
@@ -325,14 +289,13 @@ def test_domain_metadata_reorder_requires_permission(
             ]
         },
     }
-    created = current_rdm_records_service.create(user_depositor.identity, original_json)
+    record_test = record_tester(data_override=original_json)
+    record_test.create()
 
     if not grant:
-        _revoke_domain_metadata_permission(user_depositor, db)
+        domain_metadata_permission.revoke()
 
     reordered_json = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [
                 {"id": "minimal-domain-term", "value": "B"},
@@ -343,9 +306,7 @@ def test_domain_metadata_reorder_requires_permission(
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        result = current_rdm_records_service.update_draft(
-            user_depositor.identity, created.id, reordered_json
-        )
+        result = record_test.update_draft(reordered_json)
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "minimal-domain-term", "value": "B"},
             {"id": "example-domain-term", "value": "A"},
@@ -357,33 +318,29 @@ def test_domain_metadata_reorder_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_removal_requires_permission(
-    grant, outcome, location, vocabularies, user_depositor, metadata, db
+    permission_manager, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: removing all entries is gated by the permission."""
-    _grant_domain_metadata_permission(user_depositor, db)
+    domain_metadata_permission = permission_manager(domain_metadata_action).grant()
+
     original_json = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
         },
     }
-    created = current_rdm_records_service.create(user_depositor.identity, original_json)
+    record_test = record_tester(data_override=original_json)
+    record_test.create()
 
     if not grant:
-        _revoke_domain_metadata_permission(user_depositor, db)
+        domain_metadata_permission.revoke()
 
     removal_json = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {"imperial:domain_metadata": []},
     }
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        result = current_rdm_records_service.update_draft(
-            user_depositor.identity, created.id, removal_json
-        )
+        result = record_test.update_draft(removal_json)
         assert result["custom_fields"].get("imperial:domain_metadata", []) == []
 
 
@@ -392,32 +349,22 @@ def test_domain_metadata_removal_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_unchanged_update_requires_permission(
-    grant, outcome, location, vocabularies, user_depositor, metadata, db
+    permission_manager, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: resubmitting it unchanged is still gated."""
-    _grant_domain_metadata_permission(user_depositor, db)
+    domain_metadata_permission = permission_manager(domain_metadata_action).grant()
+
     original_json = {
-        "metadata": metadata,
-        "files": {"enabled": False},
         "custom_fields": {
             "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
         },
     }
-    created = current_rdm_records_service.create(user_depositor.identity, original_json)
+    record_test = record_tester(data_override=original_json)
+    record_test.create()
 
     if not grant:
-        _revoke_domain_metadata_permission(user_depositor, db)
-
-    unchanged_json = {
-        "metadata": {**metadata, "title": "Updated title, domain metadata untouched"},
-        "files": {"enabled": False},
-        "custom_fields": {
-            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
-        },
-    }
+        domain_metadata_permission.revoke()
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        current_rdm_records_service.update_draft(
-            user_depositor.identity, created.id, unchanged_json
-        )
+        record_test.update_draft(original_json)

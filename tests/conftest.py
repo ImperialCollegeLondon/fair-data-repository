@@ -339,6 +339,10 @@ def record_tester(location, vocabularies, record_data, user_depositor):
             self.id = draft.id
             return draft
 
+        def update_draft(self, data, identity=user_depositor.identity):
+            self.data |= data
+            return current_rdm_records_service.update_draft(identity, self.id, data)
+
         def publish(self, identity=user_depositor.identity):
             return current_rdm_records_service.publish(identity, self.id)
 
@@ -403,9 +407,11 @@ def permission_manager(db, user_depositor):
         def grant(self):
             db.session.add(self.action_user)
             db.session.flush()
+            return self
 
         def revoke(self):
             db.session.delete(self.action_user)
             db.session.flush()
+            return self
 
     return _DescribedFilePermission

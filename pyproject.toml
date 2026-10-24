@@ -80,6 +80,7 @@ module = [
        "flask_login.*",
        "flask_oauthlib.*",
        "flask_principal.*",
+       "ic_data_repo.auth.*",
        "ic_data_repo.config.*",
        "ic_data_repo.permissions.*",
        "invenio_access.*",

@@ -11,7 +11,6 @@ import redis
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers, system_identity
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
-from invenio_rdm_records.proxies import current_rdm_records_service
 
 
 @pytest.fixture(autouse=True)
@@ -328,34 +327,34 @@ def record_data():
 @pytest.fixture
 def record_tester(location, vocabularies, record_data, user_depositor):
     """Return a class to test creating a new record."""
+    from invenio_rdm_records.proxies import current_rdm_records_service as service
+    from mergedeep import merge
 
     class _Record:
-        def __init__(self, data_override={}):
+        def __init__(self, data_override=None):
             self.id = None
-            self.data = record_data | data_override
+            self.data = merge({}, record_data, data_override or {})
 
         def create(self, identity=user_depositor.identity):
-            draft = current_rdm_records_service.create(identity, self.data)
+            draft = service.create(identity, self.data)
             self.id = draft.id
             return draft
 
-        def update_draft(self, data, identity=user_depositor.identity):
-            self.data |= data
-            return current_rdm_records_service.update_draft(identity, self.id, data)
+        def update_draft(self, data_override, identity=user_depositor.identity):
+            self.data = merge({}, self.data, data_override)
+            return service.update_draft(identity, self.id, self.data)
 
         def publish(self, identity=user_depositor.identity):
-            return current_rdm_records_service.publish(identity, self.id)
+            return service.publish(identity, self.id)
 
         def new_version(self, identity=user_depositor.identity):
-            draft = current_rdm_records_service.new_version(identity, self.id)
+            draft = service.new_version(identity, self.id)
             self.id = draft.id
             return draft
 
         def create_doi(self, identity=user_depositor.identity):
-            current_rdm_records_service.pids.create(
-                identity, self.id, "doi", provider="datacite"
-            )
-            return current_rdm_records_service.pids.reserve(identity, self.id)
+            service.pids.create(identity, self.id, "doi", provider="datacite")
+            return service.pids.reserve(identity, self.id)
 
     return _Record
 
@@ -363,6 +362,7 @@ def record_tester(location, vocabularies, record_data, user_depositor):
 @pytest.fixture
 def files_tester(user_depositor):
     """Return a class to test adding files to a draft record."""
+    from invenio_rdm_records.proxies import current_rdm_records_service as service
 
     class _DraftFiles:
         def __init__(self, record_id, files_data):
@@ -370,13 +370,13 @@ def files_tester(user_depositor):
             self.data = files_data
 
         def init(self, identity=user_depositor.identity):
-            return current_rdm_records_service.draft_files.init_files(
+            return service.draft_files.init_files(
                 identity, self.record_id, data=self.data
             )
 
         def upload(self, identity=user_depositor.identity):
             return [
-                current_rdm_records_service.draft_files.set_file_content(
+                service.draft_files.set_file_content(
                     identity,
                     self.record_id,
                     data["key"],
@@ -387,9 +387,7 @@ def files_tester(user_depositor):
 
         def commit(self, identity=user_depositor.identity):
             return [
-                current_rdm_records_service.draft_files.commit_file(
-                    identity, self.record_id, data["key"]
-                )
+                service.draft_files.commit_file(identity, self.record_id, data["key"])
                 for data in self.data
             ]
 

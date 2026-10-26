@@ -6,13 +6,16 @@ from invenio_records_resources.services.errors import PermissionDeniedError
 from marshmallow.exceptions import ValidationError
 
 
-def test_description_transfer(permission_manager, record_tester, files_tester):
-    """Test creating a DescriptionTransfer file."""
+@pytest.fixture
+def record(record_tester):
+    """Fixture for creating a record with files enabled."""
     record_test = record_tester()
     record_test.data["files"] = {"enabled": True}
-    record = record_test.create()
+    return record_test.create()
 
-    # Grant permission to the user.
+
+def test_description_transfer(permission_manager, record, files_tester):
+    """Test creating a DescriptionTransfer file."""
     permission_manager(described_file_action).grant()
 
     # Data for the description transfer file.
@@ -42,15 +45,8 @@ def test_description_transfer(permission_manager, record_tester, files_tester):
     assert result[0]["transfer"] == files_data[0]["transfer"]
 
 
-def test_description_transfer_mixed_files(
-    permission_manager, record_tester, files_tester
-):
+def test_description_transfer_mixed_files(permission_manager, record, files_tester):
     """Test creating mixed DescriptionTransfer and Local files."""
-    record_test = record_tester()
-    record_test.data["files"] = {"enabled": True}
-    record = record_test.create()
-
-    # Grant permission to the user.
     permission_manager(described_file_action).grant()
 
     # Data for a description transfer file and a local transfer file.
@@ -86,12 +82,8 @@ def test_description_transfer_mixed_files(
     assert result[1]["transfer"] == files_data[1]["transfer"]
 
 
-def test_description_transfer_unauthorised_create(record_tester, files_tester):
+def test_description_transfer_unauthorised_create(record, files_tester):
     """Test creating a DescriptionTransfer file without permission."""
-    record_test = record_tester()
-    record_test.data["files"] = {"enabled": True}
-    record = record_test.create()
-
     # Data for the description transfer file.
     files_data = [
         {
@@ -110,14 +102,9 @@ def test_description_transfer_unauthorised_create(record_tester, files_tester):
 
 
 def test_description_transfer_unauthorised_upload(
-    permission_manager, record_tester, files_tester
+    permission_manager, record, files_tester
 ):
     """Test uploading a DescriptionTransfer file without permission."""
-    record_test = record_tester()
-    record_test.data["files"] = {"enabled": True}
-    record = record_test.create()
-
-    # Grant permission to the user.
     described_file_permission = permission_manager(described_file_action).grant()
 
     # Data for the description transfer file.
@@ -135,7 +122,6 @@ def test_description_transfer_unauthorised_upload(
     # Adding the description transfer file.
     files_test.init()
 
-    # Revoke the permission from the user.
     described_file_permission.revoke()
 
     # Try to upload the file.
@@ -144,14 +130,9 @@ def test_description_transfer_unauthorised_upload(
 
 
 def test_description_transfer_unauthorised_commit(
-    permission_manager, record_tester, files_tester
+    permission_manager, record, files_tester
 ):
     """Test committing a DescriptionTransfer file without permission."""
-    record_test = record_tester()
-    record_test.data["files"] = {"enabled": True}
-    record = record_test.create()
-
-    # Grant permission to the user.
     described_file_permission = permission_manager(described_file_action).grant()
 
     # Data for the description transfer file.
@@ -172,7 +153,6 @@ def test_description_transfer_unauthorised_commit(
     # Upload the file.
     files_test.upload()
 
-    # Revoke the permission from the user.
     described_file_permission.revoke()
 
     # Try to commit the file.
@@ -181,14 +161,9 @@ def test_description_transfer_unauthorised_commit(
 
 
 def test_description_transfer_oversized_description(
-    permission_manager, record_tester, files_tester
+    permission_manager, record, files_tester
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
-    record_test = record_tester()
-    record_test.data["files"] = {"enabled": True}
-    record = record_test.create()
-
-    # Grant permission to the user.
     permission_manager(described_file_action).grant()
 
     # Data for the description transfer file.

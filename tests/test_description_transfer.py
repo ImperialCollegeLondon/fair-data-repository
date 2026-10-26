@@ -15,9 +15,8 @@ def described_file_permission(permission_manager):
 @pytest.fixture
 def record(record_tester):
     """Fixture for creating a record with files enabled."""
-    record_test = record_tester()
-    record_test.data["files"] = {"enabled": True}
-    return record_test.create()
+    record_tester.data["files"] = {"enabled": True}
+    return record_tester.create()
 
 
 @pytest.fixture

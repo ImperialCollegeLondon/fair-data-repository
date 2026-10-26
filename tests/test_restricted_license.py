@@ -22,15 +22,14 @@ def test_restricted_license_permission_create(
     restricted_license_permission, record_tester, grant, outcome
 ):
     """Test that restricted license permissions are enforced."""
-    record_test = record_tester()
-    record_test.data["metadata"]["rights"] = [{"id": "cc-by-nd-4.0"}]
+    record_tester.data["metadata"]["rights"] = [{"id": "cc-by-nd-4.0"}]
 
     if grant:
         restricted_license_permission.grant()
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        record_test.create()
+        record_tester.create()
     assert RDMDraftMetadata.query.count() == (1 if grant else 0)
 
 
@@ -42,14 +41,13 @@ def test_restricted_license_permission_update(
     restricted_license_permission, record_tester, grant, outcome
 ):
     """Test that restricted license permissions are enforced."""
-    record_test = record_tester()
-    record_test.create()
+    record_tester.create()
 
     if grant:
         restricted_license_permission.grant()
 
     # Raises PermissionDeniedError if not granted permission.
-    record_test.data["metadata"]["rights"] = [{"id": "cc-by-nd-4.0"}]
+    record_tester.data["metadata"]["rights"] = [{"id": "cc-by-nd-4.0"}]
     with outcome:
-        result = record_test.update_draft()
+        result = record_tester.update_draft()
         assert result["metadata"]["rights"][0]["id"] == "cc-by-nd-4.0"

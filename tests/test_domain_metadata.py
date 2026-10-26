@@ -91,9 +91,8 @@ def test_domain_metadata_custom_field(
     """
     domain_metadata_permission.grant()
 
-    record_test = record_tester()
-    record_test.data["custom_fields"] = {"imperial:domain_metadata": entries}
-    record = record_test.create()
+    record_tester.data["custom_fields"] = {"imperial:domain_metadata": entries}
+    record = record_tester.create()
 
     error_fields = [e["field"] for e in record.errors]
     assert sorted(error_fields) == sorted(expected_errors)
@@ -120,16 +119,14 @@ def test_domain_metadata_custom_field_search(
     """
     domain_metadata_permission.grant()
 
-    with_domain_metadata_test = record_tester()
-    with_domain_metadata_test.data["custom_fields"] = {
+    non_matching_record = record_tester.create()
+
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [
             {"id": "example-domain-term", "value": "Zebra unicorn quokka"}
         ]
     }
-    matching_record = with_domain_metadata_test.create()
-
-    without_domain_metadata_test = record_tester()
-    other_record = without_domain_metadata_test.create()
+    matching_record = record_tester.create()
 
     current_search.flush_and_refresh("*")
 
@@ -150,7 +147,7 @@ def test_domain_metadata_custom_field_search(
     )
     hit_ids = [hit["id"] for hit in result]
     assert matching_record["id"] in hit_ids
-    assert other_record["id"] not in hit_ids
+    assert non_matching_record["id"] not in hit_ids
 
     # a term present in neither record matches nothing.
     result = current_rdm_records_service.search_drafts(
@@ -165,7 +162,7 @@ def test_domain_metadata_custom_field_search(
     )
     hit_ids = [hit["id"] for hit in result]
     assert matching_record["id"] in hit_ids
-    assert other_record["id"] in hit_ids
+    assert non_matching_record["id"] in hit_ids
 
 
 def test_domain_metadata_landing_page_shows_resolved_vocabulary(
@@ -174,14 +171,13 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
     """imperial:domain_metadata: landing-page (UI) display resolves terms."""
     domain_metadata_permission.grant()
 
-    record_test = record_tester()
-    record_test.data["custom_fields"] = {
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [
             {"id": "example-domain-term", "value": "Full props term"},
             {"id": "minimal-domain-term", "value": "Minimal term"},
         ]
     }
-    record = record_test.create()
+    record = record_tester.create()
 
     # Use the UI serializer to get the record format expected by the landing page.
     record_ui = UIJSONSerializer().dump_obj(record.to_dict())
@@ -209,8 +205,7 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
 
 def test_domain_metadata_absent_from_landing_page_ui_when_not_set(record_tester):
     """imperial:domain_metadata: absent from the landing-page UI when unset."""
-    record_test = record_tester()
-    record = record_test.create()
+    record = record_tester.create()
 
     # Use the UI serializer to get the record format expected by the landing page.
     record_ui = UIJSONSerializer().dump_obj(record.to_dict())
@@ -229,14 +224,13 @@ def test_domain_metadata_create_requires_permission(
     if grant:
         domain_metadata_permission.grant()
 
-    record_test = record_tester()
-    record_test.data["custom_fields"] = {
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}],
     }
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        result = record_test.create()
+        result = record_tester.create()
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "example-domain-term", "value": "v1"}
         ]
@@ -250,18 +244,17 @@ def test_domain_metadata_add_requires_permission(
     domain_metadata_permission, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: adding it later is gated by the permission."""
-    record_test = record_tester()
-    record_test.create()
+    record_tester.create()
 
     if grant:
         domain_metadata_permission.grant()
 
     # Raises PermissionDeniedError if not granted permission.
-    record_test.data["custom_fields"] = {
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
     }
     with outcome:
-        result = record_test.update_draft()
+        result = record_tester.update_draft()
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "example-domain-term", "value": "v1"}
         ]
@@ -277,27 +270,26 @@ def test_domain_metadata_reorder_requires_permission(
     """imperial:domain_metadata: reordering entries is gated by the permission."""
     domain_metadata_permission.grant()
 
-    record_test = record_tester()
-    record_test.data["custom_fields"] = {
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [
             {"id": "example-domain-term", "value": "A"},
             {"id": "minimal-domain-term", "value": "B"},
         ]
     }
-    record_test.create()
+    record_tester.create()
 
     if not grant:
         domain_metadata_permission.revoke()
 
     # Raises PermissionDeniedError if not granted permission.
-    record_test.data["custom_fields"] = {
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [
             {"id": "minimal-domain-term", "value": "B"},
             {"id": "example-domain-term", "value": "A"},
         ]
     }
     with outcome:
-        result = record_test.update_draft()
+        result = record_tester.update_draft()
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "minimal-domain-term", "value": "B"},
             {"id": "example-domain-term", "value": "A"},
@@ -314,19 +306,18 @@ def test_domain_metadata_removal_requires_permission(
     """imperial:domain_metadata: removing all entries is gated by the permission."""
     domain_metadata_permission.grant()
 
-    record_test = record_tester()
-    record_test.data["custom_fields"] = {
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
     }
-    record_test.create()
+    record_tester.create()
 
     if not grant:
         domain_metadata_permission.revoke()
 
     # Raises PermissionDeniedError if not granted permission.
-    record_test.data["custom_fields"] = {"imperial:domain_metadata": []}
+    record_tester.data["custom_fields"] = {"imperial:domain_metadata": []}
     with outcome:
-        result = record_test.update_draft()
+        result = record_tester.update_draft()
         assert result["custom_fields"].get("imperial:domain_metadata", []) == []
 
 
@@ -340,18 +331,17 @@ def test_domain_metadata_unchanged_update_requires_permission(
     """imperial:domain_metadata: resubmitting it unchanged is still gated."""
     domain_metadata_permission.grant()
 
-    record_test = record_tester()
-    record_test.data["custom_fields"] = {
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
     }
-    record_test.create()
+    record_tester.create()
 
     if not grant:
         domain_metadata_permission.revoke()
 
     # Raises PermissionDeniedError if not granted permission.
-    record_test.data["custom_fields"] = {
+    record_tester.data["custom_fields"] = {
         "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
     }
     with outcome:
-        record_test.update_draft()
+        record_tester.update_draft()

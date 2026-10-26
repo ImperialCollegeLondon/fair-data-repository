@@ -355,7 +355,7 @@ def record_tester(location, vocabularies, record_data, user_depositor):
             records_service.pids.create(identity, self.id, "doi", provider="datacite")
             return records_service.pids.reserve(identity, self.id)
 
-    return _Record
+    return _Record()
 
 
 @pytest.fixture

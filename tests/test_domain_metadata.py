@@ -251,10 +251,10 @@ def test_domain_metadata_add_requires_permission(
         permission_manager(domain_metadata_action).grant()
 
     # Raises PermissionDeniedError if not granted permission.
+    record_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
+    }
     with outcome:
-        record_test.data["custom_fields"] = {
-            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
-        }
         result = record_test.update_draft()
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "example-domain-term", "value": "v1"}
@@ -284,13 +284,13 @@ def test_domain_metadata_reorder_requires_permission(
         domain_metadata_permission.revoke()
 
     # Raises PermissionDeniedError if not granted permission.
+    record_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [
+            {"id": "minimal-domain-term", "value": "B"},
+            {"id": "example-domain-term", "value": "A"},
+        ]
+    }
     with outcome:
-        record_test.data["custom_fields"] = {
-            "imperial:domain_metadata": [
-                {"id": "minimal-domain-term", "value": "B"},
-                {"id": "example-domain-term", "value": "A"},
-            ]
-        }
         result = record_test.update_draft()
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "minimal-domain-term", "value": "B"},
@@ -318,8 +318,8 @@ def test_domain_metadata_removal_requires_permission(
         domain_metadata_permission.revoke()
 
     # Raises PermissionDeniedError if not granted permission.
+    record_test.data["custom_fields"] = {"imperial:domain_metadata": []}
     with outcome:
-        result = record_test.data["custom_fields"] = {"imperial:domain_metadata": []}
         result = record_test.update_draft()
         assert result["custom_fields"].get("imperial:domain_metadata", []) == []
 
@@ -344,8 +344,8 @@ def test_domain_metadata_unchanged_update_requires_permission(
         domain_metadata_permission.revoke()
 
     # Raises PermissionDeniedError if not granted permission.
+    record_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
+    }
     with outcome:
-        record_test.data["custom_fields"] = {
-            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
-        }
         record_test.update_draft()

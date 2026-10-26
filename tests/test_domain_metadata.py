@@ -85,9 +85,8 @@ def test_domain_metadata_custom_field(
     """
     permission_manager(domain_metadata_action).grant()
 
-    record_test = record_tester(
-        data_override={"custom_fields": {"imperial:domain_metadata": entries}}
-    )
+    record_test = record_tester()
+    record_test.data["custom_fields"] = {"imperial:domain_metadata": entries}
     record = record_test.create()
 
     error_fields = [e["field"] for e in record.errors]
@@ -115,14 +114,12 @@ def test_domain_metadata_custom_field_search(
     """
     permission_manager(domain_metadata_action).grant()
 
-    with_domain_metadata = {
-        "custom_fields": {
-            "imperial:domain_metadata": [
-                {"id": "example-domain-term", "value": "Zebra unicorn quokka"}
-            ]
-        },
+    with_domain_metadata_test = record_tester()
+    with_domain_metadata_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [
+            {"id": "example-domain-term", "value": "Zebra unicorn quokka"}
+        ]
     }
-    with_domain_metadata_test = record_tester(data_override=with_domain_metadata)
     matching_record = with_domain_metadata_test.create()
 
     without_domain_metadata_test = record_tester()
@@ -171,15 +168,13 @@ def test_domain_metadata_landing_page_shows_resolved_vocabulary(
     """imperial:domain_metadata: landing-page (UI) display resolves terms."""
     permission_manager(domain_metadata_action).grant()
 
-    record_data = {
-        "custom_fields": {
-            "imperial:domain_metadata": [
-                {"id": "example-domain-term", "value": "Full props term"},
-                {"id": "minimal-domain-term", "value": "Minimal term"},
-            ]
-        },
+    record_test = record_tester()
+    record_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [
+            {"id": "example-domain-term", "value": "Full props term"},
+            {"id": "minimal-domain-term", "value": "Minimal term"},
+        ]
     }
-    record_test = record_tester(data_override=record_data)
     record = record_test.create()
 
     # Use the UI serializer to get the record format expected by the landing page.
@@ -228,12 +223,10 @@ def test_domain_metadata_create_requires_permission(
     if grant:
         permission_manager(domain_metadata_action).grant()
 
-    record_data = {
-        "custom_fields": {
-            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
-        },
+    record_test = record_tester()
+    record_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}],
     }
-    record_test = record_tester(data_override=record_data)
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
@@ -257,15 +250,12 @@ def test_domain_metadata_add_requires_permission(
     if grant:
         permission_manager(domain_metadata_action).grant()
 
-    update_json = {
-        "custom_fields": {
-            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
-        },
-    }
-
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        result = record_test.update_draft(update_json)
+        record_test.data["custom_fields"] = {
+            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "v1"}]
+        }
+        result = record_test.update_draft()
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "example-domain-term", "value": "v1"}
         ]
@@ -281,32 +271,27 @@ def test_domain_metadata_reorder_requires_permission(
     """imperial:domain_metadata: reordering entries is gated by the permission."""
     domain_metadata_permission = permission_manager(domain_metadata_action).grant()
 
-    original_json = {
-        "custom_fields": {
-            "imperial:domain_metadata": [
-                {"id": "example-domain-term", "value": "A"},
-                {"id": "minimal-domain-term", "value": "B"},
-            ]
-        },
+    record_test = record_tester()
+    record_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [
+            {"id": "example-domain-term", "value": "A"},
+            {"id": "minimal-domain-term", "value": "B"},
+        ]
     }
-    record_test = record_tester(data_override=original_json)
     record_test.create()
 
     if not grant:
         domain_metadata_permission.revoke()
 
-    reordered_json = {
-        "custom_fields": {
+    # Raises PermissionDeniedError if not granted permission.
+    with outcome:
+        record_test.data["custom_fields"] = {
             "imperial:domain_metadata": [
                 {"id": "minimal-domain-term", "value": "B"},
                 {"id": "example-domain-term", "value": "A"},
             ]
-        },
-    }
-
-    # Raises PermissionDeniedError if not granted permission.
-    with outcome:
-        result = record_test.update_draft(reordered_json)
+        }
+        result = record_test.update_draft()
         assert result["custom_fields"]["imperial:domain_metadata"] == [
             {"id": "minimal-domain-term", "value": "B"},
             {"id": "example-domain-term", "value": "A"},
@@ -323,24 +308,19 @@ def test_domain_metadata_removal_requires_permission(
     """imperial:domain_metadata: removing all entries is gated by the permission."""
     domain_metadata_permission = permission_manager(domain_metadata_action).grant()
 
-    original_json = {
-        "custom_fields": {
-            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
-        },
+    record_test = record_tester()
+    record_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
     }
-    record_test = record_tester(data_override=original_json)
     record_test.create()
 
     if not grant:
         domain_metadata_permission.revoke()
 
-    removal_json = {
-        "custom_fields": {"imperial:domain_metadata": []},
-    }
-
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        result = record_test.update_draft(removal_json)
+        result = record_test.data["custom_fields"] = {"imperial:domain_metadata": []}
+        result = record_test.update_draft()
         assert result["custom_fields"].get("imperial:domain_metadata", []) == []
 
 
@@ -354,12 +334,10 @@ def test_domain_metadata_unchanged_update_requires_permission(
     """imperial:domain_metadata: resubmitting it unchanged is still gated."""
     domain_metadata_permission = permission_manager(domain_metadata_action).grant()
 
-    original_json = {
-        "custom_fields": {
-            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
-        },
+    record_test = record_tester()
+    record_test.data["custom_fields"] = {
+        "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
     }
-    record_test = record_tester(data_override=original_json)
     record_test.create()
 
     if not grant:
@@ -367,4 +345,7 @@ def test_domain_metadata_unchanged_update_requires_permission(
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        record_test.update_draft(original_json)
+        record_test.data["custom_fields"] = {
+            "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
+        }
+        record_test.update_draft()

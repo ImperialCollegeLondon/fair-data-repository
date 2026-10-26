@@ -8,7 +8,8 @@ from marshmallow.exceptions import ValidationError
 
 def test_description_transfer(permission_manager, record_tester, files_tester):
     """Test creating a DescriptionTransfer file."""
-    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record_test = record_tester()
+    record_test.data["files"] = {"enabled": True}
     record = record_test.create()
 
     # Grant permission to the user.
@@ -45,7 +46,8 @@ def test_description_transfer_mixed_files(
     permission_manager, record_tester, files_tester
 ):
     """Test creating mixed DescriptionTransfer and Local files."""
-    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record_test = record_tester()
+    record_test.data["files"] = {"enabled": True}
     record = record_test.create()
 
     # Grant permission to the user.
@@ -86,7 +88,8 @@ def test_description_transfer_mixed_files(
 
 def test_description_transfer_unauthorised_create(record_tester, files_tester):
     """Test creating a DescriptionTransfer file without permission."""
-    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record_test = record_tester()
+    record_test.data["files"] = {"enabled": True}
     record = record_test.create()
 
     # Data for the description transfer file.
@@ -110,7 +113,8 @@ def test_description_transfer_unauthorised_upload(
     permission_manager, record_tester, files_tester
 ):
     """Test uploading a DescriptionTransfer file without permission."""
-    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record_test = record_tester()
+    record_test.data["files"] = {"enabled": True}
     record = record_test.create()
 
     # Grant permission to the user.
@@ -143,7 +147,8 @@ def test_description_transfer_unauthorised_commit(
     permission_manager, record_tester, files_tester
 ):
     """Test committing a DescriptionTransfer file without permission."""
-    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record_test = record_tester()
+    record_test.data["files"] = {"enabled": True}
     record = record_test.create()
 
     # Grant permission to the user.
@@ -179,7 +184,8 @@ def test_description_transfer_oversized_description(
     permission_manager, record_tester, files_tester
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
-    record_test = record_tester(data_override={"files": {"enabled": True}})
+    record_test = record_tester()
+    record_test.data["files"] = {"enabled": True}
     record = record_test.create()
 
     # Grant permission to the user.

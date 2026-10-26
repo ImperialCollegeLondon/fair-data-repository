@@ -254,3 +254,8 @@
   props:
     subjectScheme: inchikey
     schemeURI: http://www.inchi-trust.org/
+- id: NMR nucleous-legacy
+  title:
+    en: NMR Nucleus
+  props:
+    subjectScheme: NMR Nucleus

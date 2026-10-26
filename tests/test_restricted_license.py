@@ -4,8 +4,6 @@ from contextlib import nullcontext
 
 import pytest
 from ic_data_repo.permissions import restricted_license_action
-from invenio_access.permissions import ActionUsers
-from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.records.models import RDMDraftMetadata
 from invenio_records_resources.services.errors import PermissionDeniedError
 
@@ -15,21 +13,18 @@ from invenio_records_resources.services.errors import PermissionDeniedError
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_restricted_license_permission_create(
-    location, vocabularies, user_depositor, metadata, grant, outcome, db
+    permission_manager, record_tester, grant, outcome
 ):
     """Test that restricted license permissions are enforced."""
-    metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
+    record_test = record_tester()
+    record_test.data["metadata"]["rights"] = [{"id": "cc-by-nd-4.0"}]
+
     if grant:
-        db.session.add(
-            ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
-        )
+        permission_manager(restricted_license_action).grant()
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
-        current_rdm_records_service.create(
-            user_depositor.identity,
-            data={"metadata": metadata, "files": {"enabled": False}},
-        )
+        record_test.create()
     assert RDMDraftMetadata.query.count() == (1 if grant else 0)
 
 
@@ -38,38 +33,17 @@ def test_restricted_license_permission_create(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_restricted_license_permission_update(
-    location,
-    vocabularies,
-    user_depositor,
-    metadata,
-    grant,
-    outcome,
-    db,
+    permission_manager, record_tester, grant, outcome
 ):
     """Test that restricted license permissions are enforced."""
-    draft = current_rdm_records_service.create(
-        user_depositor.identity,
-        data={"metadata": metadata, "files": {"enabled": False}},
-    )
+    record_test = record_tester()
+    record_test.create()
 
-    metadata["rights"] = [{"id": "cc-by-nd-4.0"}]
     if grant:
-        db.session.add(
-            ActionUsers.allow(restricted_license_action, user_id=user_depositor.id)
-        )
+        permission_manager(restricted_license_action).grant()
 
     # Raises PermissionDeniedError if not granted permission.
+    record_test.data["metadata"]["rights"] = [{"id": "cc-by-nd-4.0"}]
     with outcome:
-        current_rdm_records_service.update_draft(
-            user_depositor.identity,
-            draft.id,
-            data={"metadata": metadata},
-        )
-
-    updated_draft = current_rdm_records_service.read_draft(
-        user_depositor.identity,
-        draft.id,
-    )
-    assert updated_draft["metadata"]["rights"][0]["id"] == (
-        "cc-by-nd-4.0" if grant else "cc-by-4.0"
-    )
+        result = record_test.update_draft()
+        assert result["metadata"]["rights"][0]["id"] == "cc-by-nd-4.0"

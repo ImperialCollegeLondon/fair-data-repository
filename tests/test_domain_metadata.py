@@ -12,6 +12,12 @@ from invenio_search.proxies import current_search
 from marshmallow.exceptions import ValidationError
 
 
+@pytest.fixture
+def domain_metadata_permission(permission_manager):
+    """Fixture for domain metadata permission."""
+    return permission_manager(domain_metadata_action)
+
+
 @pytest.mark.parametrize(
     ("entries", "expected_stored", "expected_errors", "publish_outcome"),
     [
@@ -59,7 +65,7 @@ from marshmallow.exceptions import ValidationError
     ],
 )
 def test_domain_metadata_custom_field(
-    permission_manager,
+    domain_metadata_permission,
     record_tester,
     entries,
     expected_stored,
@@ -83,7 +89,7 @@ def test_domain_metadata_custom_field(
     submission unrelated to domain_metadata; the draft-level checks above
     already prove domain_metadata itself raises no error for valid input).
     """
-    permission_manager(domain_metadata_action).grant()
+    domain_metadata_permission.grant()
 
     record_test = record_tester()
     record_test.data["custom_fields"] = {"imperial:domain_metadata": entries}
@@ -101,7 +107,7 @@ def test_domain_metadata_custom_field(
 
 
 def test_domain_metadata_custom_field_search(
-    permission_manager, record_tester, user_depositor
+    domain_metadata_permission, record_tester, user_depositor
 ):
     """imperial:domain_metadata: findable via the default free-text search.
 
@@ -112,7 +118,7 @@ def test_domain_metadata_custom_field_search(
     match is actually driven by the custom field's content rather than
     every record matching every query.
     """
-    permission_manager(domain_metadata_action).grant()
+    domain_metadata_permission.grant()
 
     with_domain_metadata_test = record_tester()
     with_domain_metadata_test.data["custom_fields"] = {
@@ -163,10 +169,10 @@ def test_domain_metadata_custom_field_search(
 
 
 def test_domain_metadata_landing_page_shows_resolved_vocabulary(
-    permission_manager, record_tester
+    domain_metadata_permission, record_tester
 ):
     """imperial:domain_metadata: landing-page (UI) display resolves terms."""
-    permission_manager(domain_metadata_action).grant()
+    domain_metadata_permission.grant()
 
     record_test = record_tester()
     record_test.data["custom_fields"] = {
@@ -217,11 +223,11 @@ def test_domain_metadata_absent_from_landing_page_ui_when_not_set(record_tester)
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_create_requires_permission(
-    permission_manager, record_tester, grant, outcome
+    domain_metadata_permission, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: create is gated by the permission."""
     if grant:
-        permission_manager(domain_metadata_action).grant()
+        domain_metadata_permission.grant()
 
     record_test = record_tester()
     record_test.data["custom_fields"] = {
@@ -241,14 +247,14 @@ def test_domain_metadata_create_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_add_requires_permission(
-    permission_manager, record_tester, grant, outcome
+    domain_metadata_permission, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: adding it later is gated by the permission."""
     record_test = record_tester()
     record_test.create()
 
     if grant:
-        permission_manager(domain_metadata_action).grant()
+        domain_metadata_permission.grant()
 
     # Raises PermissionDeniedError if not granted permission.
     record_test.data["custom_fields"] = {
@@ -266,10 +272,10 @@ def test_domain_metadata_add_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_reorder_requires_permission(
-    permission_manager, record_tester, grant, outcome
+    domain_metadata_permission, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: reordering entries is gated by the permission."""
-    domain_metadata_permission = permission_manager(domain_metadata_action).grant()
+    domain_metadata_permission.grant()
 
     record_test = record_tester()
     record_test.data["custom_fields"] = {
@@ -303,10 +309,10 @@ def test_domain_metadata_reorder_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_removal_requires_permission(
-    permission_manager, record_tester, grant, outcome
+    domain_metadata_permission, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: removing all entries is gated by the permission."""
-    domain_metadata_permission = permission_manager(domain_metadata_action).grant()
+    domain_metadata_permission.grant()
 
     record_test = record_tester()
     record_test.data["custom_fields"] = {
@@ -329,10 +335,10 @@ def test_domain_metadata_removal_requires_permission(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_domain_metadata_unchanged_update_requires_permission(
-    permission_manager, record_tester, grant, outcome
+    domain_metadata_permission, record_tester, grant, outcome
 ):
     """imperial:domain_metadata: resubmitting it unchanged is still gated."""
-    domain_metadata_permission = permission_manager(domain_metadata_action).grant()
+    domain_metadata_permission.grant()
 
     record_test = record_tester()
     record_test.data["custom_fields"] = {

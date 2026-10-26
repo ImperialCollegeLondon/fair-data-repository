@@ -7,6 +7,12 @@ from marshmallow.exceptions import ValidationError
 
 
 @pytest.fixture
+def described_file_permission(permission_manager):
+    """Fixture for described file permission."""
+    return permission_manager(described_file_action)
+
+
+@pytest.fixture
 def record(record_tester):
     """Fixture for creating a record with files enabled."""
     record_test = record_tester()
@@ -28,9 +34,11 @@ def files_data():
     ]
 
 
-def test_description_transfer(permission_manager, record, files_tester, files_data):
+def test_description_transfer(
+    described_file_permission, record, files_tester, files_data
+):
     """Test creating a DescriptionTransfer file."""
-    permission_manager(described_file_action).grant()
+    described_file_permission.grant()
     files_test = files_tester(record.id, files_data)
 
     # Test initialising the draft files.
@@ -49,10 +57,10 @@ def test_description_transfer(permission_manager, record, files_tester, files_da
 
 
 def test_description_transfer_mixed_files(
-    permission_manager, record, files_tester, files_data
+    described_file_permission, record, files_tester, files_data
 ):
     """Test creating mixed DescriptionTransfer and Local files."""
-    permission_manager(described_file_action).grant()
+    described_file_permission.grant()
     files_data.append(
         {
             "key": "local_dataset.zip",
@@ -86,10 +94,10 @@ def test_description_transfer_unauthorised_create(record, files_tester, files_da
 
 
 def test_description_transfer_unauthorised_upload(
-    permission_manager, record, files_tester, files_data
+    described_file_permission, record, files_tester, files_data
 ):
     """Test uploading a DescriptionTransfer file without permission."""
-    described_file_permission = permission_manager(described_file_action).grant()
+    described_file_permission.grant()
     files_test = files_tester(record.id, files_data)
     files_test.init()
     described_file_permission.revoke()
@@ -98,10 +106,10 @@ def test_description_transfer_unauthorised_upload(
 
 
 def test_description_transfer_unauthorised_commit(
-    permission_manager, record, files_tester, files_data
+    described_file_permission, record, files_tester, files_data
 ):
     """Test committing a DescriptionTransfer file without permission."""
-    described_file_permission = permission_manager(described_file_action).grant()
+    described_file_permission.grant()
     files_test = files_tester(record.id, files_data)
     files_test.init()
     files_test.upload()
@@ -111,10 +119,10 @@ def test_description_transfer_unauthorised_commit(
 
 
 def test_description_transfer_oversized_description(
-    permission_manager, record, files_tester, files_data
+    described_file_permission, record, files_tester, files_data
 ):
     """Test creating a DescriptionTransfer file with an oversized description."""
-    permission_manager(described_file_action).grant()
+    described_file_permission.grant()
     files_data[0]["transfer"]["description"] += "a"
     files_test = files_tester(record.id, files_data)
     with pytest.raises(ValidationError, match="Longer than maximum length 100"):

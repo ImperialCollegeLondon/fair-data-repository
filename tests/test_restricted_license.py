@@ -8,19 +8,25 @@ from invenio_rdm_records.records.models import RDMDraftMetadata
 from invenio_records_resources.services.errors import PermissionDeniedError
 
 
+@pytest.fixture
+def restricted_license_permission(permission_manager):
+    """Fixture for restricted license permission."""
+    return permission_manager(restricted_license_action)
+
+
 @pytest.mark.parametrize(
     ("grant", "outcome"),
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_restricted_license_permission_create(
-    permission_manager, record_tester, grant, outcome
+    restricted_license_permission, record_tester, grant, outcome
 ):
     """Test that restricted license permissions are enforced."""
     record_test = record_tester()
     record_test.data["metadata"]["rights"] = [{"id": "cc-by-nd-4.0"}]
 
     if grant:
-        permission_manager(restricted_license_action).grant()
+        restricted_license_permission.grant()
 
     # Raises PermissionDeniedError if not granted permission.
     with outcome:
@@ -33,14 +39,14 @@ def test_restricted_license_permission_create(
     [(True, nullcontext()), (False, pytest.raises(PermissionDeniedError))],
 )
 def test_restricted_license_permission_update(
-    permission_manager, record_tester, grant, outcome
+    restricted_license_permission, record_tester, grant, outcome
 ):
     """Test that restricted license permissions are enforced."""
     record_test = record_tester()
     record_test.create()
 
     if grant:
-        permission_manager(restricted_license_action).grant()
+        restricted_license_permission.grant()
 
     # Raises PermissionDeniedError if not granted permission.
     record_test.data["metadata"]["rights"] = [{"id": "cc-by-nd-4.0"}]

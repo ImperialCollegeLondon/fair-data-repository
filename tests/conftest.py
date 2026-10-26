@@ -405,11 +405,9 @@ def permission_manager(db, user_depositor):
         def grant(self):
             db.session.add(self.action_user)
             db.session.flush()
-            return self
 
         def revoke(self):
             db.session.delete(self.action_user)
             db.session.flush()
-            return self
 
     return _DescribedFilePermission

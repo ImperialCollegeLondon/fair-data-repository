@@ -29,9 +29,7 @@ jobs:
         run: uv sync --locked --only-group dev
 
       - name: Build documentation
-        env:
-          DISABLE_MKDOCS_2_WARNING: "true"
-        run: uv run --no-sync mkdocs build --clean
+        run: uv run --no-sync properdocs build --clean
 
       - name: Upload documentation
         uses: actions/upload-pages-artifact@v3

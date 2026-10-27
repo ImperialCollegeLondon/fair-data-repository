@@ -339,9 +339,12 @@ def test_domain_metadata_unchanged_update_requires_permission(
     if not grant:
         domain_metadata_permission.revoke()
 
+    # Edit an unrelated field, resubmitting domain metadata unchanged.
     # Raises PermissionDeniedError if not granted permission.
-    record_tester.data["custom_fields"] = {
-        "imperial:domain_metadata": [{"id": "example-domain-term", "value": "A"}]
-    }
+    record_tester.data["metadata"]["title"] = "Updated title, domain metadata untouched"
     with outcome:
-        record_tester.update_draft()
+        result = record_tester.update_draft()
+        assert result["metadata"]["title"] == "Updated title, domain metadata untouched"
+        assert result["custom_fields"]["imperial:domain_metadata"] == [
+            {"id": "example-domain-term", "value": "A"}
+        ]

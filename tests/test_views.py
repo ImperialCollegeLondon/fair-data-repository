@@ -58,6 +58,7 @@ def test_index_auth(user_client, app):
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")
 
+    # Check that regular signed-users see the notice about read-only access.
     [notice] = soup.select("#frontpage-search-bar ~ div p.ui.header")
     assert "You have read-only access." in notice.get_text(" ", strip=True)
     [contact_link] = notice.select("a[href]")
@@ -114,6 +115,7 @@ def test_ui_changes_for_depositors(user_depositor, user_client):
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")
 
+    # Check that the depositors do not see the read-only access message
     assert soup.select("#frontpage-search-bar ~ div p.ui.header") == []
 
     [dropdown] = soup.select("#quick-create-dropdown")

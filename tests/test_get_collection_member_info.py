@@ -202,8 +202,8 @@ def test_related_records_draft(record_tester, search_clear):
 
 def test_related_records_restricted(record_tester, search_clear, db, user):
     """Test that restricted related records are ignored without permission."""
-    record_tester.create()
-    r1_draft = record_tester.create_doi()
+    record_tester.create(identity=system_identity)
+    r1_draft = record_tester.create_doi(identity=system_identity)
 
     # Here be dragons: Imperial normally disallows restricted records.
     # Reserve explicitly so Invenio does not discard the new DOI when we force

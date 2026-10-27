@@ -10,7 +10,7 @@
 - **InvenioRDM ~13.0** (Flask-based, with Celery, PostgreSQL, Redis, RabbitMQ, OpenSearch)
 - **Docker / Docker Compose** for local services
 - **Helm** for Kubernetes (AKS) deployment
-- **MkDocs + Material** for documentation (in `docs/`)
+- **ProperDocs + Material** for documentation (in `docs/`)
 
 ## Project Structure
 
@@ -49,7 +49,7 @@ uv run pytest -p no:warnings -m "not e2e"
 uv run pytest -m e2e
 
 # Build documentation
-uv run mkdocs build
+uv run properdocs build
 
 # Run Python commands with an intialised flask app
 uv run invenio shell -c "print(app.config)"

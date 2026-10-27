@@ -1,17 +1,10 @@
 """Additional views."""
 
-from flask import Blueprint, abort, current_app
-from flask_login import current_user, login_required
-from invenio_accounts.models import UserIdentity
-from invenio_oauthclient.proxies import current_oauthclient
+from flask import Blueprint, abort
+from flask_login import login_required
 from invenio_oauthclient.views.client import _login as _oauthclient_login
 
-
-def orcid_linking_available():
-    """Return whether ORCID linking is configured and its remote app registered."""
-    return bool(current_app.config.get("ORCID_OAUTH_ENABLED")) and (
-        "orcid" in current_oauthclient.oauth.remote_apps
-    )
+from .auth.orcid import linked_orcid_id, orcid_linking_available
 
 
 @login_required
@@ -21,17 +14,6 @@ def connect_orcid():
         abort(404)
 
     return _oauthclient_login("orcid", "invenio_oauthclient.authorized")
-
-
-def linked_orcid_id():
-    """Return the ORCID iD the current user has linked, if any."""
-    if not current_user.is_authenticated:
-        return None
-
-    identity = UserIdentity.query.filter_by(
-        id_user=current_user.id, method="orcid"
-    ).first()
-    return identity.id if identity else None
 
 
 #

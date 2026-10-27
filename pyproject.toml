@@ -23,7 +23,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "mkdocs",
     "mkdocs-gen-files",
     "mkdocs-literate-nav",
     "mkdocs-material",
@@ -31,6 +30,7 @@ dev = [
     "mkdocstrings-python",
     "pika",
     "pre-commit",
+    "properdocs>=1.6.7",
     "pytest-invenio>=4.0.0,<5.0.0",
     # Avoid pytest>=8 as dependency resolution is not giving a compatible version of pluggy
     # Manifests as: https://github.com/pytest-dev/pytest/issues/12144

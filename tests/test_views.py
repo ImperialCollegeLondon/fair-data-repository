@@ -10,7 +10,6 @@ from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers, system_identity
 from invenio_communities.proxies import current_communities
 from invenio_rdm_records.proxies import current_rdm_records_service
-from jinja2 import FileSystemLoader
 
 
 def test_index_view(client, app):
@@ -135,25 +134,6 @@ def test_ui_changes_for_depositors(user, user_client, db):
     )
 
 
-@pytest.fixture
-def custom_file_templates(app, monkeypatch):
-    """Use the custom templates when rendering files."""
-    template_root = Path(__file__).resolve().parents[1] / "site/ic_data_repo/templates"
-    loader = app.jinja_loader
-    assert isinstance(loader, FileSystemLoader)
-
-    monkeypatch.setattr(
-        loader,
-        "searchpath",
-        [
-            str(template_root / "semantic-ui"),
-            str(template_root),
-            *loader.searchpath,
-        ],
-    )
-    monkeypatch.setattr(app.jinja_env, "cache", {})
-
-
 @pytest.mark.parametrize(
     ("entries", "has_description"),
     [
@@ -171,7 +151,6 @@ def test_file_description_rendering(
     location,
     vocabularies,
     monkeypatch,
-    custom_file_templates,
     entries,
     has_description,
 ):

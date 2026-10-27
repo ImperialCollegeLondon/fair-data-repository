@@ -2,8 +2,13 @@
 
 from typing import Any
 
+from flask import g
 from flask_login import current_user
 from invenio_accounts.models import UserIdentity
+from invenio_communities.communities.resources.serializer import (
+    UICommunityJSONSerializer,
+)
+from invenio_communities.proxies import current_communities
 
 _ICL_ROR_ID = "041kmwe10"
 """The ROR identifier for Imperial."""
@@ -55,3 +60,18 @@ def get_user_form_default() -> list[dict[str, Any]]:
             "affiliations": affiliations,
         },
     ]
+
+
+def imperial_community_review():
+    """Return the default Imperial community review for a new deposit."""
+    imperial = current_communities.service.read(g.identity, "icl")
+    return {
+        "type": "community-submission",
+        "receiver": {"community": imperial.data["id"]},
+    }
+
+
+def imperial_community_review_receiver():
+    """Return the expanded Imperial community used by the deposit UI."""
+    imperial = current_communities.service.read(g.identity, "icl")
+    return UICommunityJSONSerializer().dump_obj(imperial.to_dict())

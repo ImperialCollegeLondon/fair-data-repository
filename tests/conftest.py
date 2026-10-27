@@ -357,8 +357,9 @@ def record_tester(location, vocabularies, record_data, user_depositor):
             return draft
 
         def create_doi(self, identity=user_depositor.identity):
-            records_service.pids.create(identity, self.id, "doi", provider="datacite")
-            return records_service.pids.reserve(identity, self.id)
+            return records_service.pids.create(
+                identity, self.id, "doi", provider="datacite"
+            )
 
     return _Record()
 

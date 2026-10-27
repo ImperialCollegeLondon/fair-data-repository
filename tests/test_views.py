@@ -1,14 +1,11 @@
 """Tests for the views."""
 
 import json
-from io import BytesIO
 
 import pytest
 from bs4 import BeautifulSoup
 from ic_data_repo.permissions import deposit_action
-from invenio_access.permissions import ActionUsers, system_identity
-from invenio_communities.proxies import current_communities
-from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_access.permissions import system_identity
 
 
 def test_index_view(client, app):
@@ -70,31 +67,16 @@ def test_index_auth(user_client, app):
     assert soup.select("div.sub-menu.mobile.tablet.only a[href='/uploads/new']") == []
 
 
-def test_deposit_view_permissions(user, user_client, db, location, vocabularies, app):
+def test_deposit_view_permissions(
+    user, user_client, icl_community, vocabularies, app, permission_manager
+):
     """Check that only users with deposit permissions can access the deposit page."""
-    # We need the icl community to exist first to test deposit permissions against.
-    data = {
-        "slug": "icl",
-        "metadata": {
-            "title": "Imperial College London",
-            "description": "The Imperial College London community.",
-        },
-        "access": {
-            "visibility": "public",
-            "member_policy": "open",
-            "record_policy": "open",
-            "review_policy": "members",
-        },
-    }
-    current_communities.service.create(system_identity, data)
-    db.session.commit()
-
     # permission denied initially
     response = user_client.get("/uploads/new")
     assert response.status_code == 403
 
     # grant access to the user
-    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
+    permission_manager(deposit_action, user.id).grant()
 
     # page now accessible
     response = user_client.get("/uploads/new")
@@ -146,55 +128,40 @@ def test_ui_changes_for_depositors(user_depositor, user_client):
 def test_file_description_rendering(
     app,
     client,
-    db,
-    location,
-    vocabularies,
-    monkeypatch,
+    record_tester,
+    files_tester,
     entries,
     has_description,
 ):
     """Render file descriptions through the record detail view."""
-    monkeypatch.setitem(app.config, "RDM_COMMUNITY_REQUIRED_TO_PUBLISH", False)
-    draft = current_rdm_records_service.create(
-        system_identity,
-        data={
-            "metadata": {
-                "title": "Test dataset",
-                "description": "File description test.",
-                "resource_type": {"id": "dataset"},
-                "publication_date": "2026-01-01",
-                "creators": [
-                    {"person_or_org": {"type": "personal", "family_name": "testname"}}
-                ],
-                "rights": [{"id": "cc-by-4.0"}],
-            },
-            "access": {"record": "public", "files": "public"},
-            "files": {"enabled": True},
-        },
-    )
+    # monkeypatch.setitem(app.config, "RDM_COMMUNITY_REQUIRED_TO_PUBLISH", False)
+    record_tester.data["files"]["enabled"] = True
+    draft = record_tester.create()
+
     for name, transfer_type, description in entries:
         transfer = {"type": transfer_type}
+
         if transfer_type == "D":
             transfer["description"] = description
-        current_rdm_records_service.draft_files.init_files(
-            system_identity, draft.id, data=[{"key": name, "transfer": transfer}]
-        )
-        current_rdm_records_service.draft_files.set_file_content(
-            system_identity, draft.id, name, BytesIO(b"column\nvalue\n")
-        )
-        current_rdm_records_service.draft_files.commit_file(
-            system_identity, draft.id, name
-        )
-    record = current_rdm_records_service.publish(system_identity, draft.id)
-    db.session.commit()
+        files_test = files_tester(draft.id, [{"key": name, "transfer": transfer}])
+        files_test.init(system_identity)
+        files_test.upload(system_identity)
+        files_test.commit(system_identity)
+
+    # publish with system identity to avoid needing a community
+    record = record_tester.publish(identity=system_identity)
+
     response = client.get(f"/records/{record.id}")
     assert response.status_code == 200
+
     soup = BeautifulSoup(response.data, "html.parser")
+
     [table] = soup.select("#files-list-accordion-panel table.files")
     headers = [header.get_text(strip=True) for header in table.select("thead th")]
     assert ("Description" in headers) == has_description
     if has_description:
         assert headers[1] == "Description"
+
     rows = table.select("tbody > tr")
     assert len(rows) == len(entries)
     actual = {}

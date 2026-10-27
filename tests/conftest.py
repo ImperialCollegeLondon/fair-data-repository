@@ -2,6 +2,8 @@
 
 import json
 import os
+from copy import deepcopy
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -9,7 +11,9 @@ import pytest
 import redis
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers, system_identity
+from invenio_communities.proxies import current_communities
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
+from invenio_rdm_records.proxies import current_rdm_records_service as records_service
 
 
 @pytest.fixture(autouse=True)
@@ -271,13 +275,6 @@ def user(UserFixture, app, db):
 
 
 @pytest.fixture
-def user_depositor(user, db):
-    """Give the user fixture permission to create deposits."""
-    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
-    return user
-
-
-@pytest.fixture
 def user_client(user, client):
     """A client logged in as the user fixture."""
     return user.login(client)
@@ -296,3 +293,142 @@ def db(db):
     if connection.dialect.name == "sqlite":
         connection.exec_driver_sql("BEGIN")
     return db
+
+
+@pytest.fixture
+def record_data():
+    """Simple record data."""
+    return {
+        "metadata": {
+            "title": "Test Record",
+            "description": "This is a test record.",
+            "resource_type": {"id": "dataset"},
+            "creators": [
+                {
+                    "person_or_org": {
+                        "type": "personal",
+                        "given_name": "Neo",
+                        "family_name": "Anderson",
+                    },
+                    "role": "the one",
+                },
+            ],
+            "rights": [{"id": "cc-by-4.0"}],
+        },
+        "files": {"enabled": False},
+    }
+
+
+@pytest.fixture
+def record_tester(location, vocabularies, record_data, user_depositor):
+    """Return a class to test creating a new record."""
+
+    class _Record:
+        def __init__(self):
+            self.id = None
+            self.data = deepcopy(record_data)
+
+        def create(self, identity=user_depositor.identity):
+            draft = records_service.create(identity, self.data)
+            self.id = draft.id
+            return draft
+
+        def update_draft(self, identity=user_depositor.identity):
+            return records_service.update_draft(identity, self.id, self.data)
+
+        def publish(self, identity=user_depositor.identity):
+            return records_service.publish(identity, self.id)
+
+        def new_version(self, identity=user_depositor.identity):
+            draft = records_service.new_version(identity, self.id)
+            self.id = draft.id
+            return draft
+
+        def create_doi(self, identity=user_depositor.identity):
+            records_service.pids.create(identity, self.id, "doi", provider="datacite")
+            return records_service.pids.reserve(identity, self.id)
+
+    return _Record()
+
+
+@pytest.fixture
+def files_tester(user_depositor):
+    """Return a class to test adding files to a draft record."""
+
+    class _DraftFiles:
+        def __init__(self, record_id, files_data):
+            self.record_id = record_id
+            self.data = files_data
+
+        def init(self, identity=user_depositor.identity):
+            return records_service.draft_files.init_files(
+                identity, self.record_id, data=self.data
+            )
+
+        def upload(self, identity=user_depositor.identity):
+            return [
+                records_service.draft_files.set_file_content(
+                    identity,
+                    self.record_id,
+                    data["key"],
+                    BytesIO(b"Test file content"),
+                )
+                for data in self.data
+            ]
+
+        def commit(self, identity=user_depositor.identity):
+            return [
+                records_service.draft_files.commit_file(
+                    identity, self.record_id, data["key"]
+                )
+                for data in self.data
+            ]
+
+    return _DraftFiles
+
+
+@pytest.fixture
+def permission_manager(db, user):
+    """Fixture for granting and revoking described file permissions."""
+
+    class _DescribedFilePermission:
+        def __init__(self, action, user_id=user.user.id):
+            self.action_user = ActionUsers.allow(action, user_id=user_id)
+
+        def grant(self):
+            db.session.add(self.action_user)
+            db.session.flush()
+
+        def revoke(self):
+            db.session.delete(self.action_user)
+            db.session.flush()
+
+    return _DescribedFilePermission
+
+
+@pytest.fixture
+def user_depositor(user, permission_manager):
+    """Give the user fixture permission to create deposits."""
+    permission_manager(deposit_action, user.user.id).grant()
+    return user
+
+
+@pytest.fixture
+def icl_community(db, location):
+    """Create the icl community required for deposit view function."""
+    data = {
+        "slug": "icl",
+        "metadata": {
+            "title": "Imperial College London",
+            "description": "The Imperial College London community.",
+        },
+        "access": {
+            "visibility": "public",
+            "member_policy": "open",
+            "record_policy": "open",
+            "review_policy": "members",
+        },
+    }
+    community = current_communities.service.create(system_identity, data)
+    db.session.commit()
+    return community

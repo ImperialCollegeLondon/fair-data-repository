@@ -107,11 +107,9 @@ def test_deposit_view_permissions(user, user_client, db, location, vocabularies,
         assert json.loads(field["value"]) == app.config[setting]
 
 
-def test_ui_changes_for_depositors(user, user_client, db):
+def test_ui_changes_for_depositors(user_depositor, user_client):
     """Check customised front page menus for a depositor."""
     # As seen by depositors.
-    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
-
     res = user_client.get("/")
     assert res.status_code == 200
     soup = BeautifulSoup(res.data, "html.parser")

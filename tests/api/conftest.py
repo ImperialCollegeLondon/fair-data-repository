@@ -1,8 +1,6 @@
 """API test fixtures."""
 
 import pytest
-from ic_data_repo.permissions import deposit_action
-from invenio_access.permissions import ActionUsers
 from invenio_app.factory import create_api
 from invenio_oauth2server.models import Token
 from invenio_oauth2server.proxies import current_oauth2server
@@ -12,13 +10,6 @@ from invenio_oauth2server.proxies import current_oauth2server
 def create_app():
     """Provide the Flask app object used by tests."""
     return create_api
-
-
-@pytest.fixture
-def user_depositor(user, db):
-    """Give the user fixture permission to create deposits."""
-    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
-    return user
 
 
 @pytest.fixture

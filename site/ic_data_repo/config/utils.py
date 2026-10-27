@@ -4,22 +4,15 @@ from typing import Any
 
 from flask import g
 from flask_login import current_user
-from invenio_accounts.models import UserIdentity
 from invenio_communities.communities.resources.serializer import (
     UICommunityJSONSerializer,
 )
 from invenio_communities.proxies import current_communities
 
+from ..auth.orcid import linked_orcid_id
+
 _ICL_ROR_ID = "041kmwe10"
 """The ROR identifier for Imperial."""
-
-
-def _get_user_orcid() -> str | None:
-    """Return the ORCID iD the current user has linked, if any."""
-    identity = UserIdentity.query.filter_by(
-        id_user=current_user.id, method="orcid"
-    ).first()
-    return identity.id if identity else None
 
 
 def get_user_form_default() -> list[dict[str, Any]]:
@@ -51,7 +44,7 @@ def get_user_form_default() -> list[dict[str, Any]]:
         "given_name": given_name,
         "family_name": family_name,
     }
-    if orcid := _get_user_orcid():
+    if orcid := linked_orcid_id():
         person_or_org["identifiers"] = [{"scheme": "orcid", "identifier": orcid}]
 
     return [

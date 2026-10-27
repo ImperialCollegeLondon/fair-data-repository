@@ -214,16 +214,16 @@ The [pytest-invenio] plugin is provided to support test development. This extend
 
 ### End-to-end UI tests
 
-E2E tests live in [`tests/e2e`](../tests/e2e/) and use Selenium with shared fixtures
-from [`tests/e2e/conftest.py`](../tests/e2e/conftest.py).
+E2E tests live in [`tests/e2e`][e2e-tests] and use Selenium with shared fixtures from
+[`tests/e2e/conftest.py`][e2e-conftest].
 
 #### Pytest marker behaviour
 
-E2E tests are explicitly marked with
-[`pytestmark`](../tests/e2e/test_user_submission.py) (`pytest.mark.e2e`).
+E2E tests are explicitly marked with [`pytestmark`][e2e-test-user-submission]
+(`pytest.mark.e2e`).
 
-The `e2e` marker is registered in [pyproject.toml](../pyproject.toml), and default
-pytest options exclude E2E tests (`-m 'not e2e'`). This means:
+The `e2e` marker is registered in [pyproject.toml][pyproject-toml], and default pytest
+options exclude E2E tests (`-m 'not e2e'`). This means:
 
 - `uv run pytest` runs non-E2E tests only
 - To run E2E tests, include `-m e2e`
@@ -371,6 +371,9 @@ Instructions for accessing and working with realistic test data records are prov
 the [test_data directory].
 
 [configuration approach]: https://inveniordm.docs.cern.ch/install/configuration/
+[e2e-conftest]: https://github.com/ImperialCollegeLondon/fair-data-repository/blob/staging/tests/e2e/conftest.py
+[e2e-test-user-submission]: https://github.com/ImperialCollegeLondon/fair-data-repository/blob/staging/tests/e2e/test_user_submission.py
+[e2e-tests]: https://github.com/ImperialCollegeLondon/fair-data-repository/tree/staging/tests/e2e
 [icl_oauth_client_id]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456013&ORGN_NAME=MSP
 [icl_oauth_client_secret]: https://icsecpws.cc.ic.ac.uk:443/GetPassCard.cc?ACCOUNTID=456012&ORGN_NAME=MSP
 [inveniordm system requirements docs]: https://inveniordm.docs.cern.ch/install/requirements/
@@ -378,6 +381,7 @@ the [test_data directory].
 [nvm]: https://www.nvmnode.com/
 [pnpm]: https://pnpm.io/
 [pre-commit]: https://pre-commit.com/
+[pyproject-toml]: https://github.com/ImperialCollegeLondon/fair-data-repository/blob/staging/pyproject.toml
 [pytest-flask]: https://pytest-flask.readthedocs.io/en/latest/
 [pytest-invenio]: https://pytest-invenio.readthedocs.io/en/latest/
 [test_data directory]: https://github.com/ImperialCollegeLondon/fair-data-repository/blob/develop/test_data/README.md

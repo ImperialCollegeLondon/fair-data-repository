@@ -3,7 +3,7 @@
   {{ super() }}
   {% if metadata.resource_type.id == "collection" %}
     <h2>Collection members</h2>
-    {% set members = collection_members(record.id) %}
+    {% set members = collection_members(metadata.related_identifiers or []) %}
     {% if members|length == 0 %}
       <p>No local collection members found.</p>
     {% else %}

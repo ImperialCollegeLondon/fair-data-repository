@@ -13,6 +13,7 @@ from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph.generated.models.o_data_errors.o_data_error import ODataError
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 
+from ic_data_repo.get_collection_member_info import template_collection_member_info
 from ic_data_repo.symplectic.resources.config import SymplecticResourceConfig
 from ic_data_repo.symplectic.resources.resource import SymplecticResource
 from ic_data_repo.symplectic.services.config import SymplecticServiceConfig
@@ -138,6 +139,9 @@ class ImperialExtension:
 
         # Register jinja2 extension for user permission checks.
         app.jinja_env.add_extension(IfUserCanTag)
+
+        # Register jinja2 extension for getting collection member information.
+        app.jinja_env.globals["collection_members"] = template_collection_member_info
 
 
 class SymplecticExt:

@@ -1,31 +1,27 @@
 """Get information about a collection's record members in Invenio RDM."""
 
+from typing import Any
+
+from flask import g
 from flask_principal import Identity
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
-from invenio_records_resources.services.records.results import RecordItem
 
 
 def get_collection_member_info(
-    identity: Identity, record_id: str
+    identity: Identity, related: list[dict[str, Any]]
 ) -> list[dict[str, str]]:
-    """Get information about the member records for a given collection record ID.
+    """Get information about the member records for a given collection record.
 
     Args:
-        identity: The identity of the user.
-        record_id: The ID of the collection record.
+        identity: Identity of the user.
+        related: Related identifiers dict from the collection's metadata.
 
     Returns:
         A list of dictionaries containing information about the member records.
     """
-    record: RecordItem = records_service.read(identity, record_id)
-
-    # Stop if there are no related identifiers.
-    if "related_identifiers" not in record.data["metadata"]:
-        return []
-
     member_dois = [
         rel["identifier"]
-        for rel in record.data["metadata"]["related_identifiers"]
+        for rel in related
         if rel["relation_type"]["id"] == "haspart" and rel["scheme"] == "doi"
     ]
 
@@ -47,3 +43,17 @@ def get_collection_member_info(
         }
         for member in members
     ]
+
+
+def template_collection_member_info(
+    related: list[dict[str, Any]],
+) -> list[dict[str, str]]:
+    """Get collection member information for the current user in templates.
+
+    Args:
+        related: Related identifiers dict from the collection's metadata.
+
+    Returns:
+        A list of dictionaries containing information about the member records.
+    """
+    return get_collection_member_info(g.identity, related)

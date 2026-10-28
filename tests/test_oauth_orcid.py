@@ -5,6 +5,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from bs4 import BeautifulSoup
 from flask import url_for
 from ic_data_repo.auth.orcid import authorized_handler
 from invenio_accounts.models import UserIdentity
@@ -88,13 +89,14 @@ def test_linked_accounts_unlinked(user_client):
     """An unlinked user sees a Link ORCID action using the connect route."""
     resp = user_client.get(LINKED_ACCOUNTS_URL)
     assert resp.status_code == 200
-    html = resp.data.decode("utf-8")
 
-    assert "Link ORCID" in html
-    assert 'href="/account/settings/orcid/connect"' in html
+    soup = BeautifulSoup(resp.data, "html.parser")
+    orcid_item = soup.find("li", id="orcid-link")
+    assert orcid_item.a.get_text(strip=True) == "Link ORCID"
+    assert orcid_item.a.get("href") == "/account/settings/orcid/connect"
     # ORCID is never offered via the generic login or disconnect routes
-    assert "/oauth/login/orcid" not in html
-    assert "/oauth/disconnect/orcid" not in html
+    assert not soup.find(href="/oauth/login/orcid")
+    assert not soup.find(href="/oauth/disconnect/orcid")
 
 
 def test_linked_accounts_linked(db, user, user_client):
@@ -105,11 +107,13 @@ def test_linked_accounts_linked(db, user, user_client):
 
     resp = user_client.get(LINKED_ACCOUNTS_URL)
     assert resp.status_code == 200
-    html = resp.data.decode("utf-8")
 
-    assert "Link ORCID" not in html
-    assert f"https://orcid.org/{orcid_id}" in html
-    assert "/oauth/disconnect/orcid" not in html
+    soup = BeautifulSoup(resp.data, "html.parser")
+    orcid_item = soup.find("li", id="orcid-link")
+    assert not orcid_item.find("a", recursive=False)
+    assert orcid_item.div.i.get("class") == ["check", "icon", "green"]
+    assert orcid_item.div.p.small.a.get("href") == f"https://orcid.org/{orcid_id}"
+    assert not soup.find(href="/oauth/disconnect/orcid")
 
 
 def test_linked_accounts_unavailable(app, user_client):
@@ -117,15 +121,16 @@ def test_linked_accounts_unavailable(app, user_client):
     with patch.dict(app.config, {"ORCID_OAUTH_ENABLED": False}):
         resp = user_client.get(LINKED_ACCOUNTS_URL)
     assert resp.status_code == 200
-    assert b"Link ORCID" not in resp.data
+    soup = BeautifulSoup(resp.data, "html.parser")
+    assert not soup.find("li", id="orcid-link")
 
 
 def test_settings_menu(user_client):
     """Linked Accounts is in the settings menu; Applications stays hidden."""
     resp = user_client.get(LINKED_ACCOUNTS_URL)
-    html = resp.data.decode("utf-8")
-    assert 'href="/account/settings/linkedaccounts/"' in html
-    assert 'href="/account/settings/applications/"' not in html
+    soup = BeautifulSoup(resp.data, "html.parser")
+    assert soup.find(href="/account/settings/linkedaccounts/")
+    assert not soup.find(href="/account/settings/applications/")
 
 
 def test_connect_requires_login(client):

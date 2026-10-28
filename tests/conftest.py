@@ -11,6 +11,7 @@ import pytest
 import redis
 from ic_data_repo.permissions import deposit_action
 from invenio_access.permissions import ActionUsers, system_identity
+from invenio_communities.proxies import current_communities
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
 
@@ -279,14 +280,6 @@ def user(UserFixture, app, db):
 
 
 @pytest.fixture
-def user_depositor(user, db):
-    """Give the user fixture permission to create deposits."""
-    db.session.add(ActionUsers.allow(deposit_action, user_id=user.id))
-    db.session.commit()
-    return user
-
-
-@pytest.fixture
 def user_client(user, client):
     """A client logged in as the user fixture."""
     return user.login(client)
@@ -401,12 +394,12 @@ def files_tester(user_depositor):
 
 
 @pytest.fixture
-def permission_manager(db, user_depositor):
+def permission_manager(db, user):
     """Fixture for granting and revoking described file permissions."""
 
     class _DescribedFilePermission:
-        def __init__(self, action):
-            self.action_user = ActionUsers.allow(action, user_id=user_depositor.user.id)
+        def __init__(self, action, user_id=user.user.id):
+            self.action_user = ActionUsers.allow(action, user_id=user_id)
 
         def grant(self):
             db.session.add(self.action_user)
@@ -417,3 +410,31 @@ def permission_manager(db, user_depositor):
             db.session.flush()
 
     return _DescribedFilePermission
+
+
+@pytest.fixture
+def user_depositor(user, permission_manager):
+    """Give the user fixture permission to create deposits."""
+    permission_manager(deposit_action, user.user.id).grant()
+    return user
+
+
+@pytest.fixture
+def icl_community(db, location):
+    """Create the icl community required for deposit view function."""
+    data = {
+        "slug": "icl",
+        "metadata": {
+            "title": "Imperial College London",
+            "description": "The Imperial College London community.",
+        },
+        "access": {
+            "visibility": "public",
+            "member_policy": "open",
+            "record_policy": "open",
+            "review_policy": "members",
+        },
+    }
+    community = current_communities.service.create(system_identity, data)
+    db.session.commit()
+    return community

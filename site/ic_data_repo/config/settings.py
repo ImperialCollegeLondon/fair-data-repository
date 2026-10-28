@@ -253,6 +253,9 @@ if ORCID_OAUTH_ENABLED:
         description="Link your Helix account to your ORCID iD.",
     ).remote_app
     _orcid_remote_app["hide"] = True
+    _orcid_remote_app["authorized_handler"] = (
+        "ic_data_repo.auth.orcid:authorized_handler"
+    )
     OAUTHCLIENT_REMOTE_APPS["orcid"] = _orcid_remote_app
     ORCID_APP_CREDENTIALS = {
         "consumer_key": ORCID_OAUTH_CLIENT_ID,
@@ -318,7 +321,7 @@ USERPROFILES_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 ACCOUNTS_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 OAUTHCLIENT_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 
-ENABLE_SYPLECTIC_SEARCH = False
+SYMPLECTIC_SEARCH_ENABLED = False
 APP_RDM_DEPOSIT_FORM_TEMPLATE = "ic_data_repo/deposit.html"
 POLICY_DOCUMENTS_URL = os.getenv(
     "POLICY_DOCUMENTS_URL",

@@ -23,6 +23,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "beautifulsoup4>=4.12,<5",
     "mkdocs-gen-files",
     "mkdocs-literate-nav",
     "mkdocs-material",
@@ -80,6 +81,7 @@ module = [
        "flask_login.*",
        "flask_oauthlib.*",
        "flask_principal.*",
+       "ic_data_repo.auth.*",
        "ic_data_repo.config.*",
        "ic_data_repo.permissions.*",
        "invenio_access.*",

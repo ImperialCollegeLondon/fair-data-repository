@@ -38,9 +38,8 @@ def _expected_creator(**extra_person_or_org):
 
 def test_creator_default_unlinked(app, profile_user):
     """An unlinked user's default creator has no identifiers."""
-    with app.test_request_context():
-        login_user(profile_user)
-        creators = get_user_form_default()
+    login_user(profile_user)
+    creators = get_user_form_default()
 
     assert creators == [_expected_creator()]
 
@@ -50,9 +49,8 @@ def test_creator_default_linked_orcid(app, db, profile_user):
     UserIdentity.create(profile_user, "orcid", ORCID_ID)
     db.session.commit()
 
-    with app.test_request_context():
-        login_user(profile_user)
-        creators = get_user_form_default()
+    login_user(profile_user)
+    creators = get_user_form_default()
 
     assert creators == [
         _expected_creator(identifiers=[{"scheme": "orcid", "identifier": ORCID_ID}])

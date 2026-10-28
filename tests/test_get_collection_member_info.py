@@ -68,7 +68,9 @@ def test_related_records_valid(records, collections, search_clear):
     c = collections.create()
 
     search_clear.indices.refresh()
-    result = get_collection_member_info(system_identity, c.id)
+    result = get_collection_member_info(
+        system_identity, c.data["metadata"]["related_identifiers"]
+    )
     result.sort(key=lambda x: x["title"])
     assert len(result) == 2
     assert result[0] == {
@@ -93,7 +95,9 @@ def test_related_records_latest_version(records, collections, search_clear):
 
     # Only the latest version of the related record should be returned.
     search_clear.indices.refresh()
-    result = get_collection_member_info(system_identity, c.id)
+    result = get_collection_member_info(
+        system_identity, c.data["metadata"]["related_identifiers"]
+    )
     assert len(result) == 1
 
     # The DOI should be the same as the parent DOI for v1 and v2.
@@ -111,7 +115,9 @@ def test_related_records_nonlocal(collections, search_clear):
     c = collections.create()
 
     search_clear.indices.refresh()
-    result = get_collection_member_info(system_identity, c.id)
+    result = get_collection_member_info(
+        system_identity, c.data["metadata"]["related_identifiers"]
+    )
     assert len(result) == 0
 
 
@@ -123,7 +129,9 @@ def test_related_records_no_haspart(records, collections, search_clear):
     c = collections.create()
 
     search_clear.indices.refresh()
-    result = get_collection_member_info(system_identity, c.id)
+    result = get_collection_member_info(
+        system_identity, c.data["metadata"]["related_identifiers"]
+    )
     assert len(result) == 0
 
 
@@ -135,7 +143,9 @@ def test_related_records_no_doi(records, collections, search_clear):
     c = collections.create()
 
     search_clear.indices.refresh()
-    result = get_collection_member_info(system_identity, c.id)
+    result = get_collection_member_info(
+        system_identity, c.data["metadata"]["related_identifiers"]
+    )
     assert len(result) == 0
 
 
@@ -150,7 +160,9 @@ def test_related_records_anonymous(records, collections, search_clear):
     search_clear.indices.refresh()
     identity = AnonymousIdentity()
     identity.provides.add(any_user)
-    result = get_collection_member_info(identity, c.id)
+    result = get_collection_member_info(
+        identity, c.data["metadata"]["related_identifiers"]
+    )
     assert len(result) == 1
     assert result[0] == {
         "doi": r1.data["parent"]["pids"]["doi"]["identifier"],
@@ -168,7 +180,9 @@ def test_related_records_draft(records, collections, search_clear):
 
     # Draft records should be ignored.
     search_clear.indices.refresh()
-    result = get_collection_member_info(system_identity, c.id)
+    result = get_collection_member_info(
+        system_identity, c.data["metadata"]["related_identifiers"]
+    )
     assert len(result) == 0
 
 
@@ -191,7 +205,11 @@ def test_related_records_restricted(record_tester, collections, search_clear, db
 
     # Test identities that do and do not have permission.
     search_clear.indices.refresh()
-    result = get_collection_member_info(system_identity, c.id)
+    result = get_collection_member_info(
+        system_identity, c.data["metadata"]["related_identifiers"]
+    )
     assert len(result) == 1
-    result = get_collection_member_info(user.identity, c.id)
+    result = get_collection_member_info(
+        user.identity, c.data["metadata"]["related_identifiers"]
+    )
     assert len(result) == 0

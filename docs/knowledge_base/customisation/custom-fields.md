@@ -40,7 +40,7 @@ RDM_CUSTOM_FIELDS = [
     VocabularyCF(
         name="cern:experiment",
         vocabulary_id="cernexperiments",
-        dump_options=True,   # all values shown in dropdown
+        dump_options=True,  # all values shown in dropdown
         multiple=False,
     ),
     TextCF(
@@ -70,9 +70,9 @@ RDM_CUSTOM_FIELDS_UI = [
                     search=False,
                     multiple=False,
                     clearable=True,
-                )
+                ),
             ),
-        ]
+        ],
     }
 ]
 ```
@@ -125,7 +125,7 @@ RDM_FACETS = {
     **RDM_FACETS,
     "experiment": {
         "facet": CFTermsFacet(
-            field="cern:experiment.id",      # .id for vocab, plain for keyword
+            field="cern:experiment.id",  # .id for vocab, plain for keyword
             label="CERN Experiment",
         ),
         "ui": {
@@ -134,10 +134,7 @@ RDM_FACETS = {
     },
 }
 
-RDM_SEARCH = {
-    **RDM_SEARCH,
-    "facets": RDM_SEARCH["facets"] + ["experiment"]
-}
+RDM_SEARCH = {**RDM_SEARCH, "facets": RDM_SEARCH["facets"] + ["experiment"]}
 ```
 
 For `TextCF` with `use_as_filter=True`, use `field="name.keyword"` in the facet.
@@ -153,9 +150,7 @@ RDM_CUSTOM_FIELDS = [
         field_args={
             "validate": validate.URL(),
             "required": True,
-            "error_messages": {
-                "required": "Experiment URL is required."
-            }
+            "error_messages": {"required": "Experiment URL is required."},
         },
     ),
 ]
@@ -170,7 +165,7 @@ dict(
     field="my:field",
     ui_widget="Input",
     template="/my_custom_template.html",  # in templates/ dir
-    props=dict(...)
+    props=dict(...),
 )
 ```
 
@@ -181,9 +176,9 @@ Template receives `field_value` and `field_cfg` variables.
 Same pattern but using different config variables:
 
 ```python
-COMMUNITIES_NAMESPACES = { ... }
-COMMUNITIES_CUSTOM_FIELDS = [ ... ]
-COMMUNITIES_CUSTOM_FIELDS_UI = [ ... ]
+COMMUNITIES_NAMESPACES = {...}
+COMMUNITIES_CUSTOM_FIELDS = [...]
+COMMUNITIES_CUSTOM_FIELDS_UI = [...]
 ```
 
 ## Key Implementation Details

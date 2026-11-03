@@ -1,6 +1,7 @@
 """Get information about a collection's record members in Invenio RDM."""
 
 from flask_principal import Identity
+from idutils.normalizers import normalize_doi
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
 from invenio_records_resources.services.records.results import RecordItem
 
@@ -24,7 +25,7 @@ def get_collection_member_info(
         return []
 
     member_dois = [
-        rel["identifier"]
+        normalize_doi(rel["identifier"])
         for rel in record.data["metadata"]["related_identifiers"]
         if rel["relation_type"]["id"] == "haspart" and rel["scheme"] == "doi"
     ]

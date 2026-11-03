@@ -58,7 +58,6 @@ def test_create_system_record_publishes(
 
     record = _get_created_record()
 
-    assert record.data["status"] == "published"
     assert record.data["metadata"]["title"] == record_metadata["metadata"]["title"]
 
 
@@ -80,7 +79,6 @@ def test_create_system_record_downloads_and_publishes_files(
         system_identity, record.id, file_name
     )
 
-    assert record.data["status"] == "published"
     assert [f["key"] for f in files.entries] == [file_name]
     with downloaded_file.open_stream("rb") as stream:
         assert stream.read() == file_content

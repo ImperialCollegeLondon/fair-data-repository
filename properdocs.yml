@@ -1,5 +1,10 @@
 site_name: Imperial College London Fair Data Repository
 
+strict: true
+
+exclude_docs: |
+  /knowledge_base/
+
 watch: [site/ic_data_repo]
 
 site_dir: docs_site

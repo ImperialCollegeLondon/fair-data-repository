@@ -131,8 +131,6 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
 def user_is_postgraduate(role_type: str, job_family: str | None) -> bool:
     """Checks if a user is a postgraduate."""
     if role_type == POSTGRADUATE_ROLE_TYPE:
-        if job_family is not None:
-            raise ValueError("Unexpected combination of role type and job family.")
         return True
     return False
 

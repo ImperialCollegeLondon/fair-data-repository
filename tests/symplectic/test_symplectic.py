@@ -13,13 +13,14 @@ from lxml import etree
 
 DUMMY_URL = "https://api.symplectic.example.com"
 DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
+DUMMY_AUTH_HEADER = "Subscription-Key"
 DATACITE_PREFIX = "10.5281/"
 
 
 @pytest.fixture
 def client():
     """Create a Symplectic client instance with mocked environment variables."""
-    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY)
+    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY, DUMMY_AUTH_HEADER)
 
 
 @pytest.fixture

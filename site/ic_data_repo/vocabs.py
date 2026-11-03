@@ -400,7 +400,7 @@ def fetch_all_results(logger: Logger = _get_default_logger()):
     SUBSCRIPTION_KEY = current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"]
     SYMPLECTIC_API_AUTH_HEADER = current_app.config["SYMPLECTIC_API_AUTH_HEADER"]
 
-    session = requests.session()
+    session = requests.Session()
     all_results = []
     total_results = 0
     max_results = None

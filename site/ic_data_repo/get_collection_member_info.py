@@ -4,6 +4,7 @@ from typing import Any
 
 from flask import g
 from flask_principal import Identity
+from idutils.normalizers import normalize_doi
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
 
 
@@ -20,7 +21,7 @@ def get_collection_member_info(
         A list of dictionaries containing information about the member records.
     """
     member_dois = [
-        rel["identifier"]
+        normalize_doi(rel["identifier"])
         for rel in related
         if rel["relation_type"]["id"] == "haspart" and rel["scheme"] == "doi"
     ]

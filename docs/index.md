@@ -265,7 +265,7 @@ options exclude E2E tests (`-m 'not e2e'`). This means:
 Note that the e2e tests use Selenium, which in turn requires a browser driver. As such,
 there can be issues when Linux distributions package browser drivers in nonstandard
 ways. For example, Firefox is now often installed via the `snap` package manager
-infrastructure on Ubuntu, with the `firefox` command nstead being a thin `sh` script
+infrastructure on Ubuntu, with the `firefox` command instead being a thin `sh` script
 wrapper around the actual binaries, rather than the binaries themselves. In such cases,
 you may need to explicitly point the e2e test harness to the actual binaries. With
 Firefox on Ubuntu, for example, you may need to set the following environment variables

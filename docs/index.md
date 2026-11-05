@@ -276,6 +276,12 @@ export SE_FIREFOX_PATH=/snap/firefox/current/usr/lib/firefox/firefox
 export SE_GECKODRIVER=/snap/bin/geckodriver
 ```
 
+You may also need to install the ALSA libs if missing. For example, on Ubuntu:
+
+```
+sudo apt install libasound2t64
+```
+
 #### Screenshots and artifacts
 
 E2E tests write screenshots to the `artifacts/` directory (for example one image per

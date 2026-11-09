@@ -4,6 +4,7 @@ import json
 
 import pytest
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from tests.e2e.conftest import DEPOSITOR_EMAIL, TEST_PASSWORD, login
@@ -35,3 +36,8 @@ def test_force_community_in_ui(driver):
         "receiver": {"community": icl["id"]},
     }
     assert data["expanded"]["parent"]["review"]["receiver"]["id"] == icl["id"]
+
+    # Check that the community `SubmitReview` button appears.
+    WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.NAME, "SubmitReview"))
+    )

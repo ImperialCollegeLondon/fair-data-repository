@@ -18,6 +18,7 @@ delete, search, etc.):
 ```python
 from invenio_records_resources.services import Service
 
+
 class MyService(Service):
     def create(self, identity, data, uow=None):
         self.require_permission(identity, "create")
@@ -31,6 +32,7 @@ All customisable dependencies are injected via a config object:
 
 ```python
 from invenio_records_resources.services import ServiceConfig
+
 
 class MyServiceConfig(ServiceConfig):
     permission_policy_cls = MyPermissionPolicy
@@ -53,6 +55,7 @@ State-changing methods must use the UoW pattern to ensure atomicity:
 
 ```python
 from invenio_records_resources.services.uow import unit_of_work, RecordCommitOp
+
 
 class MyService(Service):
     @unit_of_work()
@@ -77,6 +80,7 @@ pattern:
 ```python
 from invenio_records_resources.services.records.components import ServiceComponent
 
+
 class MetadataComponent(ServiceComponent):
     def create(self, identity, data=None, record=None, **kwargs):
         record.metadata = data.get("metadata", {})
@@ -95,6 +99,7 @@ Checked via `self.require_permission(identity, action_name, **kwargs)`:
 ```python
 from invenio_records_permissions import RecordPermissionPolicy
 from invenio_records_permissions.generators import AnyUser, SystemProcess
+
 
 class MyPermissionPolicy(RecordPermissionPolicy):
     can_create = [AnyUser(), SystemProcess()]
@@ -145,6 +150,7 @@ class MyExtension:
     def init_services(self, app):
         self.service = MyService(MyServiceConfig.build(app))
 
+
 # proxies.py
-current_service = LocalProxy(lambda: current_app.extensions['myext'].service)
+current_service = LocalProxy(lambda: current_app.extensions["myext"].service)
 ```

@@ -42,7 +42,7 @@ def test_creator_customisation(driver):
             (
                 By.XPATH,
                 "//button[normalize-space()='Add creator']"
-                "/ancestor::div[concat(' ', normalize-space(@class), ' '),"
+                "/ancestor::div[contains(concat(' ', normalize-space(@class), ' '),"
                 " ' field ')][1]",
             )
         )
@@ -56,6 +56,7 @@ def test_creator_customisation(driver):
     )
     wait.until(EC.visibility_of_element_located((By.ID, "person_or_org.family_name")))
 
+    # The customised creator editor should not ask for a role
     assert modal.find_elements(By.XPATH, ".//label[normalize-space()='Role']") == []
 
     modal.find_element(By.ID, "person_or_org.family_name").send_keys("Example")
@@ -63,4 +64,4 @@ def test_creator_customisation(driver):
     modal.find_element(By.XPATH, ".//button[normalize-space()='Save']").click()
 
     wait.until(EC.invisibility_of_element_located(modal))
-    wait.until(lambda _: "Example, Alex" in creator_field.text)
+    wait.until(lambda _: "Example, User" in creator_field.text)

@@ -46,6 +46,8 @@ jobs:
 
 
       - name: Start dev server
+        env:
+          INVENIO_SETTINGS_MODULE: ic_data_repo.config.e2e
         run: |
           uvx invenio-cli==1.12 run > app.log 2>&1 &
           echo $! > app.pid
@@ -89,6 +91,7 @@ jobs:
           path: app.log
 
       - name: Upload e2e screenshots
+        if: always()  # Always upload e2e screenshots, even if the tests pass or fail, so we can debug any issues
         uses: actions/upload-artifact@v4
         with:
           name: e2e-screenshots

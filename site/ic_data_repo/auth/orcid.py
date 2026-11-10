@@ -1,6 +1,6 @@
 """ORCID account linking handlers."""
 
-from flask import current_app, flash, redirect, url_for
+from flask import current_app, flash, g, redirect, session, url_for
 from flask_login import current_user
 from invenio_accounts.models import UserIdentity
 from invenio_i18n import lazy_gettext as _
@@ -11,6 +11,9 @@ from invenio_oauthclient.errors import (
 from invenio_oauthclient.handlers import oauth_error_handler
 from invenio_oauthclient.handlers.authorized import authorized_handler as _authorized
 from invenio_oauthclient.proxies import current_oauthclient
+from invenio_rdm_records.proxies import current_rdm_records_service
+
+ORCID_BANNER_SESSION_KEY = "ic_data_repo.orcid_banner"
 
 
 def orcid_linking_available():
@@ -29,6 +32,23 @@ def linked_orcid_id():
         id_user=current_user.id, method="orcid"
     ).first()
     return identity.id if identity else None
+
+
+def flag_orcid_banner(sender, user, **kwargs):
+    """Mark the session so the ORCID banner can be shown once after logging in."""
+    session[ORCID_BANNER_SESSION_KEY] = True
+
+
+def show_orcid_banner():
+    """Return whether to show the ORCID banner, at most once per login."""
+    if not session.pop(ORCID_BANNER_SESSION_KEY, False):
+        return False
+
+    return bool(
+        orcid_linking_available()
+        and current_rdm_records_service.check_permission(g.identity, "create")
+        and not linked_orcid_id()
+    )
 
 
 @oauth_error_handler

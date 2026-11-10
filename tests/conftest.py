@@ -15,6 +15,7 @@ from invenio_access.permissions import ActionUsers, system_identity
 from invenio_communities.proxies import current_communities
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
+from invenio_vocabularies.proxies import current_service as vocabularies_service
 
 # The development services use databases 0-4.
 REDIS_TEST_DBS = range(10, 15)
@@ -291,6 +292,7 @@ def vocabularies(db):
         delay=False,
     )
     vocabularies.load()
+    vocabularies_service.indexer.refresh()
 
 
 @pytest.fixture

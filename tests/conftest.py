@@ -149,6 +149,11 @@ def app_config(opensearch_service, redis_service, broker_url, app_config):
     app_config["BROKER_URL"] = broker_url
     app_config["CELERY_BROKER_URL"] = broker_url
 
+    # DataCite must be enabled for tests that mint DOIs.
+    app_config["DATACITE_ENABLED"] = True
+    app_config["DATACITE_TEST_MODE"] = True
+    app_config["DATACITE_PREFIX"] = "10.1234"
+
     # ---- Webpack manifest configuration ----
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
     instance_path = app_config.get(
@@ -392,8 +397,9 @@ def record_tester(location, vocabularies, record_data, user_depositor):
             return draft
 
         def create_doi(self, identity=user_depositor.identity):
-            records_service.pids.create(identity, self.id, "doi", provider="datacite")
-            return records_service.pids.reserve(identity, self.id)
+            return records_service.pids.create(
+                identity, self.id, "doi", provider="datacite"
+            )
 
     return _Record()
 

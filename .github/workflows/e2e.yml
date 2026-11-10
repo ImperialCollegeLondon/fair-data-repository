@@ -47,7 +47,7 @@ jobs:
 
       - name: Start dev server
         env:
-          INVENIO_SETTINGS_MODULE: ic_data_repo.config.e2e
+          INVENIO_RATELIMIT_ENABLED: False
         run: |
           uvx invenio-cli==1.12 run > app.log 2>&1 &
           echo $! > app.pid

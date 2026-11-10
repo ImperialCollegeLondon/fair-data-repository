@@ -47,10 +47,10 @@ def login(driver, email, password, next_url="/"):
 
 def create_submission_and_get_request_url(driver):
     """Helper function to create a submission and return the request URL."""
-    login(driver, DEPOSITOR_EMAIL, TEST_PASSWORD, next_url="/uploads/new?community=icl")
+    login(driver, DEPOSITOR_EMAIL, TEST_PASSWORD, next_url="/uploads/new")
 
     WebDriverWait(driver, timeout=10).until(
-        lambda d: d.current_url.endswith("uploads/new?community=icl")
+        lambda d: d.current_url.endswith("uploads/new")
     )
 
     driver.find_element(By.ID, "metadata.title").send_keys("Test Submission")

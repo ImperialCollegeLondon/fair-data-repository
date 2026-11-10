@@ -213,8 +213,9 @@ invenio-cli services start
 uv run pytest --use-running-services
 ```
 
-The run stops straight away if OpenSearch or Redis isn't running. Tests use the search index
-prefix `test-ic-data-repo-`, Redis databases 10-14 and an in-memory message broker.
+The run stops straight away if OpenSearch or Redis isn't running. Tests use the search
+index prefix `test-ic-data-repo-`, Redis databases 10-14 and an in-memory message
+broker.
 
 All development work should be supported by an appropriate set of tests. Best practices
 around testing are expected to evolve as the project develops.

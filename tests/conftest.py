@@ -2,6 +2,7 @@
 
 import json
 import os
+import socket
 from copy import deepcopy
 from io import BytesIO
 from pathlib import Path
@@ -15,6 +16,9 @@ from invenio_communities.proxies import current_communities
 from invenio_rdm_records.fixtures.vocabularies import VocabulariesFixture
 from invenio_rdm_records.proxies import current_rdm_records_service as records_service
 
+# The development services use databases 0-4.
+REDIS_TEST_DBS = range(10, 15)
+
 
 @pytest.fixture(autouse=True)
 def mock_manifest():
@@ -24,9 +28,40 @@ def mock_manifest():
         yield mock
 
 
+def pytest_addoption(parser):
+    """Add the option to use services that are already running."""
+    parser.addoption(
+        "--use-running-services",
+        action="store_true",
+        help=(
+            "Use the local development services (invenio-cli services start) instead "
+            "of starting test containers."
+        ),
+    )
+
+
+def require_running_service(name, host, port):
+    """Stop the test run with a clear message if a service isn't running."""
+    try:
+        socket.create_connection((host, port), timeout=2).close()
+    except OSError:
+        pytest.exit(
+            f"{name} is not running on {host}:{port}. Start the development services "
+            "with `invenio-cli services start`, or run the tests without "
+            "--use-running-services.",
+            returncode=1,
+        )
+
+
 @pytest.fixture(scope="session")
-def opensearch_container():
-    """Start an OpenSearch container."""
+def opensearch_service(request):
+    """Provide OpenSearch, in a container unless using running services."""
+    if request.config.getoption("--use-running-services"):
+        service = {"host": "localhost", "port": 9200}
+        require_running_service("OpenSearch", **service)
+        yield service
+        return
+
     from testcontainers.opensearch import OpenSearchContainer
 
     with OpenSearchContainer("opensearchproject/opensearch:2.18.0") as container:
@@ -44,8 +79,14 @@ def opensearch_container():
 
 
 @pytest.fixture(scope="session")
-def redis_container():
-    """Start a Redis container."""
+def redis_service(request):
+    """Provide Redis, in a container unless using running services."""
+    if request.config.getoption("--use-running-services"):
+        service = {"host": "localhost", "port": 6379}
+        require_running_service("Redis", **service)
+        yield service
+        return
+
     from testcontainers.redis import RedisContainer
 
     with RedisContainer() as container:
@@ -56,19 +97,24 @@ def redis_container():
 
 
 @pytest.fixture(scope="session")
-def rabbitmq_container():
-    """Start a RabbitMQ container."""
+def broker_url(request):
+    """Provide the message broker URL, in a container unless using running services."""
+    # An in-memory broker keeps tests from reading or adding to development queues.
+    if request.config.getoption("--use-running-services"):
+        yield "memory://"
+        return
+
     from testcontainers.rabbitmq import RabbitMqContainer
 
     with RabbitMqContainer() as container:
         host = container.get_container_host_ip()
         port = container.get_exposed_port(5672)
 
-        yield {"host": host, "port": port}
+        yield f"amqp://guest:guest@{host}:{port}/"
 
 
 @pytest.fixture(scope="module")
-def app_config(opensearch_container, redis_container, rabbitmq_container, app_config):
+def app_config(opensearch_service, redis_service, broker_url, app_config):
     """Update invenio app_config fixture for Redis/OpenSearch and webpack configs."""
     from ic_data_repo.config import settings
 
@@ -78,29 +124,30 @@ def app_config(opensearch_container, redis_container, rabbitmq_container, app_co
     app_config["SQLALCHEMY_ENGINE_OPTIONS"] = ""
 
     # OpenSearch config.
-    opensearch_host = opensearch_container["host"]
-    opensearch_port = opensearch_container["port"]
+    opensearch_host = opensearch_service["host"]
+    opensearch_port = opensearch_service["port"]
     app_config["SEARCH_HOSTS"] = [{"host": opensearch_host, "port": opensearch_port}]
+    # Keeps tests away from the development indices when using running services.
+    app_config["SEARCH_INDEX_PREFIX"] = "test-ic-data-repo-"
 
     # Redis config.
-    redis_host = redis_container["host"]
-    redis_port = redis_container["port"]
+    redis_host = redis_service["host"]
+    redis_port = redis_service["port"]
     redis_url = f"redis://{redis_host}:{redis_port}"
     app_config["CACHE_TYPE"] = "redis"
-    app_config["CACHE_REDIS_URL"] = f"{redis_url}/0"
-    app_config["IIIF_CACHE_REDIS_URL"] = f"{redis_url}/0"
-    app_config["ACCOUNTS_SESSION_REDIS_URL"] = f"{redis_url}/1"
-    app_config["CELERY_RESULT_BACKEND"] = f"{redis_url}/2"
-    app_config["RATELIMIT_STORAGE_URL"] = f"{redis_url}/3"
-    app_config["COMMUNITIES_IDENTITIES_CACHE_REDIS_URL"] = f"{redis_url}/4"
-
-    # RabbitMQ config.
-    rabbitmq_host = rabbitmq_container["host"]
-    rabbitmq_port = rabbitmq_container["port"]
-    app_config["BROKER_URL"] = f"amqp://guest:guest@{rabbitmq_host}:{rabbitmq_port}/"
-    app_config["CELERY_BROKER_URL"] = (
-        f"amqp://guest:guest@{rabbitmq_host}:{rabbitmq_port}/"
+    cache_db, session_db, result_db, ratelimit_db, identities_db = REDIS_TEST_DBS
+    app_config["CACHE_REDIS_URL"] = f"{redis_url}/{cache_db}"
+    app_config["IIIF_CACHE_REDIS_URL"] = f"{redis_url}/{cache_db}"
+    app_config["ACCOUNTS_SESSION_REDIS_URL"] = f"{redis_url}/{session_db}"
+    app_config["CELERY_RESULT_BACKEND"] = f"{redis_url}/{result_db}"
+    app_config["RATELIMIT_STORAGE_URL"] = f"{redis_url}/{ratelimit_db}"
+    app_config["COMMUNITIES_IDENTITIES_CACHE_REDIS_URL"] = (
+        f"{redis_url}/{identities_db}"
     )
+
+    # Message broker config.
+    app_config["BROKER_URL"] = broker_url
+    app_config["CELERY_BROKER_URL"] = broker_url
 
     # ---- Webpack manifest configuration ----
     app_config["COLLECT_STORAGE"] = "flask_collect.storage.file"
@@ -242,7 +289,7 @@ def vocabularies(db):
 
 
 @pytest.fixture
-def flush_redis(redis_container):
+def flush_redis(redis_service):
     """Remove all data from redis.
 
     This fixture can be used to flush all data from the redis after a test is run.
@@ -250,9 +297,9 @@ def flush_redis(redis_container):
     which can cause contamination between tests.
     """
     yield
-    for i in range(5):
+    for i in REDIS_TEST_DBS:
         client = redis.Redis(
-            host=redis_container["host"], port=redis_container["port"], db=i
+            host=redis_service["host"], port=redis_service["port"], db=i
         )
         client.flushdb()
 

@@ -198,13 +198,23 @@ Only urgent bug fixes or security patches should be started against `develop`.
 
 ### Tests
 
-A test suite is provided in the `tests` directory. Assuming services have already been
-setup, tests can be run with:
+A test suite is provided in the `tests` directory. By default it starts its own
+OpenSearch, Redis and RabbitMQ containers, which requires Docker:
+
+```console
+uv run pytest
+```
+
+Starting the containers is slow. For faster runs during development, you can use the
+services that are already running instead:
 
 ```console
 invenio-cli services start
-uv run pytest
+uv run pytest --use-running-services
 ```
+
+The run stops straight away if OpenSearch or Redis isn't running. Tests use the search index
+prefix `test-ic-data-repo-`, Redis databases 10-14 and an in-memory message broker.
 
 All development work should be supported by an appropriate set of tests. Best practices
 around testing are expected to evolve as the project develops.

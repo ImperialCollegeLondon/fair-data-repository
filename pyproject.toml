@@ -84,6 +84,7 @@ module = [
        "ic_data_repo.auth.*",
        "ic_data_repo.config.*",
        "ic_data_repo.permissions.*",
+       "idutils.*",
        "invenio_access.*",
        "invenio_accounts.*",
        "invenio_app.*",

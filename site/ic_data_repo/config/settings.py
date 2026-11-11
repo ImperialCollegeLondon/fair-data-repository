@@ -332,6 +332,7 @@ USERPROFILES_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 ACCOUNTS_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 OAUTHCLIENT_SETTINGS_TEMPLATE = "ic_data_repo/page_settings.html"
 
+APP_RDM_RECORD_LANDING_PAGE_TEMPLATE = "ic_data_repo/detail.html"
 APP_RDM_DEPOSIT_FORM_TEMPLATE = "ic_data_repo/deposit.html"
 POLICY_DOCUMENTS_URL = os.getenv(
     "POLICY_DOCUMENTS_URL",

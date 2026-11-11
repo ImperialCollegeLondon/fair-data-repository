@@ -398,12 +398,13 @@ def fetch_all_results(logger: Logger = _get_default_logger()):
         return
     API_URL = current_app.config["SYMPLECTIC_API_URL"]
     SUBSCRIPTION_KEY = current_app.config["SYMPLECTIC_API_SUBSCRIPTION_KEY"]
+    SYMPLECTIC_API_AUTH_HEADER = current_app.config["SYMPLECTIC_API_AUTH_HEADER"]
 
     session = requests.Session()
     all_results = []
     total_results = 0
     max_results = None
-    headers = {"subscription-key": SUBSCRIPTION_KEY, "content-type": "text/xml"}
+    headers = {SYMPLECTIC_API_AUTH_HEADER: SUBSCRIPTION_KEY, "content-type": "text/xml"}
     url: str | None = f"{API_URL}/grants?detail=full&per-page=25"
 
     while url and (max_results is None or total_results < max_results):

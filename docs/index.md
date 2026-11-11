@@ -99,7 +99,7 @@ Note that the above leaves the services running, you can then start the Flask se
 with:
 
 ```console
-INVENIO_RATELIMIT_ENABLED=False invenio-cli run  # The ratelimit is disabled to avoid e2e test failures during development.
+invenio-cli run
 ```
 
 This runs the Flask development server and creates a number of Celery workers in the

@@ -233,7 +233,8 @@ options exclude E2E tests (`-m 'not e2e'`). This means:
 1. Start services and application:
 
     - `invenio-cli services start`
-    - `invenio-cli run`
+    - `invenio-cli run` # Use `INVENIO_RATELIMIT_ENABLED=False invenio-cli run`to disable
+        the ratelimit, for avoiding e2e test failures during development.
 
 1. Create a community using the helper script:
 

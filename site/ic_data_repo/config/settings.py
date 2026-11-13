@@ -7,7 +7,6 @@ https://inveniordm.docs.cern.ch/reference/configuration/.
 """
 
 import os
-from datetime import datetime
 
 from invenio_app_rdm.config import (
     VOCABULARIES_DATASTREAM_READERS,
@@ -27,6 +26,7 @@ from ..permissions import ImperialRecordPermissionPolicy
 from ..service_components import (
     DescribedFilePermissionComponent,
     DomainMetadataPermissionComponent,
+    PublicationDatePermissionComponent,
     RestrictedLicensePermissionComponent,
     SymplecticComponent,
 )
@@ -122,7 +122,6 @@ SITE_API_URL = "https://127.0.0.1:5000/api"
 
 APP_RDM_DEPOSIT_FORM_DEFAULTS = {
     "resource_type": "dataset",
-    "publication_date": lambda: datetime.now().strftime("%Y-%m-%d"),
     "rights": [
         {
             "id": "cc-by-4.0",
@@ -267,6 +266,7 @@ RDM_PERMISSION_POLICY = ImperialRecordPermissionPolicy
 RDM_RECORDS_SERVICE_COMPONENTS = [
     DomainMetadataPermissionComponent,
     RestrictedLicensePermissionComponent,
+    PublicationDatePermissionComponent,
     *DefaultRecordsComponents,
     SymplecticComponent,
 ]

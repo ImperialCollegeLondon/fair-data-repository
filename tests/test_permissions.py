@@ -8,10 +8,12 @@ from ic_data_repo.permissions import (
     AbleToDeposit,
     AbleToEditDomainMetadata,
     AbleToSelectRestrictedLicense,
+    AbleToSetPublicationDate,
     ImperialRecordPermissionPolicy,
     deposit_action,
     domain_metadata_action,
     restricted_license_action,
+    set_publication_date_action,
     user_is_allowed_employee,
     user_is_postgraduate,
 )
@@ -34,12 +36,18 @@ def test_domain_metadata_generator():
     assert AbleToEditDomainMetadata().needs() == [domain_metadata_action]
 
 
+def test_publication_date_generator():
+    """Test the publication date generator returns its named action need."""
+    assert AbleToSetPublicationDate().needs() == [set_publication_date_action]
+
+
 @pytest.mark.parametrize(
     "action_name,generator_class",
     [
         ("can_select_restricted_license", AbleToSelectRestrictedLicense),
         ("can_create", AbleToDeposit),
         ("can_edit_domain_metadata", AbleToEditDomainMetadata),
+        ("can_set_publication_date", AbleToSetPublicationDate),
     ],
 )
 def test_deposit_permission_policy_generators(action_name, generator_class):
@@ -57,6 +65,7 @@ def test_deposit_permission_policy_generators(action_name, generator_class):
         ("select_restricted_license", restricted_license_action),
         ("create", deposit_action),
         ("edit_domain_metadata", domain_metadata_action),
+        ("set_publication_date", set_publication_date_action),
     ],
 )
 def test_permission_grant_and_revoke(action_name, need, db):
@@ -95,6 +104,13 @@ def test_system_process_can_select_restricted_license():
 def test_system_process_can_edit_domain_metadata():
     """Test system processes (e.g. bulk import) can edit domain metadata."""
     assert ImperialRecordPermissionPolicy("edit_domain_metadata").allows(
+        system_identity
+    )
+
+
+def test_system_process_can_set_publication_date():
+    """Test system processes (e.g. migration) can set the publication date."""
+    assert ImperialRecordPermissionPolicy("set_publication_date").allows(
         system_identity
     )
 

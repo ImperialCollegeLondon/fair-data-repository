@@ -208,6 +208,23 @@ db.session.add(ActionUsers.allow(subject_metadata_action, user_id=user.id))
 db.session.commit()
 ```
 
+### Helix custom actions
+
+`ic_data_repo.permissions` defines `deposit-action`, `restricted-license-action`,
+`domain-metadata-action`, `described-file-action` and `set-publication-date-action`
+(policy action `set_publication_date`, generator `AbleToSetPublicationDate`). Only
+`SystemProcess` holds them by default (except `deposit-action`, which is assigned at
+login). Grant with:
+
+```console
+uv run invenio access allow-action-for-user --user EMAIL --action set-publication-date-action
+```
+
+`PublicationDatePermissionComponent` uses `service.check_permission` (not
+`require_permission`) so that unprivileged callers have the date silently reset rather
+than rejected. Privileged callers who omit the field keep the stored date; publish
+guarantees a date is present.
+
 ## Query Filters
 
 Generators also define `query_filter()` methods used for search-time filtering. This

@@ -36,6 +36,9 @@ domain_metadata_action = ActionNeed("domain-metadata-action")
 """Action representing the ability to add, update, reorder, or remove
 imperial:domain_metadata entries."""
 
+set_publication_date_action = ActionNeed("set-publication-date-action")
+"""Action representing the ability to set an explicit publication date."""
+
 
 class AbleToDeposit(Generator):
     """Permission generator for dataset deposit."""
@@ -61,6 +64,14 @@ class AbleToEditDomainMetadata(Generator):
         return [domain_metadata_action]
 
 
+class AbleToSetPublicationDate(Generator):
+    """Permission generator for setting the publication date."""
+
+    def needs(self, **kwargs):
+        """The needs associated with the publication date permission."""
+        return [set_publication_date_action]
+
+
 class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
     """The permission policy for the repository.
 
@@ -75,6 +86,7 @@ class ImperialRecordPermissionPolicy(RDMRecordPermissionPolicy):
         SystemProcess(),
     ]
     can_edit_domain_metadata: ClassVar = [AbleToEditDomainMetadata(), SystemProcess()]
+    can_set_publication_date: ClassVar = [AbleToSetPublicationDate(), SystemProcess()]
 
     # Described file permissions.
     can_draft_create_files: ClassVar = [

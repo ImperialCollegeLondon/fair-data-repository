@@ -108,7 +108,7 @@ export const overriddenComponents = {
   "InvenioAppRdm.Deposit.PIDField.container": MandatoryPIDField,
   "InvenioAppRdm.Deposit.ResourceTypeField.container": HiddenField,
   "InvenioAppRdm.Deposit.PublisherField.container": HiddenField,
-  "InvenioAppRdm.Deposit.PublicationDateField.container": HiddenField,
+  "InvenioAppRdm.Deposit.PublicationDateField.container": NullElement,
   "InvenioAppRdm.Deposit.DescriptionsField.container": DescriptionField,
   "InvenioAppRdm.Deposit.LicenseField.container": LimitedLicenseField,
   "InvenioAppRdm.Deposit.AccordionFieldReferences.container": HiddenField,

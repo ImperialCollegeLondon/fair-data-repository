@@ -34,7 +34,7 @@ draft = service.create(identity, data={
         "title": "My Dataset",
         "resource_type": {"id": "dataset"},
         "creators": [{"person_or_org": {"family_name": "Smith", "given_name": "John", "type": "personal"}}],
-        "publication_date": "2024-01-15",
+        "publication_date": "2024-01-15",  # Helix: only honoured for privileged callers (e.g. system_identity)
         "publisher": "Imperial College London",
     },
     "access": {

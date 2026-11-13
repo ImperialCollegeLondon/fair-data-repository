@@ -40,8 +40,26 @@
                 </form>
 
             </div>
-            {# Display low privilege information #}
+            {# Prompt depositors to link ORCID or display low privilege information #}
             {% if_user_can "create" %}
+              {% if show_orcid_banner() %}
+                <div class="eleven wide computer sixteen wide tablet column">
+                <div id="orcid-banner" class="ui container center aligned segment">
+                <p class="ui header">
+                    {# The span stops Semantic UI's ".ui.header > img" 2.5em width applying. #}
+                    <span>
+                      <img
+                        class="inline-id-icon"
+                        src="{{ url_for('static', filename='images/orcid.svg') }}"
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    </span>
+                    Please <a href="{{ url_for('ic_data_repo.connect_orcid') }}">link your ORCID iD</a> to your Helix account so your datasets are credited to you.
+                </p>
+                </div>
+                </div>
+              {%endif%}
             {% else %}
               {% if current_user.is_authenticated %}
                 <div class="eleven wide computer sixteen wide tablet column">

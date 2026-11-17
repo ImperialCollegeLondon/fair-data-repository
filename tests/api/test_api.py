@@ -8,6 +8,7 @@ from ic_data_repo.permissions import (
     described_file_action,
     domain_metadata_action,
     restricted_license_action,
+    set_publication_date_action,
 )
 from invenio_access.permissions import ActionUsers
 from invenio_rdm_records.records.models import RDMDraftMetadata
@@ -54,6 +55,23 @@ def _revoke_domain_metadata_permission(user_depositor, db):
     """Revoke a previously-granted domain-metadata-action permission."""
     grant = ActionUsers.query.filter_by(
         action=domain_metadata_action.value, user_id=user_depositor.id
+    ).one()
+    db.session.delete(grant)
+    db.session.commit()
+
+
+def _grant_publication_date_permission(user_depositor, db):
+    """Grant user_depositor the domain-metadata-action permission."""
+    db.session.add(
+        ActionUsers.allow(set_publication_date_action, user_id=user_depositor.id)
+    )
+    db.session.commit()
+
+
+def _revoke_publication_date_permission(user_depositor, db):
+    """Revoke a previously-granted domain-metadata-action permission."""
+    grant = ActionUsers.query.filter_by(
+        action=set_publication_date_action.value, user_id=user_depositor.id
     ).one()
     db.session.delete(grant)
     db.session.commit()
@@ -393,6 +411,10 @@ def test_new_record_version(
         headers=api_headers,
     )
     assert record_v2_published.status_code == 202
+    assert (
+        record_v2_published.json["metadata"]["publication_date"]
+        == date.today().isoformat()
+    )
 
 
 def test_description_transfer(
@@ -1069,3 +1091,136 @@ def test_publish_unmanaged_doi_not_exported_to_symplectic(
     assert accepted.status_code == 200, accepted.json
     assert accepted.json["status"] == "accepted"
     task_op.assert_not_called()
+
+
+def test_publication_date_update_retained_for_unprivileged(
+    user_client, location, vocabularies, user_depositor, api_headers, metadata, db
+):
+    """Unprivileged updates keep the stored date; privileged users can set it."""
+    metadata["publication_date"] = "2011"
+    _grant_publication_date_permission(user_depositor, db)
+    draft = user_client.post(
+        "/records",
+        json={"metadata": metadata, "files": {"enabled": False}},
+        headers=api_headers,
+    )
+    assert draft.status_code == 201
+    assert draft.json["metadata"]["publication_date"] == "2011"
+    draft_id = draft.json["id"]
+
+    _revoke_publication_date_permission(user_depositor, db)
+    metadata["publication_date"] = "1999-12-31"
+    metadata["title"] = "Retitled"
+    result = user_client.put(
+        f"/records/{draft_id}/draft",
+        json={"metadata": metadata},
+        headers=_csrf_headers(user_client, api_headers),
+    )
+    assert result.status_code == 200
+    assert result.json["metadata"]["title"] == "Retitled"
+    assert result.json["metadata"]["publication_date"] == "2011"
+
+    _grant_publication_date_permission(user_depositor, db)
+    metadata["publication_date"] = "2012-02-03"
+    result = user_client.put(
+        f"/records/{draft_id}/draft",
+        json={"metadata": metadata},
+        headers=_csrf_headers(user_client, api_headers),
+    )
+    assert result.status_code == 200
+    assert result.json["metadata"]["publication_date"] == "2012-02-03"
+
+
+def test_publication_date_retained_on_publish_and_edit(
+    user_client, location, vocabularies, user_depositor, api_headers, metadata, db
+):
+    """A privileged date survives publishing and unprivileged edits."""
+    metadata["publication_date"] = "2011"
+    _grant_publication_date_permission(user_depositor, db)
+    draft = user_client.post(
+        "/records",
+        json={
+            "metadata": metadata,
+            "files": {"enabled": False},
+            "custom_fields": {"imperial:dart_id": "123456789"},
+            "pids": {
+                "doi": {"identifier": "10.1234/external.1", "provider": "external"}
+            },
+        },
+        headers=api_headers,
+    )
+    assert draft.status_code == 201
+    record_id = draft.json["id"]
+    _revoke_publication_date_permission(user_depositor, db)
+
+    community = user_client.post(
+        "/communities",
+        json={
+            "slug": "icl",
+            "metadata": {"title": "Imperial College London"},
+            "access": {"visibility": "public"},
+        },
+        headers=api_headers,
+    )
+    assert community.status_code == 201
+    review = user_client.put(
+        f"/records/{record_id}/draft/review",
+        json={
+            "receiver": {"community": community.json["id"]},
+            "type": "community-submission",
+        },
+        headers=api_headers,
+    )
+    assert review.status_code == 200
+    submitted = user_client.post(
+        f"/records/{record_id}/draft/actions/submit-review", headers=api_headers
+    )
+    assert submitted.status_code == 202
+    accepted = user_client.post(
+        f"/requests/{review.json['id']}/actions/accept", headers=api_headers
+    )
+    assert accepted.status_code == 200
+
+    published = user_client.get(f"/records/{record_id}", headers=api_headers)
+    assert published.json["metadata"]["publication_date"] == "2011"
+
+    edit = user_client.post(f"/records/{record_id}/draft", headers=api_headers)
+    assert edit.status_code == 201
+    assert edit.json["metadata"]["publication_date"] == "2011"
+    metadata["publication_date"] = "1999-12-31"
+    updated = user_client.put(
+        f"/records/{record_id}/draft",
+        json={"metadata": metadata, "files": {"enabled": False}},
+        headers=_csrf_headers(user_client, api_headers),
+    )
+    assert updated.status_code == 200
+    assert updated.json["metadata"]["publication_date"] == "2011"
+    republished = user_client.post(
+        f"/records/{record_id}/draft/actions/publish", headers=api_headers
+    )
+    assert republished.status_code == 202, republished.json
+    assert republished.json["metadata"]["publication_date"] == "2011"
+
+
+def test_publication_date_retained_on_privileged_update_without_date(
+    user_client, location, vocabularies, user_depositor, api_headers, metadata, db
+):
+    """A privileged update omitting publication_date keeps the stored value."""
+    metadata["publication_date"] = "2011"
+    _grant_publication_date_permission(user_depositor, db)
+    draft = user_client.post(
+        "/records",
+        json={"metadata": metadata, "files": {"enabled": False}},
+        headers=api_headers,
+    )
+    assert draft.status_code == 201
+    assert draft.json["metadata"]["publication_date"] == "2011"
+
+    del metadata["publication_date"]
+    result = user_client.put(
+        f"/records/{draft.json['id']}/draft",
+        json={"metadata": metadata},
+        headers=_csrf_headers(user_client, api_headers),
+    )
+    assert result.status_code == 200
+    assert result.json["metadata"]["publication_date"] == "2011"

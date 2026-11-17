@@ -1,7 +1,14 @@
 """General purpose cross module code."""
 
+from datetime import date
+
 from flask import current_app
 from marshmallow import validate
+
+
+def today_iso() -> str:
+    """Return today's date (server local time) as an ISO 8601 string."""
+    return date.today().isoformat()
 
 
 def length_validator_factory(min_setting_name: str = "", max_setting_name: str = ""):

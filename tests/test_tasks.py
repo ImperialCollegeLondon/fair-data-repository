@@ -18,7 +18,7 @@ def record_metadata():
             "title": "System-created test dataset",
             "description": "A record created by a background task.",
             "resource_type": {"id": "dataset"},
-            "publication_date": "2026-09-18",
+            "publication_date": "2011-05-03",
             "creators": [
                 {
                     "person_or_org": {
@@ -64,6 +64,7 @@ def test_create_system_record_publishes(
 
     assert record.data["status"] == "published"
     assert record.data["metadata"]["title"] == record_metadata["metadata"]["title"]
+    assert record.data["metadata"]["publication_date"] == "2011-05-03"
 
 
 @pytest.mark.parametrize(

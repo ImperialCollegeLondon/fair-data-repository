@@ -15,8 +15,7 @@ from invenio_rdm_records.services.schemas.metadata import (
 )
 from marshmallow import validate
 from marshmallow.fields import List, Nested, String
-from marshmallow_utils.fields import NestedAttribute, SanitizedHTML
-from werkzeug.local import LocalProxy
+from marshmallow_utils.fields import EDTFDateString, NestedAttribute, SanitizedHTML
 
 from .utils import length_validator_factory
 
@@ -49,18 +48,6 @@ class PublisherValue(String):
         return current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"]["publisher"]
 
 
-class PublicationDateValue(String):
-    """Publication date set to default from config."""
-
-    def deserialize(self, value, attr=None, data=None, **kwargs):
-        """Return the date today."""
-        return LocalProxy(
-            lambda: current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"][
-                "publication_date"
-            ]()
-        )
-
-
 class ImperialMetadataSchema(MetadataSchema):
     """Imperial Metadata Schema."""
 
@@ -77,11 +64,7 @@ class ImperialMetadataSchema(MetadataSchema):
         required=True, validate=length_validator_factory("TITLE_MIN_LENGTH")
     )
     publisher = PublisherValue()
-    publication_date = PublicationDateValue(
-        load_default=lambda: current_app.config["APP_RDM_DEPOSIT_FORM_DEFAULTS"][
-            "publication_date"
-        ]()
-    )
+    publication_date = EDTFDateString()
     references = ReferenceValue(Nested(ReferenceSchema))
     rights = List(
         Nested(RightsSchema),

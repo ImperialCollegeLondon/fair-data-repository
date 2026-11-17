@@ -32,6 +32,31 @@ Revoke it by removing the assignment:
 uv run invenio access remove-action-from-user --user EMAIL --action restricted-license-action
 ```
 
+### Publication Date Permission
+
+The `set-publication-date-action` permission allows an identity to set an explicit
+`publication_date`. It may be changed at any time, including on drafts of
+already-published records. It is granted independently of other actions.
+
+This is enforced by `PublicationDatePermissionComponent`
+(`ic_data_repo.service_components`), which never raises. The schema field is optional;
+the component resolves it on create and update: a value is kept only if the identity has
+the permission and supplied one, otherwise the stored value (or today's date) is used.
+On publish a missing date is set to today, so a published record always has one
+(including new versions, where InvenioRDM clears the date).
+
+Administrators can grant the permission to a user with:
+
+```console
+uv run invenio access allow-action-for-user --user EMAIL --action set-publication-date-action
+```
+
+Revoke it by removing the assignment:
+
+```console
+uv run invenio access remove-action-from-user --user EMAIL --action set-publication-date-action
+```
+
 ## Deposit Visibility
 
 The deposit metadata schema has been updated to prevent metadata visibility from being
@@ -49,8 +74,10 @@ deposit metadata:
     used.
 - The `resource_type` field has been overridden so that fixed configurable value is
     always used.
-- The `publication_date` field has been overridden so that the date of publication is
-    used.
+- The `publication_date` field defaults to the date the draft is created. Only
+    identities with the `set-publication-date-action` permission can set an explicit
+    value; for everyone else any supplied value is ignored and the stored date is
+    retained on update. See [Publication Date Permission](#publication-date-permission).
 - The `description` field has been made mandatory.
 - The `references` field has been overridden to always be empty.
 - The `rights` field has been overriden to prevent more that one license from being
@@ -97,10 +124,11 @@ for more details. Overriden components are stored in
     over.
 - The `contributors` field has been customised to add additional help text. This is also
     implemented using the custom `OptionalRoleCreatibutorsField` component.
-- The following fields have been hidden - `resource_type`, `publisher`,
-    `publication_date` and `references`. This has been implemented by overriding with
-    the custom `HiddenField` component. Some values have still had a default value set
-    where we want values to be present in the metadata but not editable by the user.
+- The following fields have been hidden - `resource_type`, `publisher` and `references`.
+    This has been implemented by overriding with the custom `HiddenField` component. The
+    `publication_date` field is removed from the form entirely by overriding it with a
+    `NullElement`. Some values have still had a default value set where we want values
+    to be present in the metadata but not editable by the user.
 - The `description` field has been customised to use a standard textarea rather than a
     rich text editor as it was considered that plain text was more appropriate for this
     field. It has also been made a mandatory field.

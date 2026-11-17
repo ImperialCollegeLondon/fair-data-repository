@@ -277,6 +277,113 @@ def test_fetch_related_objects(mock_get, client):
     assert "zenodo.123456" in mock_get.call_args[0][0]
 
 
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+@patch("requests.get")
+@pytest.mark.parametrize("delay", [2, 120])
+def test_fetch_related_objects_retries_after_rate_limit(
+    mock_get, mock_sleep, client, delay
+):
+    """Test that a rate-limited request is retried after Retry-After."""
+    rate_limited_response = MagicMock(status_code=429)
+    rate_limited_response.headers = {"Retry-After": str(delay)}
+    success_response = MagicMock(status_code=200)
+    success_response.content = (
+        b'<api:response xmlns:api="http://www.symplectic.co.uk/publications/api"/>'
+    )
+    mock_get.side_effect = [rate_limited_response, success_response]
+
+    assert client.fetch_related_objects("10.5281/zenodo.123456") == []
+
+    assert mock_get.call_count == 2
+    mock_sleep.assert_called_once_with(delay)
+
+
+@pytest.mark.parametrize("method", ["put", "post"])
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+def test_write_requests_retry_after_rate_limit(
+    mock_sleep, client, sample_metadata, datacite_prefix, method
+):
+    """Test that write requests are retried with their original payload."""
+    rate_limited_response = MagicMock(status_code=429)
+    rate_limited_response.headers = {"Retry-After": "5"}
+    success_response = MagicMock(status_code=200)
+    success_response.content = (
+        b'<api:response xmlns:api="http://www.symplectic.co.uk/publications/api">'
+        b'<api:object id="12345"/></api:response>'
+    )
+    with patch(f"requests.{method}") as mock_request:
+        mock_request.side_effect = [rate_limited_response, success_response]
+        if method == "put":
+            assert client.create_record(sample_metadata, datacite_prefix) == "12345"
+        else:
+            assert client.link_related_records("1", "2", 1, "publication") is (
+                success_response
+            )
+
+    assert mock_request.call_count == 2
+    assert mock_request.call_args_list[0] == mock_request.call_args_list[1]
+    mock_sleep.assert_called_once_with(5)
+
+
+@pytest.mark.parametrize(
+    "header", [None, "", "invalid", "-1", "1.5", "Tue, 17 Nov 2026 10:02:00 GMT"]
+)
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+@patch("requests.get")
+def test_rate_limit_without_valid_retry_after_raises(
+    mock_get, mock_sleep, client, header
+):
+    """Test that an absent or invalid Retry-After does not cause a retry."""
+    response = requests.Response()
+    response.status_code = 429
+    response.url = "https://api.symplectic.example.com"
+    if header is not None:
+        response.headers["Retry-After"] = header
+    mock_get.return_value = response
+
+    with pytest.raises(requests.exceptions.HTTPError) as error:
+        client.fetch_related_objects("10.5281/zenodo.123456")
+
+    assert error.value.response is response
+    mock_get.assert_called_once()
+    mock_sleep.assert_not_called()
+
+
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+@patch("requests.get")
+def test_other_http_errors_are_not_retried(mock_get, mock_sleep, client):
+    """Test that Retry-After is ignored unless the response is HTTP 429."""
+    response = requests.Response()
+    response.status_code = 503
+    response.url = "https://api.symplectic.example.com"
+    response.headers["Retry-After"] = "120"
+    mock_get.return_value = response
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        client.fetch_related_objects("10.5281/zenodo.123456")
+
+    mock_get.assert_called_once()
+    mock_sleep.assert_not_called()
+
+
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+@patch("requests.get")
+def test_fetch_related_objects_stops_after_max_rate_limit_retries(
+    mock_get, mock_sleep, client
+):
+    """Test that repeated rate limits eventually raise an HTTP error."""
+    rate_limited_response = MagicMock(status_code=429)
+    rate_limited_response.headers = {"Retry-After": "0"}
+    rate_limited_response.raise_for_status.side_effect = requests.exceptions.HTTPError
+    mock_get.return_value = rate_limited_response
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        client.fetch_related_objects("10.5281/zenodo.123456")
+
+    assert mock_get.call_count == 4
+    assert mock_sleep.call_count == 3
+
+
 @patch("requests.post")
 def test_link_related_records(mock_post, client):
     """Test linking related records."""

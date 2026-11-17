@@ -1,8 +1,7 @@
 import React, { Component } from "react";
-import {
-  CreatibutorsField,
-  sortOptions,
-} from "@js/invenio_rdm_records";
+import { sortOptions } from "@js/invenio_rdm_records";
+// v14: CreatibutorsField is now a showHideOverridable() wrapper function, so subclass the underlying class component instead.
+import { CreatibutorsFieldComponent } from "@js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsField";
 import { CreatibutorsFieldItem } from "@js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsFieldItem";
 import { CreatibutorsModal } from "@js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsModal";
 import { CreatibutorsIdentifiers } from "@js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsIdentifiers";
@@ -516,7 +515,7 @@ class OptionalRoleCreatibutorsFieldForm extends Component {
 
 
 
-export class OptionalRoleCreatibutorsField extends CreatibutorsField {
+export class OptionalRoleCreatibutorsField extends CreatibutorsFieldComponent {
   render() {
     const { fieldPath } = this.props;
     return (
@@ -532,12 +531,12 @@ export class OptionalRoleCreatibutorsField extends CreatibutorsField {
 
 OptionalRoleCreatibutorsField.propTypes = {
   includeRole: PropTypes.bool,
-  helpText: PropTypes.sting,
-  ...CreatibutorsField.propTypes,
+  helpText: PropTypes.string,
+  ...CreatibutorsFieldComponent.propTypes,
 }
 
 OptionalRoleCreatibutorsField.defaultProps = {
   includeRole: true,
   helpText: "",
-  ...CreatibutorsField.defaultProps,
+  ...CreatibutorsFieldComponent.defaultProps,
 }

@@ -1,5 +1,6 @@
 """Symplectic API client for creating records in Symplectic Elements."""
 
+import time
 from datetime import datetime
 from functools import partial
 
@@ -9,6 +10,7 @@ from lxml import etree
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
 etree.register_namespace("api", NAMESPACE_URI)
 SYMPLECTIC_DATASET_TYPE_ID = "22"
+MAX_RATE_LIMIT_RETRIES = 3
 
 
 class SymplecticException(Exception):
@@ -41,6 +43,30 @@ class SymplecticClient:
             # firewall covering the Symplectic APIM doesn't like the requests one
             "User-Agent": "Helix",
         }
+
+    def _request(self, method, url, **kwargs):
+        """Send a request, retrying rate-limited responses as directed."""
+        for attempt in range(MAX_RATE_LIMIT_RETRIES + 1):
+            request = getattr(requests, method)
+            response = request(url, headers=self.headers, **kwargs)
+            if response.status_code != 429 or attempt == MAX_RATE_LIMIT_RETRIES:
+                break
+
+            try:
+                retry_after = response.headers["Retry-After"].strip()
+                if not retry_after.isascii() or not retry_after.isdigit():
+                    raise ValueError("Retry-After must be non-negative integer seconds")
+                delay = int(retry_after)
+            except (KeyError, ValueError) as exc:
+                raise requests.exceptions.HTTPError(
+                    "HTTP 429 response has a missing or invalid Retry-After header",
+                    response=response,
+                ) from exc
+            response.close()
+            time.sleep(delay)
+
+        response.raise_for_status()
+        return response
 
     def add_doi_subtree(self, parent_element, doi_type, doi):
         """Add a DOI subtree to the XML tree."""
@@ -253,12 +279,9 @@ class SymplecticClient:
 
         proprietary_id = metadata.get("id")
         url = f"{self.api_url}/publication/records/manual/{proprietary_id}"
-        response = requests.put(
-            url,
-            data=etree.tostring(record_xml, encoding="unicode"),
-            headers=self.headers,
+        response = self._request(
+            "put", url, data=etree.tostring(record_xml, encoding="unicode")
         )
-        response.raise_for_status()
 
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}
@@ -274,8 +297,7 @@ class SymplecticClient:
             f"{self.api_url}/publications?detail=single-record&"
             f'query=doi="{related_doi_text}"'
         )
-        response = requests.get(url, headers=self.headers)
-        response.raise_for_status()
+        response = self._request("get", url)
 
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}
@@ -301,12 +323,7 @@ class SymplecticClient:
         xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
 
         url = f"{self.api_url}/relationships"
-        response = requests.post(
-            url,
-            data=xml_data,
-            headers=self.headers,
-        )
-        response.raise_for_status()
+        response = self._request("post", url, data=xml_data)
 
         return response
 
@@ -316,8 +333,7 @@ class SymplecticClient:
             f"{self.api_url}/grants?detail=full&per-page=25&page=15&query="
             f'"{award_type_id}"="{award_id}"'
         )
-        response = requests.get(url, headers=self.headers)
-        response.raise_for_status()
+        response = self._request("get", url)
 
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}
@@ -345,8 +361,7 @@ class SymplecticClient:
             url = f'{url_base}&query=title-keywords="{query}"'
         elif search_type == "first-author-name":
             url = f'{url_base}&query=first-author-name="{query}"'
-        response = requests.get(url, headers=self.headers)
-        response.raise_for_status()
+        response = self._request("get", url)
 
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}

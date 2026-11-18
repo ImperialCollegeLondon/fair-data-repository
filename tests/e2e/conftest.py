@@ -37,7 +37,6 @@ def login(driver, email, password, next_url="/"):
 
     login_query = urlencode({"next": next_url})
     driver.get(f"{pytest.base_url}/login/?{login_query}")
-
     WebDriverWait(driver, timeout=15).until(
         EC.visibility_of_element_located((By.ID, "email"))
     )

@@ -24,4 +24,7 @@ class SymplecticServiceConfig(ServiceConfig):
         config.symplectic_api_auth_header = app.config.get(
             "SYMPLECTIC_API_AUTH_HEADER", ""
         )
+        config.symplectic_max_rate_limit_retries = app.config[
+            "SYMPLECTIC_MAX_RATE_LIMIT_RETRIES"
+        ]
         return config

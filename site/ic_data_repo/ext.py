@@ -167,6 +167,7 @@ class SymplecticExt:
         app.config.setdefault("SYMPLECTIC_API_URL", "")
         app.config.setdefault("SYMPLECTIC_API_SUBSCRIPTION_KEY", "")
         app.config.setdefault("SYMPLECTIC_API_AUTH_HEADER", "")
+        app.config.setdefault("SYMPLECTIC_MAX_RATE_LIMIT_RETRIES", 6)
         symplectic_enabled = app.config.setdefault("SYMPLECTIC_ENABLED", False)
         app.config.setdefault("SYMPLECTIC_RECORD_EXPORT_ENABLED", symplectic_enabled)
         app.config.setdefault(

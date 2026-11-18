@@ -17,6 +17,7 @@ class SymplecticService(Service):
             api_url=config.symplectic_api_url,
             api_key=config.symplectic_api_key,
             auth_header_name=config.symplectic_api_auth_header,
+            max_rate_limit_retries=config.symplectic_max_rate_limit_retries,
         )
 
     def fetch_related_publications(self, identity, search_query, search_type):

@@ -64,7 +64,7 @@ uv run invenio shell -c "print(app.config)"
 - **Formatter and linter**: `ruff`
 - **Type checking**: `mypy` (strict generics; run via pytest-mypy)
 - Pre-commit hooks enforce all of the above; run `pre-commit install` after checkout
-- Tests live in `tests/`; use `testcontainers` for integration tests requiring services
+- Tests live in `tests/`; use `testcontainers` for integration tests requiring services (`--use-running-services` uses the local development services instead)
 
 ## Key Entry Points
 

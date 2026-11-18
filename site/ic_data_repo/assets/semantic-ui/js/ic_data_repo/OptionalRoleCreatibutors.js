@@ -3,7 +3,6 @@ import {
   CreatibutorsField,
   sortOptions,
 } from "@js/invenio_rdm_records";
-import { CreatibutorsFieldItem } from "@js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsFieldItem";
 import { CreatibutorsModal } from "@js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsModal";
 import { CreatibutorsIdentifiers } from "@js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/CreatibutorsIdentifiers";
 import { CREATIBUTOR_TYPE } from "@js/invenio_rdm_records/src/deposit/fields/CreatibutorsField/type";
@@ -20,7 +19,6 @@ import { DndProvider } from "react-dnd";
 import {
   FieldLabel,
   SelectField,
-  Image,
   RadioField,
   RemoteSelectField,
   TextField,
@@ -532,7 +530,7 @@ export class OptionalRoleCreatibutorsField extends CreatibutorsField {
 
 OptionalRoleCreatibutorsField.propTypes = {
   includeRole: PropTypes.bool,
-  helpText: PropTypes.sting,
+  helpText: PropTypes.string,
   ...CreatibutorsField.propTypes,
 }
 

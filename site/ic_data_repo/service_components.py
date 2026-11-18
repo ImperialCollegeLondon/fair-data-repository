@@ -12,6 +12,7 @@ from invenio_vocabularies.proxies import current_service as vocabularies_service
 from .description_transfer import DESCRIPTION_TRANSFER_TYPE
 from .permissions import described_file_action
 from .tasks import export_record_to_symplectic
+from .utils import today_iso
 
 
 class SymplecticComponent(ServiceComponent):
@@ -119,3 +120,49 @@ class DomainMetadataPermissionComponent(ServiceComponent):
     def update_draft(self, identity, data=None, record=None, **kwargs):
         """Gate any add/update/reorder/remove to imperial:domain_metadata."""
         self._require_permission_if_present(identity, data)
+
+
+class PublicationDatePermissionComponent(ServiceComponent):
+    """Resolve the publication date of a draft.
+
+    The schema leaves the field optional. On create and update_draft the incoming
+    value is kept only if the identity may set it and supplied one; otherwise the
+    stored value (or today's date) is used. On publish a missing date is set to
+    today's date, as the upstream new_version strips it and publish-time validation
+    discards loaded data.
+
+    Must run before the default MetadataComponent, which copies the metadata
+    onto the record, so that `record` still holds the previously stored value.
+    """
+
+    action_name = "set_publication_date"
+
+    @staticmethod
+    def _metadata(data):
+        metadata = data.get("metadata") if data else None
+        return metadata if isinstance(metadata, dict) else None
+
+    def _resolve(self, identity, data, stored):
+        metadata = self._metadata(data)
+        if metadata is None:
+            return
+        if "publication_date" in metadata and self.service.check_permission(
+            identity, self.action_name
+        ):
+            return
+        metadata["publication_date"] = stored or today_iso()
+
+    def create(self, identity, data=None, record=None, **kwargs):
+        """Default the publication date to today unless the identity sets it."""
+        self._resolve(identity, data, None)
+
+    def update_draft(self, identity, data=None, record=None, **kwargs):
+        """Retain the stored publication date unless the identity sets it."""
+        stored = record.get("metadata", {}).get("publication_date")
+        self._resolve(identity, data, stored)
+
+    def publish(self, identity, draft=None, record=None, **kwargs):
+        """Ensure the draft, and hence the record, has a publication date."""
+        metadata = draft.get("metadata")
+        if isinstance(metadata, dict) and not metadata.get("publication_date"):
+            metadata["publication_date"] = today_iso()

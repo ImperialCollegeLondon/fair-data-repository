@@ -111,6 +111,11 @@ RDM_RECORDS_SERVICE_COMPONENTS = [
 ]
 ```
 
+`PublicationDatePermissionComponent` (Helix) is an example: it runs first so it can read
+the stored draft `publication_date` before `MetadataComponent` overwrites it. The schema
+field is optional; the component resolves the value on `create`/`update_draft`, and its
+`publish` hook sets today's date on the draft if missing (new versions lose it).
+
 Keep components that only consume the final record state after
 `DefaultRecordsComponents`.
 

@@ -10,7 +10,6 @@ from lxml import etree
 NAMESPACE_URI = "http://www.symplectic.co.uk/publications/api"
 etree.register_namespace("api", NAMESPACE_URI)
 SYMPLECTIC_DATASET_TYPE_ID = "22"
-MAX_RATE_LIMIT_RETRIES = 3
 
 
 class SymplecticException(Exception):
@@ -31,11 +30,14 @@ class SymplecticClient:
     NAMESPACE_URI = NAMESPACE_URI
     api_qname = partial(etree.QName, NAMESPACE_URI)
 
-    def __init__(self, api_url, api_key, auth_header_name):
+    def __init__(self, api_url, api_key, auth_header_name, max_rate_limit_retries):
         """Initialize the Symplectic client."""
+        if max_rate_limit_retries < 0:
+            raise ValueError("max_rate_limit_retries must be non-negative")
         self.api_url = api_url
         self.api_key = api_key
         self.auth_header_name = auth_header_name
+        self.max_rate_limit_retries = max_rate_limit_retries
         self.headers = {
             "Content-Type": "text/xml",
             self.auth_header_name: self.api_key,
@@ -46,24 +48,29 @@ class SymplecticClient:
 
     def _request(self, method, url, **kwargs):
         """Send a request, retrying rate-limited responses as directed."""
-        for attempt in range(MAX_RATE_LIMIT_RETRIES + 1):
-            request = getattr(requests, method)
-            response = request(url, headers=self.headers, **kwargs)
-            if response.status_code != 429 or attempt == MAX_RATE_LIMIT_RETRIES:
-                break
+        with requests.Session() as session:
+            request = requests.Request(method, url, headers=self.headers, **kwargs)
+            prepared = session.prepare_request(request)
+            settings = session.merge_environment_settings(
+                prepared.url, {}, None, None, None
+            )
+            for attempt in range(self.max_rate_limit_retries + 1):
+                response = session.send(prepared, **settings)
+                if (
+                    response.status_code != 429
+                    or attempt == self.max_rate_limit_retries
+                ):
+                    break
 
-            try:
-                retry_after = response.headers["Retry-After"].strip()
-                if not retry_after.isascii() or not retry_after.isdigit():
-                    raise ValueError("Retry-After must be non-negative integer seconds")
-                delay = int(retry_after)
-            except (KeyError, ValueError) as exc:
-                raise requests.exceptions.HTTPError(
-                    "HTTP 429 response has a missing or invalid Retry-After header",
-                    response=response,
-                ) from exc
-            response.close()
-            time.sleep(delay)
+                try:
+                    delay = int(response.headers["Retry-After"])
+                except (KeyError, ValueError) as exc:
+                    raise requests.exceptions.HTTPError(
+                        "HTTP 429 response has a missing or invalid Retry-After header",
+                        response=response,
+                    ) from exc
+                response.close()
+                time.sleep(delay)
 
         response.raise_for_status()
         return response

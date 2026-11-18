@@ -65,3 +65,55 @@ def test_creator_customisation(driver):
 
     wait.until(EC.invisibility_of_element_located(modal))
     wait.until(lambda _: "Example, User" in creator_field.text)
+
+
+def test_limited_license_customisation(driver):
+    """Check limited license customisation."""
+    login(
+        driver,
+        DEPOSITOR_EMAIL,
+        TEST_PASSWORD,
+        next_url="/uploads/new?community=icl",
+    )
+    wait = WebDriverWait(driver, timeout=10)
+
+    license_field = wait.until(
+        EC.visibility_of_element_located(
+            (
+                By.XPATH,
+                "//label[normalize-space()='Licenses']"
+                "/ancestor::div[contains(concat(' ', normalize-space(@class), ' '),"
+                " ' field ')][1]",
+            )
+        )
+    )
+
+    remove_locator = (By.XPATH, ".//button[normalize-space()='Remove']")
+    while remove_buttons := license_field.find_elements(*remove_locator):
+        previous_count = len(remove_buttons)
+        remove_buttons[0].click()
+        wait.until(
+            lambda _: len(license_field.find_elements(*remove_locator)) < previous_count
+        )
+
+    license_field.find_element(
+        By.XPATH, ".//button[normalize-space()='Add license']"
+    ).click()
+
+    modal = wait.until(
+        EC.visibility_of_element_located((By.CSS_SELECTOR, ".ui.modal.active"))
+    )
+
+    allowed_license = "Creative Commons Attribution 4.0 International"
+    restricted_license = "Creative Commons: Attribution + No Derivative Works 4.0"
+
+    wait.until(lambda _: allowed_license in modal.text)
+    assert restricted_license not in modal.text
+
+    modal.find_element(By.NAME, "cancel").click()
+    wait.until(EC.invisibility_of_element_located(modal))
+
+    assert license_field.find_elements(By.CSS_SELECTOR, ".deposit-listitem") == []
+    assert license_field.find_element(
+        By.XPATH, ".//button[normalize-space()='Add license']"
+    ).is_displayed()

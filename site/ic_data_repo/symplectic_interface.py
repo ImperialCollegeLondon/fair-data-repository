@@ -27,7 +27,7 @@ class SymplecticClient:
     """Client for interacting with the Symplectic API."""
 
     NAMESPACE_URI = NAMESPACE_URI
-    api_qname = partial(etree.QName, NAMESPACE_URI)
+    api_qname = staticmethod(partial(etree.QName, NAMESPACE_URI))
 
     def __init__(self, api_url, api_key, auth_header_name="Subscription-Key"):
         """Initialize the Symplectic client."""

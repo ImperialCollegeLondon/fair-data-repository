@@ -6,8 +6,8 @@
 
 ## Tech Stack
 
-- **Python 3.12** with uv for dependency management
-- **InvenioRDM ~13.0** (Flask-based, with Celery, PostgreSQL, Redis, RabbitMQ, OpenSearch)
+- **Python 3.14** with uv for dependency management
+- **InvenioRDM ~14.0** (Flask-based, with Celery, PostgreSQL, Redis, RabbitMQ, OpenSearch)
 - **Docker / Docker Compose** for local services
 - **Helm** for Kubernetes (AKS) deployment
 - **ProperDocs + Material** for documentation (in `docs/`)

@@ -1,5 +1,6 @@
 """Symplectic API client for creating records in Symplectic Elements."""
 
+import time
 from datetime import datetime
 from functools import partial
 
@@ -29,17 +30,50 @@ class SymplecticClient:
     NAMESPACE_URI = NAMESPACE_URI
     api_qname = staticmethod(partial(etree.QName, NAMESPACE_URI))
 
-    def __init__(self, api_url, api_key, auth_header_name="Subscription-Key"):
+    def __init__(self, api_url, api_key, auth_header_name, max_rate_limit_retries):
         """Initialize the Symplectic client."""
+        if max_rate_limit_retries < 0:
+            raise ValueError("max_rate_limit_retries must be non-negative")
         self.api_url = api_url
         self.api_key = api_key
+        self.auth_header_name = auth_header_name
+        self.max_rate_limit_retries = max_rate_limit_retries
         self.headers = {
             "Content-Type": "text/xml",
-            auth_header_name: self.api_key,
+            self.auth_header_name: self.api_key,
             # set custom User-Agent as in deployment the azure web application
             # firewall covering the Symplectic APIM doesn't like the requests one
             "User-Agent": "Helix",
         }
+
+    def _request(self, method, url, **kwargs):
+        """Send a request, retrying rate-limited responses as directed."""
+        with requests.Session() as session:
+            request = requests.Request(method, url, headers=self.headers, **kwargs)
+            prepared = session.prepare_request(request)
+            settings = session.merge_environment_settings(
+                prepared.url, {}, None, None, None
+            )
+            for attempt in range(self.max_rate_limit_retries + 1):
+                response = session.send(prepared, **settings)
+                if (
+                    response.status_code != 429
+                    or attempt == self.max_rate_limit_retries
+                ):
+                    break
+
+                try:
+                    delay = int(response.headers["Retry-After"])
+                except (KeyError, ValueError) as exc:
+                    raise requests.exceptions.HTTPError(
+                        "HTTP 429 response has a missing or invalid Retry-After header",
+                        response=response,
+                    ) from exc
+                response.close()
+                time.sleep(delay)
+
+        response.raise_for_status()
+        return response
 
     def add_doi_subtree(self, parent_element, doi_type, doi):
         """Add a DOI subtree to the XML tree."""
@@ -252,12 +286,9 @@ class SymplecticClient:
 
         proprietary_id = metadata.get("id")
         url = f"{self.api_url}/publication/records/manual/{proprietary_id}"
-        response = requests.put(
-            url,
-            data=etree.tostring(record_xml, encoding="unicode"),
-            headers=self.headers,
+        response = self._request(
+            "put", url, data=etree.tostring(record_xml, encoding="unicode")
         )
-        response.raise_for_status()
 
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}
@@ -273,8 +304,7 @@ class SymplecticClient:
             f"{self.api_url}/publications?detail=single-record&"
             f'query=doi="{related_doi_text}"'
         )
-        response = requests.get(url, headers=self.headers)
-        response.raise_for_status()
+        response = self._request("get", url)
 
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}
@@ -300,12 +330,7 @@ class SymplecticClient:
         xml_data = etree.tostring(root, encoding="unicode", pretty_print=True)
 
         url = f"{self.api_url}/relationships"
-        response = requests.post(
-            url,
-            data=xml_data,
-            headers=self.headers,
-        )
-        response.raise_for_status()
+        response = self._request("post", url, data=xml_data)
 
         return response
 
@@ -315,8 +340,7 @@ class SymplecticClient:
             f"{self.api_url}/grants?detail=full&per-page=25&page=15&query="
             f'"{award_type_id}"="{award_id}"'
         )
-        response = requests.get(url, headers=self.headers)
-        response.raise_for_status()
+        response = self._request("get", url)
 
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}
@@ -344,8 +368,7 @@ class SymplecticClient:
             url = f'{url_base}&query=title-keywords="{query}"'
         elif search_type == "first-author-name":
             url = f'{url_base}&query=first-author-name="{query}"'
-        response = requests.get(url, headers=self.headers)
-        response.raise_for_status()
+        response = self._request("get", url)
 
         root = etree.fromstring(response.content)
         ns = {"api": NAMESPACE_URI}

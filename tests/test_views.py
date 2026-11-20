@@ -83,7 +83,7 @@ def test_deposit_view_permissions(
     assert response.status_code == 200
     soup = BeautifulSoup(response.data, "html.parser")
     for name, setting in (
-        ("symplectic_search_enabled", "SYMPLECTIC_SEARCH_ENABLED"),
+        ("symplectic_search_enabled", "ENABLE_SYMPLECTIC_SEARCH"),
         ("data_deposit_agreement_url", "DATA_DEPOSIT_AGREEMENT_URL"),
     ):
         [field] = soup.select(f'main input[type="hidden"][name="{name}"]')

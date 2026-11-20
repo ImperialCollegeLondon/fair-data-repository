@@ -63,6 +63,11 @@ RUN dnf install -y \
 # Symlink Python
 RUN pip install --upgrade pip uv wheel --no-cache-dir
 
+# The system Python is too old for InvenioRDM v14, so install a uv-managed Python
+# into a shared location readable by the invenio user.
+ENV UV_PYTHON_INSTALL_DIR=/opt/python
+RUN uv python install 3.14
+
 
 # Create working directory
 ENV WORKING_DIR=/opt/invenio

@@ -4,6 +4,10 @@ Testing and development so far has only been done on native Linux. MacOS is supp
 InvenioRDM but has not been tested with this project. Development in WSL may be possible
 but working natively in Windows is not supported.
 
+!!! note
+
+    Upgrading an existing v13 environment? See [Upgrading to v14](upgrading-v14.md).
+
 ## Requirements
 
 The requirements for working with InvenioRDM are laid out in detail in the
@@ -198,13 +202,24 @@ Only urgent bug fixes or security patches should be started against `develop`.
 
 ### Tests
 
-A test suite is provided in the `tests` directory. Assuming services have already been
-setup, tests can be run with:
+A test suite is provided in the `tests` directory. By default it starts its own
+OpenSearch, Redis and RabbitMQ containers, which requires Docker:
+
+```console
+uv run pytest
+```
+
+Starting the containers is slow. For faster runs during development, you can use the
+services that are already running instead:
 
 ```console
 invenio-cli services start
-uv run pytest
+uv run pytest --use-running-services
 ```
+
+The run stops straight away if OpenSearch or Redis isn't running. Tests use the search
+index prefix `test-ic-data-repo-`, Redis databases 10-14 and an in-memory message
+broker.
 
 All development work should be supported by an appropriate set of tests. Best practices
 around testing are expected to evolve as the project develops.
@@ -233,7 +248,8 @@ options exclude E2E tests (`-m 'not e2e'`). This means:
 1. Start services and application:
 
     - `invenio-cli services start`
-    - `invenio-cli run`
+    - `invenio-cli run` # Use `INVENIO_RATELIMIT_ENABLED=False invenio-cli run`to disable
+        the ratelimit, for avoiding e2e test failures during development.
 
 1. Create a community using the helper script:
 

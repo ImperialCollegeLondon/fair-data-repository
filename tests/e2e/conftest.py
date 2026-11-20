@@ -37,7 +37,6 @@ def login(driver, email, password, next_url="/"):
 
     login_query = urlencode({"next": next_url})
     driver.get(f"{pytest.base_url}/login/?{login_query}")
-
     WebDriverWait(driver, timeout=15).until(
         EC.visibility_of_element_located((By.ID, "email"))
     )
@@ -59,7 +58,7 @@ def create_submission_and_get_request_url(driver):
         "This is a test submission."
     )
 
-    driver.find_element(By.XPATH, "//button[normalize-space()='Add creator']").click()
+    driver.find_element(By.XPATH, "//button[normalize-space()='Add author']").click()
     WebDriverWait(driver, timeout=10).until(
         lambda d: d.find_element(By.ID, "person_or_org.family_name").is_displayed()
     )

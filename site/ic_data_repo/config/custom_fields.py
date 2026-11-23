@@ -49,8 +49,8 @@ RDM_CUSTOM_FIELDS_UI = [
                 props=dict(
                     label="Contact information",
                     placeholder="name@imperial.ic.uk",
-                    icon="address card outline",
-                    description="Please provide an email for contact information.",
+                    labelIcon="address card outline",
+                    helpText="Please provide an email for contact information.",
                     # True for autocomplete dropdowns with search functionality
                     search=False,
                     multiple=False,  # True for selecting multiple values
@@ -69,7 +69,7 @@ RDM_CUSTOM_FIELDS_UI = [
                 props=dict(
                     label="DART ID",
                     placeholder="Enter DART ID",
-                    icon="address card outline",
+                    labelIcon="address card outline",
                     # True for autocomplete dropdowns with search functionality
                     search=False,
                     multiple=False,  # True for selecting multiple values
@@ -86,6 +86,7 @@ RDM_CUSTOM_FIELDS_UI = [
             dict(
                 field="imperial:domain_metadata",
                 template="domain_metadata.html",
+                props={},
             ),
         ],
     },

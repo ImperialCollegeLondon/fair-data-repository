@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch  # added
 
 import pytest
+import requests
 
 
 @pytest.fixture
@@ -55,7 +56,7 @@ def test_related_publications_endpoint(user_client, mock_symplectic_response):
     search_query = "test"
     search_type = "title-keywords"
 
-    with patch("requests.get") as mock_get:
+    with patch("requests.Session.send") as mock_get:
         mock_get.return_value = mock_symplectic_response()
 
         response = user_client.get(
@@ -109,7 +110,7 @@ def test_returning_error_from_symplectic(user_client, mock_symplectic_response):
     search_query = "test"
     search_type = "title-keywords"
 
-    with patch("requests.get") as mock_get:
+    with patch("requests.Session.send") as mock_get:
         mock_get.return_value = mock_symplectic_response(
             xml_content=b"<api:error>Invalid request</api:error>", status_code=500
         )
@@ -121,3 +122,20 @@ def test_returning_error_from_symplectic(user_client, mock_symplectic_response):
     assert response.status_code == 500
     response_data = response.get_json()
     assert "message" in response_data
+
+
+def test_related_publications_uses_configured_retry_limit(user_client):
+    """Test that the service does not retry when its configured limit is zero."""
+    rate_limited_response = requests.Response()
+    rate_limited_response.status_code = 429
+    rate_limited_response.url = "https://api.symplectic.example.com"
+    rate_limited_response.headers["Retry-After"] = "0"
+
+    with patch("requests.Session.send", return_value=rate_limited_response) as send:
+        response = user_client.get(
+            "/symplectic/related-publications"
+            "?search_query=test&search_type=title-keywords"
+        )
+
+    assert response.status_code == 500
+    send.assert_called_once()

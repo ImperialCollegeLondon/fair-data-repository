@@ -11,7 +11,7 @@ import { OptionalRoleCreatibutorsField } from "../../ic_data_repo/OptionalRoleCr
 import { LimitedLicenseField } from "../../ic_data_repo/LimitedLicenseField";
 import { MandatoryPIDField } from "../../ic_data_repo/MandatoryPIDField";
 import { parametrize } from "react-overridable";
-import { TextAreaField } from "react-invenio-forms";
+import { FieldLabel, TextAreaField } from "react-invenio-forms";
 import { FundingField } from "../../ic_data_repo/Funding/FundingField";
 import { RelatedWorksField } from "../../ic_data_repo/RelatedWorksField";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
@@ -79,7 +79,12 @@ const ContributorsField = parametrize(OptionalRoleCreatibutorsField, {
   includeRole: true,
 });
 
-const DescriptionField = parametrize(TextAreaField, { required: true });
+const DescriptionField = parametrize(TextAreaField, ({ fieldPath }) => ({
+  required: true,
+  label: (
+    <FieldLabel htmlFor={fieldPath} icon="pencil" label={i18next.t("Description")} />
+  ),
+}));
 
 /* A simple empty element to remove non-field components via override */
 class NullElement extends Component {

@@ -1,0 +1,5 @@
+- id: duplicate
+  title:
+    en: Duplicate of another record
+  tags:
+    - "deletion-request"

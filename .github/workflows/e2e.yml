@@ -51,6 +51,10 @@ jobs:
       - name: Start dev server
         env:
           INVENIO_RATELIMIT_ENABLED: "False"
+          # Enable DataCite so the DOI field renders in the deposit form; see
+          # tests/e2e/test_mandatory_pid_field.py. We mint dummy DOIs for this.
+          INVENIO_DATACITE_ENABLED: "True"
+          INVENIO_DATACITE_PREFIX: "10.1234"
         run: |
           uvx invenio-cli==1.12 run > app.log 2>&1 &
           echo $! > app.pid

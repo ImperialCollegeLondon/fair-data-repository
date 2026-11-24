@@ -16,7 +16,7 @@ def test_limited_license_field(driver):
         driver,
         DEPOSITOR_EMAIL,
         TEST_PASSWORD,
-        next_url="/uploads/new?community=icl",
+        next_url="/uploads/new",
     )
     wait = WebDriverWait(driver, timeout=10)
 

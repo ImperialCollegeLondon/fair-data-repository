@@ -19,7 +19,6 @@ import { DndProvider } from "react-dnd";
 import {
   FieldLabel,
   SelectField,
-  Image,
   RadioField,
   RemoteSelectField,
   TextField,

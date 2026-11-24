@@ -1,6 +1,7 @@
 """Tests for the Symplectic API client."""
 
 from unittest.mock import MagicMock, patch
+from urllib.parse import unquote
 
 import pytest
 import requests
@@ -13,13 +14,14 @@ from lxml import etree
 
 DUMMY_URL = "https://api.symplectic.example.com"
 DUMMY_SUBSCRIPTION_KEY = "fake-api-key-1234"
+DUMMY_AUTH_HEADER = "Subscription-Key"
 DATACITE_PREFIX = "10.5281/"
 
 
 @pytest.fixture
 def client():
     """Create a Symplectic client instance with mocked environment variables."""
-    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY)
+    return SymplecticClient(DUMMY_URL, DUMMY_SUBSCRIPTION_KEY, DUMMY_AUTH_HEADER, 2)
 
 
 @pytest.fixture
@@ -159,7 +161,7 @@ def test_generate_record_xml(client, sample_metadata, datacite_prefix):
     assert related_doi_text.text == "10.5281/zenodo.783021"
 
 
-@patch("requests.put")
+@patch("requests.Session.send")
 def test_create_record_success(mock_put, client, sample_metadata, datacite_prefix):
     """Test successful record creation by mocking the API response."""
     mock_put.return_value.content = b"""
@@ -172,13 +174,13 @@ def test_create_record_success(mock_put, client, sample_metadata, datacite_prefi
         f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
     )
     mock_put.assert_called_once()
-    called_url = mock_put.call_args[0][0]
-    called_headers = mock_put.call_args[1]["headers"]
-    assert called_url == expected_url
-    assert called_headers == client.headers
+    prepared = mock_put.call_args[0][0]
+    assert prepared.method == "PUT"
+    assert prepared.url == expected_url
+    assert client.headers.items() <= prepared.headers.items()
 
 
-@patch("requests.put")
+@patch("requests.Session.send")
 def test_create_record_failure(mock_put, client, sample_metadata):
     """Test record creation failure by mocking an unsuccessful API response."""
     mock_put().raise_for_status.side_effect = requests.exceptions.HTTPError(
@@ -191,13 +193,12 @@ def test_create_record_failure(mock_put, client, sample_metadata):
         f"{client.api_url}/publication/records/manual/{sample_metadata['id']}"
     )
     mock_put.assert_called_once()
-    called_url = mock_put.call_args[0][0]
-    called_headers = mock_put.call_args[1]["headers"]
-    assert called_url == expected_url
-    assert called_headers == client.headers
+    prepared = mock_put.call_args[0][0]
+    assert prepared.url == expected_url
+    assert client.headers.items() <= prepared.headers.items()
 
 
-@patch("requests.put")
+@patch("requests.Session.send")
 def test_create_record_minimal_metadata(
     mock_put, client, minimal_metadata, datacite_prefix
 ):
@@ -212,10 +213,9 @@ def test_create_record_minimal_metadata(
         f"{client.api_url}/publication/records/manual/{minimal_metadata['id']}"
     )
     mock_put.assert_called_once()
-    called_url = mock_put.call_args[0][0]
-    called_headers = mock_put.call_args[1]["headers"]
-    assert called_url == expected_url
-    assert called_headers == client.headers
+    prepared = mock_put.call_args[0][0]
+    assert prepared.url == expected_url
+    assert client.headers.items() <= prepared.headers.items()
 
 
 def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
@@ -255,7 +255,7 @@ def test_generate_record_xml_with_minimal_metadata(client, minimal_metadata):
     assert abstract_field is None
 
 
-@patch("requests.get")
+@patch("requests.Session.send")
 def test_fetch_related_objects(mock_get, client):
     """Test fetching related objects with a DOI."""
     mock_response = MagicMock()
@@ -273,10 +273,121 @@ def test_fetch_related_objects(mock_get, client):
 
     assert related_id == ["67890"]
     mock_get.assert_called_once()
-    assert "zenodo.123456" in mock_get.call_args[0][0]
+    assert "zenodo.123456" in mock_get.call_args[0][0].url
 
 
-@patch("requests.post")
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+@patch("requests.Session.send")
+@pytest.mark.parametrize("delay", [2, 120])
+def test_fetch_related_objects_retries_after_rate_limit(
+    mock_get, mock_sleep, client, delay
+):
+    """Test that a rate-limited request is retried after Retry-After."""
+    rate_limited_response = MagicMock(status_code=429)
+    rate_limited_response.headers = {"Retry-After": str(delay)}
+    success_response = MagicMock(status_code=200)
+    success_response.content = (
+        b'<api:response xmlns:api="http://www.symplectic.co.uk/publications/api"/>'
+    )
+    mock_get.side_effect = [rate_limited_response, success_response]
+
+    assert client.fetch_related_objects("10.5281/zenodo.123456") == []
+
+    assert mock_get.call_count == 2
+    mock_sleep.assert_called_once_with(delay)
+
+
+@pytest.mark.parametrize("method", ["put", "post"])
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+def test_write_requests_retry_after_rate_limit(
+    mock_sleep, client, sample_metadata, datacite_prefix, method
+):
+    """Test that write requests are retried with their original payload."""
+    rate_limited_response = MagicMock(status_code=429)
+    rate_limited_response.headers = {"Retry-After": "5"}
+    success_response = MagicMock(status_code=200)
+    success_response.content = (
+        b'<api:response xmlns:api="http://www.symplectic.co.uk/publications/api">'
+        b'<api:object id="12345"/></api:response>'
+    )
+    with patch("requests.Session.send") as mock_request:
+        mock_request.side_effect = [rate_limited_response, success_response]
+        if method == "put":
+            assert client.create_record(sample_metadata, datacite_prefix) == "12345"
+        else:
+            assert client.link_related_records("1", "2", 1, "publication") is (
+                success_response
+            )
+
+    assert mock_request.call_count == 2
+    assert mock_request.call_args_list[0] == mock_request.call_args_list[1]
+    assert mock_request.call_args[0][0].method == method.upper()
+    assert mock_request.call_args[0][0].body
+    mock_sleep.assert_called_once_with(5)
+
+
+@pytest.mark.parametrize(
+    "header", [None, "", "invalid", "1.5", "Tue, 17 Nov 2026 10:02:00 GMT"]
+)
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+@patch("requests.Session.send")
+def test_rate_limit_without_valid_retry_after_raises(
+    mock_get, mock_sleep, client, header
+):
+    """Test that an absent or invalid Retry-After does not cause a retry."""
+    response = requests.Response()
+    response.status_code = 429
+    response.url = "https://api.symplectic.example.com"
+    if header is not None:
+        response.headers["Retry-After"] = header
+    mock_get.return_value = response
+
+    with pytest.raises(requests.exceptions.HTTPError) as error:
+        client.fetch_related_objects("10.5281/zenodo.123456")
+
+    assert error.value.response is response
+    mock_get.assert_called_once()
+    mock_sleep.assert_not_called()
+
+
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+@patch("requests.Session.send")
+def test_other_http_errors_are_not_retried(mock_get, mock_sleep, client):
+    """Test that Retry-After is ignored unless the response is HTTP 429."""
+    response = requests.Response()
+    response.status_code = 503
+    response.url = "https://api.symplectic.example.com"
+    response.headers["Retry-After"] = "120"
+    mock_get.return_value = response
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        client.fetch_related_objects("10.5281/zenodo.123456")
+
+    mock_get.assert_called_once()
+    mock_sleep.assert_not_called()
+
+
+@patch("ic_data_repo.symplectic_interface.time.sleep")
+@patch("requests.Session.send")
+@pytest.mark.parametrize("max_retries", [0, 2])
+def test_fetch_related_objects_stops_after_max_rate_limit_retries(
+    mock_get, mock_sleep, client, max_retries
+):
+    """Test that repeated rate limits eventually raise an HTTP error."""
+    client.max_rate_limit_retries = max_retries
+    rate_limited_response = MagicMock(status_code=429)
+    rate_limited_response.headers = {"Retry-After": "0"}
+    rate_limited_response.raise_for_status.side_effect = requests.exceptions.HTTPError
+    mock_get.return_value = rate_limited_response
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        client.fetch_related_objects("10.5281/zenodo.123456")
+
+    assert mock_get.call_count == max_retries + 1
+    assert mock_sleep.call_count == max_retries
+
+
+@patch("requests.Session.send")
 def test_link_related_records(mock_post, client):
     """Test linking related records."""
     mock_response = MagicMock()
@@ -290,15 +401,16 @@ def test_link_related_records(mock_post, client):
     client.link_related_records(from_id, to_id, type_id, to_object_type)
 
     mock_post.assert_called_once()
-    called_url = mock_post.call_args[0][0]
-    called_data = mock_post.call_args[1]["data"]
-    assert called_url == f"{client.api_url}/relationships"
+    prepared = mock_post.call_args[0][0]
+    called_data = prepared.body
+    assert prepared.method == "POST"
+    assert prepared.url == f"{client.api_url}/relationships"
     assert f"{to_object_type}({from_id})" in called_data
     assert f"{to_object_type}({to_id})" in called_data
     assert "<type-id>1</type-id>" in called_data
 
 
-@patch("requests.get")
+@patch("requests.Session.send")
 def test_get_related_awards_success(mock_get, client):
     """Test fetching a single related award successfully."""
     mock_response = MagicMock()
@@ -317,10 +429,12 @@ def test_get_related_awards_success(mock_get, client):
 
     assert result == "award789"
     mock_get.assert_called_once()
-    assert f'query="{award_type_id}"="{award_id}"' in mock_get.call_args[0][0]
+    assert f'query="{award_type_id}"="{award_id}"' in unquote(
+        mock_get.call_args[0][0].url
+    )
 
 
-@patch("requests.get")
+@patch("requests.Session.send")
 def test_get_related_awards_no_results(mock_get, client):
     """Test fetching related awards when none are found."""
     mock_response = MagicMock()
@@ -340,7 +454,7 @@ def test_get_related_awards_no_results(mock_get, client):
         client.get_related_awards(award_id, award_type_id)
 
 
-@patch("requests.get")
+@patch("requests.Session.send")
 def test_get_related_awards_multiple_results(mock_get, client):
     """Test fetching related awards when multiple are found."""
     mock_response = MagicMock()
@@ -360,7 +474,7 @@ def test_get_related_awards_multiple_results(mock_get, client):
         client.get_related_awards(award_id, award_type_id)
 
 
-@patch("requests.get")
+@patch("requests.Session.send")
 def test_search_symplectic(mock_get, client):
     """Test searching Symplectic for records matching DOI and title keyword."""
     mock_response = MagicMock()
@@ -423,7 +537,7 @@ def test_search_symplectic(mock_get, client):
     }
 
     mock_get.assert_called_once()
-    called_url = mock_get.call_args[0][0]
+    called_url = unquote(mock_get.call_args[0][0].url)
     assert f'query=title-keywords="{doi_query}"' in called_url
     assert called_url.startswith(client.api_url)
 
@@ -434,6 +548,6 @@ def test_search_symplectic(mock_get, client):
     results_title = client.search_symplectic(title_query, "first-author-name")
     assert len(results_title) == 2
     mock_get.assert_called_once()
-    called_url = mock_get.call_args[0][0]
+    called_url = unquote(mock_get.call_args[0][0].url)
     assert f'query=first-author-name="{title_query}"' in called_url
     assert called_url.startswith(client.api_url)

@@ -1,10 +1,15 @@
 """Additional views."""
 
 from flask import Blueprint, abort
-from flask_login import login_required
+from flask_login import login_required, user_logged_in
 from invenio_oauthclient.views.client import _login as _oauthclient_login
 
-from .auth.orcid import linked_orcid_id, orcid_linking_available
+from .auth.orcid import (
+    flag_orcid_banner,
+    linked_orcid_id,
+    orcid_linking_available,
+    show_orcid_banner,
+)
 
 
 @login_required
@@ -34,8 +39,11 @@ def create_blueprint(app):
         endpoint="connect_orcid",
     )
 
-    # Template helpers for the Linked Accounts page
+    # Template helpers for the Linked Accounts page and the front page ORCID banner
     blueprint.add_app_template_global(orcid_linking_available)
     blueprint.add_app_template_global(linked_orcid_id)
+    blueprint.add_app_template_global(show_orcid_banner)
+
+    user_logged_in.connect(flag_orcid_banner, app)
 
     return blueprint

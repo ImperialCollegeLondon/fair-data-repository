@@ -41,14 +41,14 @@ def test_creator_customisation(driver):
         EC.visibility_of_element_located(
             (
                 By.XPATH,
-                "//button[normalize-space()='Add creator']"
+                "//button[normalize-space()='Add author']"
                 "/ancestor::div[contains(concat(' ', normalize-space(@class), ' '),"
                 " ' field ')][1]",
             )
         )
     )
     creator_field.find_element(
-        By.XPATH, ".//button[normalize-space()='Add creator']"
+        By.XPATH, ".//button[normalize-space()='Add author']"
     ).click()
 
     modal = wait.until(
